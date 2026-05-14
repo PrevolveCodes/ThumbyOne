@@ -393,12 +393,20 @@ static void draw_usb_row(usb_row_state_t st) {
  */
 
 /* Slot order in the grid must match the lobby_icons[] indexing
- * emitted by pack_icons.py (NES, P8, DOOM, MPY). */
-static const thumbyone_slot_t g_grid_slot_order[4] = {
+ * emitted by pack_icons.py (NES, P8, DOOM, MPY, then page-1 tiles
+ * starting at index 4: SCUMM + 3 reserved). */
+static const thumbyone_slot_t g_grid_slot_order[8] = {
     THUMBYONE_SLOT_NES,
     THUMBYONE_SLOT_P8,
     THUMBYONE_SLOT_DOOM,
     THUMBYONE_SLOT_MPY,
+    /* Page 1: SCUMM + reserved future slots.  Order matters — the
+     * grid_idx for each entry below maps directly to the visual
+     * tile position on its page. */
+    THUMBYONE_SLOT_SCUMM,
+    THUMBYONE_SLOT_LOBBY,  /* placeholder — unused tile #5 */
+    THUMBYONE_SLOT_LOBBY,  /* placeholder — unused tile #6 */
+    THUMBYONE_SLOT_LOBBY,  /* placeholder — unused tile #7 */
 };
 
 /* Per-slot "is this slot actually compiled into this build" flags,
@@ -418,20 +426,48 @@ static const thumbyone_slot_t g_grid_slot_order[4] = {
 #ifndef THUMBYONE_LOBBY_HAS_MPY
 #define THUMBYONE_LOBBY_HAS_MPY 1
 #endif
+#ifndef THUMBYONE_LOBBY_HAS_SCUMM
+#define THUMBYONE_LOBBY_HAS_SCUMM 1
+#endif
 
-static const bool g_grid_slot_present[4] = {
+/* Two pages of 4 tiles each.  Page 0: existing emulator/runtime
+ * slots.  Page 1: SCUMM + three reserved positions for future
+ * slots.  LB/RB switch pages; D-pad navigates within a page. */
+#define LOBBY_PAGES        2
+#define LOBBY_TILES_PER_PAGE 4
+#define LOBBY_TOTAL_SLOTS  (LOBBY_PAGES * LOBBY_TILES_PER_PAGE)
+
+static const bool g_grid_slot_present[LOBBY_TOTAL_SLOTS] = {
     THUMBYONE_LOBBY_HAS_NES,
     THUMBYONE_LOBBY_HAS_P8,
     THUMBYONE_LOBBY_HAS_DOOM,
     THUMBYONE_LOBBY_HAS_MPY,
+    THUMBYONE_LOBBY_HAS_SCUMM,
+    0, 0, 0,                            /* reserved future slots */
 };
 
-/* Pick the first enabled slot for the initial cursor position. If
- * none are enabled the build would be empty anyway; fall back to 0
- * so the lobby still renders something.  */
-static int first_enabled_slot(void) {
-    for (int i = 0; i < 4; ++i) if (g_grid_slot_present[i]) return i;
+/* Find the first enabled slot anywhere across all pages. */
+static int first_enabled_slot_global(void) {
+    for (int i = 0; i < LOBBY_TOTAL_SLOTS; ++i)
+        if (g_grid_slot_present[i]) return i;
     return 0;
+}
+
+/* Find the first enabled slot on a specific page (0..LOBBY_PAGES-1).
+ * Returns the within-page index (0..3), or -1 if the page is empty. */
+static int first_enabled_on_page(int page) {
+    int base = page * LOBBY_TILES_PER_PAGE;
+    for (int i = 0; i < LOBBY_TILES_PER_PAGE; ++i) {
+        if (g_grid_slot_present[base + i]) return i;
+    }
+    return -1;
+}
+
+/* Back-compat: first enabled slot, returning within-page index of
+ * page 0.  Used at boot only; the page state is wired separately. */
+static int first_enabled_slot(void) {
+    int idx = first_enabled_on_page(0);
+    return (idx >= 0) ? idx : 0;
 }
 
 #define GRID_TILE_SIZE  48
@@ -443,7 +479,13 @@ static int first_enabled_slot(void) {
  * doesn't highlight a greyed-out tile. If all slots are disabled,
  * stays at 0 — the build is essentially broken in that case but we
  * don't want to crash at boot. */
-static int g_grid_cursor = 0;   /* 0..3 — overwritten in main()  */
+static int g_grid_cursor = 0;   /* 0..3 — within-page (overwritten in main) */
+static int g_grid_page   = 0;   /* 0..LOBBY_PAGES-1, LB/RB cycle */
+
+/* Combined slot index = page * 4 + within-page cursor. */
+static inline int grid_slot_idx(void) {
+    return g_grid_page * LOBBY_TILES_PER_PAGE + g_grid_cursor;
+}
 
 static void grid_tile_origin(int idx, int *ox, int *oy) {
     int col = idx & 1;
@@ -481,7 +523,7 @@ static void dim_tile(int x, int y, int shift) {
  * g_grid_slot_order[]. The NES tile's label picks up /MD under
  * WITH_MD builds so the user sees at a glance that the slot also
  * runs Mega Drive / Genesis / PC Engine ROMs. */
-static const char *const g_grid_labels[4] = {
+static const char *const g_grid_labels[LOBBY_TOTAL_SLOTS] = {
 #if defined(THUMBYONE_WITH_MD) && THUMBYONE_WITH_MD
     "NES / SMS / GG / GB / MD / PCE",
 #else
@@ -490,6 +532,8 @@ static const char *const g_grid_labels[4] = {
     "PICO-8",
     "DOOM",
     "MICROPYTHON",
+    "SCUMM (MI / Indy)",
+    "", "", "",                /* reserved */
 };
 
 /* ThumbyOne palette — dark navy header/footer bars with a cyan
@@ -588,17 +632,40 @@ static void render_home(void) {
      *   - cursor tile → full brightness + yellow corner brackets
      * Corners are drawn outside the 48x48 icon so they don't eat
      * any actual artwork. */
-    for (int i = 0; i < 4 && i < (int)lobby_icons_count; ++i) {
-        int ox, oy;
-        grid_tile_origin(i, &ox, &oy);
-        lobby_icon_draw(g_fb, &lobby_icons[i], ox, oy);
-        if (!g_grid_slot_present[i]) {
-            dim_tile(ox, oy, 2);        /* hard dim — disabled */
-        } else if (i != g_grid_cursor) {
-            dim_tile(ox, oy, 1);        /* gentle dim — not selected */
+    {
+        int page_base = g_grid_page * LOBBY_TILES_PER_PAGE;
+        for (int i = 0; i < LOBBY_TILES_PER_PAGE; ++i) {
+            int slot_idx = page_base + i;
+            if (slot_idx >= (int)lobby_icons_count) break;
+            int ox, oy;
+            grid_tile_origin(i, &ox, &oy);
+            lobby_icon_draw(g_fb, &lobby_icons[slot_idx], ox, oy);
+            if (!g_grid_slot_present[slot_idx]) {
+                dim_tile(ox, oy, 2);        /* hard dim — disabled */
+            } else if (i != g_grid_cursor) {
+                dim_tile(ox, oy, 1);        /* gentle dim — not selected */
+            }
+            if (i == g_grid_cursor && g_grid_slot_present[slot_idx]) {
+                draw_selection_corners(ox, oy);
+            }
         }
-        if (i == g_grid_cursor && g_grid_slot_present[i]) {
-            draw_selection_corners(ox, oy);
+    }
+
+    /* Page indicator — small dots between the bottom of the grid
+     * and the footer bar.  Filled dot = current page; outline =
+     * other page(s).  Only drawn if there's more than one page. */
+    if (LOBBY_PAGES > 1) {
+        const int dot_y    = 113;            /* just above footer line at y=118 */
+        const int dot_w    = 3;
+        const int dot_gap  = 3;
+        int total_w = LOBBY_PAGES * dot_w + (LOBBY_PAGES - 1) * dot_gap;
+        int dot_x   = (128 - total_w) / 2;
+        for (int p = 0; p < LOBBY_PAGES; ++p) {
+            uint16_t c = (p == g_grid_page) ? COL_BAR_LINE : COL_USB_OFF;
+            for (int j = 0; j < dot_w; ++j)
+                for (int i = 0; i < dot_w; ++i)
+                    g_fb[(dot_y + j) * 128 + (dot_x + i)] = c;
+            dot_x += dot_w + dot_gap;
         }
     }
 
@@ -610,8 +677,9 @@ static void render_home(void) {
             g_fb[y * 128 + x] = COL_BAR_BG;
     for (int x = 0; x < 128; ++x) g_fb[118 * 128 + x] = COL_BAR_LINE;
     {
-        const char *label = g_grid_labels[g_grid_cursor];
-        uint16_t col = g_grid_slot_present[g_grid_cursor]
+        int sidx = grid_slot_idx();
+        const char *label = g_grid_labels[sidx];
+        uint16_t col = g_grid_slot_present[sidx]
                          ? COL_BAR_FG : COL_USB_OFF;   /* dim for disabled */
         int lw = nes_font_width(label);
         nes_font_draw(g_fb, label, (128 - lw) / 2, 121, col);
@@ -1591,11 +1659,13 @@ int main(void) {
      * doesn't sweep the cursor uncontrollably across tiles. */
     bool prev_up = false, prev_down = false;
     bool prev_left = false, prev_right = false;
+    bool prev_lb = false, prev_rb = false;
 
     while (1) {
         USB_PUMP();
 
         int prev_cursor = g_grid_cursor;
+        int prev_page   = g_grid_page;
 
         /* D-pad navigation. UP/DOWN flip the row (cursor ^= 2);
          * LEFT/RIGHT flip the column (cursor ^= 1). With four tiles
@@ -1609,6 +1679,24 @@ int main(void) {
         bool now_down  = btn_down_pressed();
         bool now_left  = btn_left_pressed();
         bool now_right = btn_right_pressed();
+        bool now_lb    = btn_lb_pressed();
+        bool now_rb    = btn_rb_pressed();
+
+        /* LB / RB swap pages (only meaningful when LOBBY_PAGES > 1).
+         * Each tap advances by one page in either direction, with
+         * wrap-around.  After switching, snap the cursor to the
+         * first enabled tile on the new page so we don't sit on a
+         * greyed-out slot. */
+        if (LOBBY_PAGES > 1) {
+            int dpage = 0;
+            if (now_lb && !prev_lb) dpage -= 1;
+            if (now_rb && !prev_rb) dpage += 1;
+            if (dpage != 0) {
+                g_grid_page = (g_grid_page + dpage + LOBBY_PAGES) % LOBBY_PAGES;
+                int landing = first_enabled_on_page(g_grid_page);
+                if (landing >= 0) g_grid_cursor = landing;
+            }
+        }
 
         int  axis_mask = 0;
         if (now_up    && !prev_up)    axis_mask ^= 2;
@@ -1616,21 +1704,31 @@ int main(void) {
         if (now_left  && !prev_left)  axis_mask ^= 1;
         if (now_right && !prev_right) axis_mask ^= 1;
         if (axis_mask) {
-            g_grid_cursor ^= axis_mask;
-            if (!g_grid_slot_present[g_grid_cursor]) {
-                g_grid_cursor ^= (axis_mask ^ 3);   /* flip the other axis */
+            int candidate = g_grid_cursor ^ axis_mask;
+            int slot_idx  = g_grid_page * LOBBY_TILES_PER_PAGE + candidate;
+            if (!g_grid_slot_present[slot_idx]) {
+                candidate ^= (axis_mask ^ 3);   /* flip the other axis */
+                slot_idx = g_grid_page * LOBBY_TILES_PER_PAGE + candidate;
             }
-            if (!g_grid_slot_present[g_grid_cursor]) {
-                g_grid_cursor = first_enabled_slot();
+            if (!g_grid_slot_present[slot_idx]) {
+                int landing = first_enabled_on_page(g_grid_page);
+                if (landing >= 0) candidate = landing;
             }
+            g_grid_cursor = candidate;
         }
 
         prev_up    = now_up;
         prev_down  = now_down;
         prev_left  = now_left;
         prev_right = now_right;
+        prev_lb    = now_lb;
+        prev_rb    = now_rb;
 
-        redraw_home_if_cursor_moved(prev_cursor);
+        if (prev_page != g_grid_page) {
+            render_home();
+        } else {
+            redraw_home_if_cursor_moved(prev_cursor);
+        }
 
         /* Debounce: record intent on press, but defer the actual
          * handoff until the button is released AND no MSC activity
@@ -1638,8 +1736,9 @@ int main(void) {
          * tile; MENU opens the info overlay (battery / disk /
          * USB / fw + reboot + close). */
         if (pending_slot < 0) {
-            if (btn_a_pressed() && g_grid_slot_present[g_grid_cursor]) {
-                pending_slot = (int)g_grid_slot_order[g_grid_cursor];
+            int sidx = grid_slot_idx();
+            if (btn_a_pressed() && g_grid_slot_present[sidx]) {
+                pending_slot = (int)g_grid_slot_order[sidx];
                 pending_since_us = (uint64_t)time_us_64();
             } else if (btn_menu_pressed()) {
                 /* Wait for release so MENU-press is distinct from

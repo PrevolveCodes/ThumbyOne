@@ -34,11 +34,18 @@ NCOL   = 16
 
 # The order here must match the `lobby_icons[]` table indexing in
 # the emitted C file (which the renderer reads by slot id).
+# Page 0 (NES, P8, DOOM, MPY) is the home grid; page 1 starts at
+# index 4 with SCUMM.  Pad the page out to 4 entries with the
+# placeholder "blank" PNG so the indexing stays grid-aligned.
 ICONS = [
-    ("nes",  "NES"),
-    ("p8",   "P8"),
-    ("doom", "DOOM"),
-    ("mpy",  "MPY"),
+    ("nes",   "NES"),
+    ("p8",    "P8"),
+    ("doom",  "DOOM"),
+    ("mpy",   "MPY"),
+    ("scumm", "SCUMM"),
+    ("blank", ""),
+    ("blank", ""),
+    ("blank", ""),
 ]
 
 
