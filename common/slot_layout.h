@@ -27,17 +27,19 @@ typedef enum {
     THUMBYONE_SLOT_P8    = 0x2,   /* partition id 1 */
     THUMBYONE_SLOT_DOOM  = 0x3,   /* partition id 2 */
     THUMBYONE_SLOT_MPY   = 0x4,   /* partition id 3 */
-    THUMBYONE_SLOT_COUNT = 0x5
+    THUMBYONE_SLOT_SCUMM = 0x5,   /* partition id 4 */
+    THUMBYONE_SLOT_COUNT = 0x6
 } thumbyone_slot_t;
 
 /* Map a slot id to its partition id in pt.json. Only valid for
  * non-lobby slots. Returns -1 if not a launchable slot. */
 static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
     switch (s) {
-        case THUMBYONE_SLOT_NES:  return 0;
-        case THUMBYONE_SLOT_P8:   return 1;
-        case THUMBYONE_SLOT_DOOM: return 2;
-        case THUMBYONE_SLOT_MPY:  return 3;
+        case THUMBYONE_SLOT_NES:   return 0;
+        case THUMBYONE_SLOT_P8:    return 1;
+        case THUMBYONE_SLOT_DOOM:  return 2;
+        case THUMBYONE_SLOT_MPY:   return 3;
+        case THUMBYONE_SLOT_SCUMM: return 4;
         default:                   return -1;
     }
 }
@@ -69,11 +71,17 @@ static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
  * Two layouts:
  *   Default (THUMBYONE_WITH_MD undefined / 0):
  *     NES=1 MB, matches the original NES+SMS+GG+GB footprint. Used
- *     for backward-compat builds that want the full 9.6 MB FAT.
+ *     for backward-compat builds that want the full FAT.
  *   WITH_MD (THUMBYONE_WITH_MD=1):
  *     NES=2 MB to hold PicoDrive's precomputed YM2612/FAME/cz80
- *     flash tables (~850 KB). Every partition shifts up 1 MB; the
- *     shared FAT shrinks from 9.6 MB to 8.6 MB. */
+ *     flash tables (~850 KB). Every partition shifts up 1 MB.
+ *
+ * SCUMM slot adds a fixed 768 KB partition above MPY for the
+ * ThumbyScummby engine (game data lives in the shared FAT, not
+ * the slot itself).  This shifts P8 scratch + settings mirror +
+ * FAT up by 768 KB unconditionally.  Net FAT sizes:
+ *   Default:        FAT 8.9 MB (was 9.6 MB)
+ *   WITH_MD:        FAT 7.9 MB (was 8.6 MB) */
 #define THUMBYONE_NES_OFFSET          0x020000u   /* 128 KB — unchanged */
 #if defined(THUMBYONE_WITH_MD) && THUMBYONE_WITH_MD
 #  define THUMBYONE_NES_SIZE          (2048u * 1024u)
@@ -83,6 +91,8 @@ static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
 #  define THUMBYONE_DOOM_SIZE         (2560u * 1024u)
 #  define THUMBYONE_MPY_OFFSET        0x520000u   /* 5248 KB */
 #  define THUMBYONE_MPY_SIZE          (2048u * 1024u)
+#  define THUMBYONE_SCUMM_OFFSET      0x720000u   /* 7296 KB */
+#  define THUMBYONE_SCUMM_SIZE        (768u * 1024u)
 #else
 #  define THUMBYONE_NES_SIZE          (1024u * 1024u)
 #  define THUMBYONE_P8_OFFSET         0x120000u   /* 1152 KB */
@@ -91,6 +101,8 @@ static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
 #  define THUMBYONE_DOOM_SIZE         (2560u * 1024u)
 #  define THUMBYONE_MPY_OFFSET        0x420000u   /* 4224 KB */
 #  define THUMBYONE_MPY_SIZE          (2048u * 1024u)
+#  define THUMBYONE_SCUMM_OFFSET      0x620000u   /* 6272 KB */
+#  define THUMBYONE_SCUMM_SIZE        (768u * 1024u)
 #endif
 
 /* P8 active-cart scratch region. Not a partition — P8 owns it,
@@ -103,9 +115,9 @@ static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
  * untouched. Net P8 cart space: 252 KB — still plenty (the
  * biggest compressed cart we've seen is < 64 KB). */
 #if defined(THUMBYONE_WITH_MD) && THUMBYONE_WITH_MD
-#  define THUMBYONE_P8_SCRATCH_OFFSET 0x720000u   /* 7296 KB */
+#  define THUMBYONE_P8_SCRATCH_OFFSET 0x7E0000u   /* 8064 KB (shifted +768K for SCUMM slot) */
 #else
-#  define THUMBYONE_P8_SCRATCH_OFFSET 0x620000u   /* 6272 KB */
+#  define THUMBYONE_P8_SCRATCH_OFFSET 0x6E0000u   /* 7040 KB (shifted +768K for SCUMM slot) */
 #endif
 #define THUMBYONE_P8_SCRATCH_SIZE     (252u * 1024u)
 
@@ -125,9 +137,9 @@ static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
  * mirror — the FatFs copy is the source of truth; the mirror is
  * just DOOM's view. */
 #if defined(THUMBYONE_WITH_MD) && THUMBYONE_WITH_MD
-#  define THUMBYONE_SETTINGS_MIRROR_OFFSET 0x75F000u   /* 7548 KB */
+#  define THUMBYONE_SETTINGS_MIRROR_OFFSET 0x81F000u   /* 8316 KB (shifted +768K) */
 #else
-#  define THUMBYONE_SETTINGS_MIRROR_OFFSET 0x65F000u   /* 6524 KB */
+#  define THUMBYONE_SETTINGS_MIRROR_OFFSET 0x71F000u   /* 7292 KB (shifted +768K) */
 #endif
 #define THUMBYONE_SETTINGS_MIRROR_SIZE    (4u * 1024u)
 
@@ -137,9 +149,9 @@ static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
  * by 1 MB to make room for the enlarged NES partition, reducing
  * the ROM-storage area from 9.6 MB to 8.6 MB. */
 #if defined(THUMBYONE_WITH_MD) && THUMBYONE_WITH_MD
-#  define THUMBYONE_FAT_OFFSET        0x760000u   /* 7552 KB */
+#  define THUMBYONE_FAT_OFFSET        0x820000u   /* 8320 KB (shifted +768K) */
 #else
-#  define THUMBYONE_FAT_OFFSET        0x660000u   /* 6528 KB */
+#  define THUMBYONE_FAT_OFFSET        0x720000u   /* 7296 KB (shifted +768K) */
 #endif
 #define THUMBYONE_FAT_SIZE            (THUMBYONE_FLASH_SIZE - THUMBYONE_FAT_OFFSET)
 

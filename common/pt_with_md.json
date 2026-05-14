@@ -57,6 +57,18 @@
         "nonsecure": "rw",
         "bootloader": "rw"
       }
+    },
+    {
+      "name": "SCUMM",
+      "id": 4,
+      "start": "7296K",
+      "size": "768K",
+      "families": ["absolute"],
+      "permissions": {
+        "secure": "rw",
+        "nonsecure": "rw",
+        "bootloader": "rw"
+      }
     }
   ]
 }
