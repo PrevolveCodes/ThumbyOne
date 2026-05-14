@@ -57,10 +57,11 @@ add_compile_definitions(THUMBYONE_FW_VERSION="${THUMBYONE_FW_VERSION}")
 # ----- Slot selection --------------------------------------------------
 # (Only NES is wired in step C1. P8 / DOOM / MPY follow once their
 # subproject CMake hooks are in place.)
-option(THUMBYONE_WITH_NES  "Include ThumbyNES firmware"  ON)
-option(THUMBYONE_WITH_P8   "Include ThumbyP8 firmware"   ON)
-option(THUMBYONE_WITH_DOOM "Include ThumbyDOOM firmware" ON)
-option(THUMBYONE_WITH_MPY  "Include MicroPython firmware" ON)
+option(THUMBYONE_WITH_NES   "Include ThumbyNES firmware"     ON)
+option(THUMBYONE_WITH_P8    "Include ThumbyP8 firmware"      ON)
+option(THUMBYONE_WITH_DOOM  "Include ThumbyDOOM firmware"    ON)
+option(THUMBYONE_WITH_MPY   "Include MicroPython firmware"   ON)
+option(THUMBYONE_WITH_SCUMM "Include ThumbyScummby firmware" ON)
 # THUMBYONE_WITH_MD: include the Mega Drive / Genesis core (PicoDrive)
 # in ThumbyNES. MD's precomputed flash tables (FAME jumptable + YM2612
 # + cz80) add ~850 KB, pushing ThumbyNES past the default 1 MB NES
@@ -185,6 +186,7 @@ target_compile_definitions(lobby PRIVATE
     THUMBYONE_LOBBY_HAS_P8=$<IF:$<BOOL:${THUMBYONE_WITH_P8}>,1,0>
     THUMBYONE_LOBBY_HAS_DOOM=$<IF:$<BOOL:${THUMBYONE_WITH_DOOM}>,1,0>
     THUMBYONE_LOBBY_HAS_MPY=$<IF:$<BOOL:${THUMBYONE_WITH_MPY}>,1,0>
+    THUMBYONE_LOBBY_HAS_SCUMM=$<IF:$<BOOL:${THUMBYONE_WITH_SCUMM}>,1,0>
 )
 pico_embed_pt_in_binary(lobby ${THUMBYONE_PT_JSON})
 pico_set_uf2_family(lobby "absolute")
@@ -361,6 +363,38 @@ if (THUMBYONE_WITH_MPY)
 endif()
 
 
+# ----- SCUMM slot -----------------------------------------------------
+# Rebases to flash offset 0x620000 (partition 4, "SCUMM", 768 KB).
+# Default layout; shifts to 0x720000 when WITH_MD=ON (+1 MB for the
+# enlarged NES slot).  Engine code only — game data lives in the
+# shared FAT under /scumm/<game>/.
+if (THUMBYONE_WITH_SCUMM)
+    set(THUMBYONE_SLOT_MODE "scumm")
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../ThumbyScummby/device_pico
+                     ${CMAKE_BINARY_DIR}/scumm_slot
+                     EXCLUDE_FROM_ALL)
+    unset(THUMBYONE_SLOT_MODE)
+
+    # ThumbyScummby builds per-game UF2 outputs named
+    # firmware_thumbyscummby_${THUMBYSCUMMBY_GAME}.uf2 — in slot mode
+    # the game flag is ignored at runtime (engine reads from /scumm/
+    # on the shared FAT) but the build target still picks one default
+    # to set the OUTPUT_NAME.  Default game in slot mode is mi1.
+    set(SCUMM_TARGET thumbyscummby)
+    set(SCUMM_UF2_NAME firmware_thumbyscummby_mi1.uf2)
+    list(APPEND THUMBYONE_SLOT_UF2_INPUTS
+        ${CMAKE_BINARY_DIR}/scumm_slot/${SCUMM_UF2_NAME})
+    if (THUMBYONE_WITH_MD)
+        list(APPEND THUMBYONE_SLOT_UF2_REBASES
+            "${SCUMM_UF2_NAME}=0x10000000:0x10720000")
+    else()
+        list(APPEND THUMBYONE_SLOT_UF2_REBASES
+            "${SCUMM_UF2_NAME}=0x10000000:0x10620000")
+    endif()
+    list(APPEND THUMBYONE_SLOT_DEPS ${SCUMM_TARGET})
+endif()
+
+
 # ----- Combine everything into one flash-once UF2 ---------------------
 # Build a list of --rebase args once so the custom command is
 # readable even as we add P8/DOOM/MPY slots later.
@@ -376,14 +410,23 @@ endforeach()
 # OUTPUT-based custom_command would leave thumbyone.uf2 stale
 # when only mpy_slot rebuilt. An ALL custom_target with no
 # output file always runs, and the Python combiner is cheap.
+# GBA-dedicated builds output a distinct UF2 so the standard combined
+# firmware (thumbyone.uf2 / firmware_thumbyone.uf2) is never silently
+# replaced. The user copies whichever they want to flash.
+if (THUMBYONE_WITH_GBA)
+    set(THUMBYONE_COMBINED_UF2 ${CMAKE_CURRENT_BINARY_DIR}/thumbyone_gba.uf2)
+else()
+    set(THUMBYONE_COMBINED_UF2 ${CMAKE_CURRENT_BINARY_DIR}/thumbyone.uf2)
+endif()
+
 add_custom_target(thumbyone ALL
     COMMAND ${CMAKE_COMMAND} -E echo "Combining ThumbyOne UF2s..."
     COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/combine_uf2.py
                 ${THUMBYONE_REBASE_ARGS}
-                -o ${CMAKE_CURRENT_BINARY_DIR}/thumbyone.uf2
+                -o ${THUMBYONE_COMBINED_UF2}
                 ${THUMBYONE_SLOT_UF2_INPUTS}
     DEPENDS ${THUMBYONE_SLOT_DEPS}
             ${CMAKE_CURRENT_SOURCE_DIR}/tools/combine_uf2.py
-    BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/thumbyone.uf2
+    BYPRODUCTS ${THUMBYONE_COMBINED_UF2}
     VERBATIM
 )
