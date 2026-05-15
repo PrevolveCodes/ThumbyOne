@@ -94,7 +94,7 @@ def emit(icons_dir: str, out_c: str) -> None:
     sections = []
     names = []
 
-    for name, label in ICONS:
+    for idx, (name, label) in enumerate(ICONS):
         path = os.path.join(icons_dir, name + ".png")
         if not os.path.exists(path):
             print(f"error: missing {path}", file=sys.stderr)
@@ -108,8 +108,12 @@ def emit(icons_dir: str, out_c: str) -> None:
             lo = pixels[i + 1] & 0x0F
             packed.append((hi << 4) | lo)
 
-        sections.append((name, label, palette, packed))
-        names.append(name)
+        # Symbol name includes the slot index so multiple icons
+        # sharing the same source PNG (e.g. "blank" placeholders on
+        # the reserved page-1 tiles) don't collide at link time.
+        sym_name = f"{idx}_{name}"
+        sections.append((sym_name, label, palette, packed))
+        names.append(sym_name)
 
     with open(out_c, "w") as f:
         f.write(

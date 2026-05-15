@@ -108,6 +108,13 @@ endif()
 # Brings in the handoff API + slot_layout.h + THUMBYONE_PT_JSON.
 add_subdirectory(common)
 
+# Pull in the generated offset/size constants emitted by
+# tools/gen_pt.py.  The same flags drive both the C header
+# (common/slot_layout.h via #if cascade) and these CMake variables
+# (via the generator's --cmake-out emission).  Slot rebase math
+# below uses them instead of hardcoded hex literals.
+include(${THUMBYONE_PT_CMAKE})
+
 
 # ----- Lobby ----------------------------------------------------------
 # Flash at 0x10000000, absolute family UF2, partition table
@@ -189,6 +196,7 @@ target_compile_definitions(lobby PRIVATE
     THUMBYONE_LOBBY_HAS_SCUMM=$<IF:$<BOOL:${THUMBYONE_WITH_SCUMM}>,1,0>
 )
 pico_embed_pt_in_binary(lobby ${THUMBYONE_PT_JSON})
+add_dependencies(lobby thumbyone_pt_json)
 pico_set_uf2_family(lobby "absolute")
 pico_add_extra_outputs(lobby)
 
@@ -213,8 +221,9 @@ if (THUMBYONE_WITH_NES)
     set(NES_TARGET nesrun_device)
     list(APPEND THUMBYONE_SLOT_UF2_INPUTS
         ${CMAKE_BINARY_DIR}/nes_slot/${NES_TARGET}.uf2)
+    math(EXPR NES_REBASE_DST "0x10000000 + ${THUMBYONE_NES_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
     list(APPEND THUMBYONE_SLOT_UF2_REBASES
-        "${NES_TARGET}.uf2=0x10000000:0x10020000")
+        "${NES_TARGET}.uf2=0x10000000:${NES_REBASE_DST}")
     list(APPEND THUMBYONE_SLOT_DEPS ${NES_TARGET})
 endif()
 
@@ -233,15 +242,9 @@ if (THUMBYONE_WITH_P8)
     set(P8_TARGET p8run_device)
     list(APPEND THUMBYONE_SLOT_UF2_INPUTS
         ${CMAKE_BINARY_DIR}/p8_slot/${P8_TARGET}.uf2)
-    # P8 base addr: 0x10120000 default (after 1 MB NES partition),
-    # 0x10220000 when WITH_MD=ON (after 2 MB NES partition).
-    if (THUMBYONE_WITH_MD)
-        list(APPEND THUMBYONE_SLOT_UF2_REBASES
-            "${P8_TARGET}.uf2=0x10000000:0x10220000")
-    else()
-        list(APPEND THUMBYONE_SLOT_UF2_REBASES
-            "${P8_TARGET}.uf2=0x10000000:0x10120000")
-    endif()
+    math(EXPR P8_REBASE_DST "0x10000000 + ${THUMBYONE_P8_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
+    list(APPEND THUMBYONE_SLOT_UF2_REBASES
+        "${P8_TARGET}.uf2=0x10000000:${P8_REBASE_DST}")
     list(APPEND THUMBYONE_SLOT_DEPS ${P8_TARGET})
 endif()
 
@@ -260,14 +263,9 @@ if (THUMBYONE_WITH_DOOM)
     set(DOOM_TARGET thumbydoom)
     list(APPEND THUMBYONE_SLOT_UF2_INPUTS
         ${CMAKE_BINARY_DIR}/doom_slot/${DOOM_TARGET}.uf2)
-    # DOOM base addr shifts +0x100000 when WITH_MD=ON.
-    if (THUMBYONE_WITH_MD)
-        list(APPEND THUMBYONE_SLOT_UF2_REBASES
-            "${DOOM_TARGET}.uf2=0x10000000:0x102A0000")
-    else()
-        list(APPEND THUMBYONE_SLOT_UF2_REBASES
-            "${DOOM_TARGET}.uf2=0x10000000:0x101A0000")
-    endif()
+    math(EXPR DOOM_REBASE_DST "0x10000000 + ${THUMBYONE_DOOM_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
+    list(APPEND THUMBYONE_SLOT_UF2_REBASES
+        "${DOOM_TARGET}.uf2=0x10000000:${DOOM_REBASE_DST}")
     list(APPEND THUMBYONE_SLOT_DEPS ${DOOM_TARGET})
 endif()
 
@@ -351,14 +349,9 @@ if (THUMBYONE_WITH_MPY)
     )
 
     list(APPEND THUMBYONE_SLOT_UF2_INPUTS ${MPY_UF2})
-    # MPY base addr shifts +0x100000 when WITH_MD=ON.
-    if (THUMBYONE_WITH_MD)
-        list(APPEND THUMBYONE_SLOT_UF2_REBASES
-            "firmware.uf2=0x10000000:0x10520000")
-    else()
-        list(APPEND THUMBYONE_SLOT_UF2_REBASES
-            "firmware.uf2=0x10000000:0x10420000")
-    endif()
+    math(EXPR MPY_REBASE_DST "0x10000000 + ${THUMBYONE_MPY_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
+    list(APPEND THUMBYONE_SLOT_UF2_REBASES
+        "firmware.uf2=0x10000000:${MPY_REBASE_DST}")
     list(APPEND THUMBYONE_SLOT_DEPS mpy_slot)
 endif()
 
@@ -384,13 +377,9 @@ if (THUMBYONE_WITH_SCUMM)
     set(SCUMM_UF2_NAME firmware_thumbyscummby_mi1.uf2)
     list(APPEND THUMBYONE_SLOT_UF2_INPUTS
         ${CMAKE_BINARY_DIR}/scumm_slot/${SCUMM_UF2_NAME})
-    if (THUMBYONE_WITH_MD)
-        list(APPEND THUMBYONE_SLOT_UF2_REBASES
-            "${SCUMM_UF2_NAME}=0x10000000:0x10720000")
-    else()
-        list(APPEND THUMBYONE_SLOT_UF2_REBASES
-            "${SCUMM_UF2_NAME}=0x10000000:0x10620000")
-    endif()
+    math(EXPR SCUMM_REBASE_DST "0x10000000 + ${THUMBYONE_SCUMM_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
+    list(APPEND THUMBYONE_SLOT_UF2_REBASES
+        "${SCUMM_UF2_NAME}=0x10000000:${SCUMM_REBASE_DST}")
     list(APPEND THUMBYONE_SLOT_DEPS ${SCUMM_TARGET})
 endif()
 

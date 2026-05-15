@@ -90,16 +90,62 @@ set(THUMBYONE_PICKER_INCLUDE
     ${CMAKE_CURRENT_SOURCE_DIR}/picker
     PARENT_SCOPE)
 
+# Generate the partition-table JSON from the same slot-enable flags
+# that drive common/slot_layout.h.  This is the single source of
+# truth — the previously-committed pt.json / pt_with_md.json files
+# are no longer used (they were hand-edited and inevitably drifted
+# out of sync with slot_layout.h every time we added a slot).
+#
+# tools/gen_pt.py reads THUMBYONE_WITH_* from its CLI flags; CMake
+# passes whichever flags are set.  Output lands in the build dir
+# and is what pico_embed_pt_in_binary picks up.
+set(THUMBYONE_PT_JSON    ${CMAKE_BINARY_DIR}/pt_generated.json)
+set(THUMBYONE_PT_CMAKE   ${CMAKE_BINARY_DIR}/pt_generated.cmake)
+set(GEN_PT_TOOL          ${CMAKE_CURRENT_SOURCE_DIR}/../tools/gen_pt.py)
+
+set(GEN_PT_FLAGS "")
 if (THUMBYONE_WITH_MD)
-    # NES partition grows from 1 MB to 2 MB to fit PicoDrive's tables.
-    set(THUMBYONE_PT_JSON
-        ${CMAKE_CURRENT_SOURCE_DIR}/pt_with_md.json
-        PARENT_SCOPE)
-else()
-    set(THUMBYONE_PT_JSON
-        ${CMAKE_CURRENT_SOURCE_DIR}/pt.json
-        PARENT_SCOPE)
+    list(APPEND GEN_PT_FLAGS --with-md)
 endif()
+if (NOT THUMBYONE_WITH_NES)
+    list(APPEND GEN_PT_FLAGS --no-nes)
+endif()
+if (NOT THUMBYONE_WITH_P8)
+    list(APPEND GEN_PT_FLAGS --no-p8)
+endif()
+if (NOT THUMBYONE_WITH_DOOM)
+    list(APPEND GEN_PT_FLAGS --no-doom)
+endif()
+if (NOT THUMBYONE_WITH_MPY)
+    list(APPEND GEN_PT_FLAGS --no-mpy)
+endif()
+if (NOT THUMBYONE_WITH_SCUMM)
+    list(APPEND GEN_PT_FLAGS --no-scumm)
+endif()
+
+add_custom_command(
+    OUTPUT  ${THUMBYONE_PT_JSON} ${THUMBYONE_PT_CMAKE}
+    COMMAND python3 ${GEN_PT_TOOL} ${GEN_PT_FLAGS}
+            -o ${THUMBYONE_PT_JSON}
+            --cmake-out ${THUMBYONE_PT_CMAKE}
+    DEPENDS ${GEN_PT_TOOL}
+    COMMENT "Generating partition table"
+    VERBATIM
+)
+add_custom_target(thumbyone_pt_json DEPENDS ${THUMBYONE_PT_JSON})
+
+# Run the generator immediately at configure time too, so the CMake
+# mirror file exists for include() below — add_custom_command alone
+# fires at build time, which is too late for the parent CMakeLists.
+execute_process(
+    COMMAND python3 ${GEN_PT_TOOL} ${GEN_PT_FLAGS}
+            -o ${THUMBYONE_PT_JSON}
+            --cmake-out ${THUMBYONE_PT_CMAKE}
+)
+
+# Export to parent for lobby's pico_embed_pt_in_binary call.
+set(THUMBYONE_PT_JSON  ${THUMBYONE_PT_JSON}  PARENT_SCOPE)
+set(THUMBYONE_PT_CMAKE ${THUMBYONE_PT_CMAKE} PARENT_SCOPE)
 
 # Shared battery helper — ADC sampling + EMA smoothing + percent /
 # charging hysteresis. Consumed by every slot (NES, P8, DOOM, MPY
