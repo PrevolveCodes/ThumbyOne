@@ -1698,23 +1698,48 @@ int main(void) {
             }
         }
 
-        int  axis_mask = 0;
-        if (now_up    && !prev_up)    axis_mask ^= 2;
-        if (now_down  && !prev_down)  axis_mask ^= 2;
-        if (now_left  && !prev_left)  axis_mask ^= 1;
-        if (now_right && !prev_right) axis_mask ^= 1;
-        if (axis_mask) {
-            int candidate = g_grid_cursor ^ axis_mask;
+        /* LEFT / RIGHT at the page edge spill into the previous /
+         * next page (wrap-around), matching LB/RB.  Off-page
+         * stepping triggers when the cursor is in the leftmost
+         * column for LEFT or rightmost column for RIGHT — i.e.
+         * pressing LEFT-LEFT scrolls a page left, etc. */
+        bool left_edge_press  = now_left  && !prev_left
+                              && (g_grid_cursor & 1) == 0;
+        bool right_edge_press = now_right && !prev_right
+                              && (g_grid_cursor & 1) == 1;
+        if (LOBBY_PAGES > 1 && (left_edge_press || right_edge_press)) {
+            int dpage = right_edge_press ? +1 : -1;
+            g_grid_page = (g_grid_page + dpage + LOBBY_PAGES) % LOBBY_PAGES;
+            /* Land on the opposite column at the same row so the
+             * carousel feels like a single continuous strip. */
+            int row = g_grid_cursor >> 1;
+            int col = right_edge_press ? 0 : 1;
+            int candidate = (row << 1) | col;
             int slot_idx  = g_grid_page * LOBBY_TILES_PER_PAGE + candidate;
-            if (!g_grid_slot_present[slot_idx]) {
-                candidate ^= (axis_mask ^ 3);   /* flip the other axis */
-                slot_idx = g_grid_page * LOBBY_TILES_PER_PAGE + candidate;
-            }
             if (!g_grid_slot_present[slot_idx]) {
                 int landing = first_enabled_on_page(g_grid_page);
                 if (landing >= 0) candidate = landing;
             }
             g_grid_cursor = candidate;
+        } else {
+            int  axis_mask = 0;
+            if (now_up    && !prev_up)    axis_mask ^= 2;
+            if (now_down  && !prev_down)  axis_mask ^= 2;
+            if (now_left  && !prev_left)  axis_mask ^= 1;
+            if (now_right && !prev_right) axis_mask ^= 1;
+            if (axis_mask) {
+                int candidate = g_grid_cursor ^ axis_mask;
+                int slot_idx  = g_grid_page * LOBBY_TILES_PER_PAGE + candidate;
+                if (!g_grid_slot_present[slot_idx]) {
+                    candidate ^= (axis_mask ^ 3);   /* flip the other axis */
+                    slot_idx = g_grid_page * LOBBY_TILES_PER_PAGE + candidate;
+                }
+                if (!g_grid_slot_present[slot_idx]) {
+                    int landing = first_enabled_on_page(g_grid_page);
+                    if (landing >= 0) candidate = landing;
+                }
+                g_grid_cursor = candidate;
+            }
         }
 
         prev_up    = now_up;
