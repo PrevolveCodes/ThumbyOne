@@ -368,13 +368,11 @@ if (THUMBYONE_WITH_SCUMM)
                      EXCLUDE_FROM_ALL)
     unset(THUMBYONE_SLOT_MODE)
 
-    # ThumbyScummby builds per-game UF2 outputs named
-    # firmware_thumbyscummby_${THUMBYSCUMMBY_GAME}.uf2 — in slot mode
-    # the game flag is ignored at runtime (engine reads from /scumm/
-    # on the shared FAT) but the build target still picks one default
-    # to set the OUTPUT_NAME.  Default game in slot mode is mi1.
+    # Slot mode builds one universal UF2 (no per-game suffix) — the
+    # engine scans /scumm/* on the shared FAT at boot and picks a
+    # supported game from engine/include/game_table.h.
     set(SCUMM_TARGET thumbyscummby)
-    set(SCUMM_UF2_NAME firmware_thumbyscummby_mi1.uf2)
+    set(SCUMM_UF2_NAME firmware_thumbyscummby.uf2)
     list(APPEND THUMBYONE_SLOT_UF2_INPUTS
         ${CMAKE_BINARY_DIR}/scumm_slot/${SCUMM_UF2_NAME})
     math(EXPR SCUMM_REBASE_DST "0x10000000 + ${THUMBYONE_SCUMM_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
