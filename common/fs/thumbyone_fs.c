@@ -60,7 +60,6 @@ FRESULT thumbyone_fs_format(FATFS *out_fs, uint8_t *work, size_t worklen) {
     (void)f_mkdir("/carts");
     (void)f_mkdir("/games");
     (void)f_mkdir("/scumm");
-    (void)f_mkdir("/scumm/uploads");
 
     return FR_OK;
 }

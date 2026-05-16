@@ -652,8 +652,11 @@ static void render_home(void) {
     }
 
     /* Page indicator — small dots between the bottom of the grid
-     * and the footer bar.  Filled dot = current page; outline =
-     * other page(s).  Only drawn if there's more than one page. */
+     * and the footer bar.  Both pips drawn in the same blue
+     * (matches the bar-accent cyan); the current page is FILLED
+     * and other pages are HOLLOW (perimeter only), so they read
+     * as a single colour-keyed pair rather than a green/blue
+     * contrast pair.  Only drawn if there's more than one page. */
     if (LOBBY_PAGES > 1) {
         const int dot_y    = 113;            /* just above footer line at y=118 */
         const int dot_w    = 3;
@@ -661,10 +664,16 @@ static void render_home(void) {
         int total_w = LOBBY_PAGES * dot_w + (LOBBY_PAGES - 1) * dot_gap;
         int dot_x   = (128 - total_w) / 2;
         for (int p = 0; p < LOBBY_PAGES; ++p) {
-            uint16_t c = (p == g_grid_page) ? COL_BAR_LINE : COL_USB_OFF;
-            for (int j = 0; j < dot_w; ++j)
-                for (int i = 0; i < dot_w; ++i)
-                    g_fb[(dot_y + j) * 128 + (dot_x + i)] = c;
+            bool filled = (p == g_grid_page);
+            for (int j = 0; j < dot_w; ++j) {
+                for (int i = 0; i < dot_w; ++i) {
+                    bool on_edge = (j == 0 || j == dot_w - 1 ||
+                                    i == 0 || i == dot_w - 1);
+                    if (filled || on_edge) {
+                        g_fb[(dot_y + j) * 128 + (dot_x + i)] = COL_BAR_LINE;
+                    }
+                }
+            }
             dot_x += dot_w + dot_gap;
         }
     }
