@@ -42,6 +42,49 @@ uint32_t thumbyone_disk_sector_size(void) {
     return THUMBYONE_DISK_SECTOR_SIZE;
 }
 
+/* Compute the XIP virtual address that reads from the given byte
+ * offset within the shared FAT.  Two cases, picked at runtime from
+ * ATRANS[0]'s actual configuration:
+ *
+ *  1. FAT lies entirely within the slot's 4 MB ATRANS[0] window (the
+ *     bootrom sets BASE = slot_phys_offset, SIZE = 0x400 / 4 MB).
+ *     This is always true for the SCUMM slot — the FAT immediately
+ *     follows the SCUMM partition with only ~256 KB of scratch +
+ *     settings in between, so FAT-relative offset is well under 4
+ *     MB.  We use the slot-relative virtual address (XIP_BASE +
+ *     fat_offset_within_window), which ATRANS[0] then translates
+ *     to (slot_phys + fat_offset_within_window) → the right FAT
+ *     byte for any slot location.  This works equally for the
+ *     default firmware (FAT at 7 MB just after SCUMM at 6.2 MB)
+ *     and for the scumm-only preset (FAT at 1 MB just after SCUMM
+ *     at 128 KB) — the *gap* is identical, only the absolute
+ *     offsets shift, and ATRANS[0]'s BASE field absorbs that
+ *     shift.
+ *
+ *  2. FAT is too far from the slot to fit in ATRANS[0]'s 4 MB
+ *     window (e.g. NES slot in default firmware: NES at 128 KB,
+ *     FAT at 7 MB, gap ~7 MB).  Fall back to absolute virtual
+ *     addressing — ATRANS[1..3]'s identity mapping over physical
+ *     4..16 MB handles it.
+ *
+ * This makes a single common implementation correct for every
+ * slot and every preset, with no padding waste in slim presets.
+ * The runtime check costs one register read + branch per
+ * disk-op which is negligible vs. the actual flash read latency. */
+static inline const uint8_t *thumbyone_fat_xip_addr(uint32_t byte_offset) {
+    uint32_t atrans0 = qmi_hw->atrans[0];
+    uint32_t slot_phys_base = (atrans0 & 0xFFFu) * 4096u;
+    uint32_t fat_within_slot_window = THUMBYONE_FAT_OFFSET - slot_phys_base;
+    if (fat_within_slot_window < 0x400000u) {
+        return (const uint8_t *)(XIP_BASE_ADDR
+                                  + fat_within_slot_window
+                                  + byte_offset);
+    }
+    return (const uint8_t *)(XIP_BASE_ADDR
+                              + THUMBYONE_FAT_OFFSET
+                              + byte_offset);
+}
+
 
 /* ATRANS snapshot helpers — the SDK's flash routines reset QMI
  * during erase/program, including the identity mappings our
@@ -75,9 +118,9 @@ static inline void restore_atrans(const uint32_t in[4]) {
 
 int thumbyone_disk_read(uint8_t *dst, uint32_t sector, uint32_t count) {
     if (sector + count > thumbyone_disk_sector_count()) return -1;
-    const uint8_t *xip = (const uint8_t *)
-        (XIP_BASE_ADDR + THUMBYONE_FAT_OFFSET + sector * THUMBYONE_DISK_SECTOR_SIZE);
-    memcpy(dst, xip, count * THUMBYONE_DISK_SECTOR_SIZE);
+    memcpy(dst,
+           thumbyone_fat_xip_addr(sector * THUMBYONE_DISK_SECTOR_SIZE),
+           count * THUMBYONE_DISK_SECTOR_SIZE);
     return 0;
 }
 
@@ -119,8 +162,8 @@ static int commit_block(uint32_t block_idx, const uint8_t *buf) {
      * landed. Anything but an exact match means the flash chip
      * didn't accept the write, or ATRANS is pointing somewhere
      * wrong. Either way the caller needs to know. */
-    const uint8_t *xip = (const uint8_t *)
-        (XIP_BASE_ADDR + THUMBYONE_FAT_OFFSET + block_idx * THUMBYONE_DISK_ERASE_SIZE);
+    const uint8_t *xip = thumbyone_fat_xip_addr(
+        block_idx * THUMBYONE_DISK_ERASE_SIZE);
     if (memcmp(xip, buf, THUMBYONE_DISK_ERASE_SIZE) != 0) {
         return -1;
     }
@@ -148,10 +191,9 @@ int thumbyone_disk_write(const uint8_t *src, uint32_t sector, uint32_t count) {
         if (sectors_in_blk > remaining) sectors_in_blk = remaining;
 
         /* Seed the block buffer from XIP (the pre-existing 4 KB). */
-        const uint8_t *xip = (const uint8_t *)
-            (XIP_BASE_ADDR + THUMBYONE_FAT_OFFSET +
-             block_idx * THUMBYONE_DISK_ERASE_SIZE);
-        memcpy(buf, xip, THUMBYONE_DISK_ERASE_SIZE);
+        memcpy(buf,
+               thumbyone_fat_xip_addr(block_idx * THUMBYONE_DISK_ERASE_SIZE),
+               THUMBYONE_DISK_ERASE_SIZE);
 
         /* Overlay the sectors being written. */
         memcpy(buf + sector_in_blk * THUMBYONE_DISK_SECTOR_SIZE,

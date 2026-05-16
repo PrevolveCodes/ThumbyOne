@@ -163,6 +163,29 @@ static void thumbyone_slot_init(void) {
     qmi_hw->atrans[1] = (0x400u << 16) | 0x400u;  /* 0x400000..0x800000 */
     qmi_hw->atrans[2] = (0x400u << 16) | 0x800u;  /* 0x800000..0xC00000 */
     qmi_hw->atrans[3] = (0x400u << 16) | 0xC00u;  /* 0xC00000..0x1000000 */
+
+    /* 3. Widen ATRANS[0]'s SIZE field to the full 4 MB window
+     *    while keeping the bootrom-set BASE (the slot's physical
+     *    flash offset).  rom_chain_image may set SIZE to the
+     *    slot's actual partition size — e.g. 640 KB for SCUMM —
+     *    which means virtual offsets past 0x0A0 (= partition end)
+     *    return a bus error instead of mapping to the bytes
+     *    immediately following the partition (scratch, settings,
+     *    shared FAT).  We widen SIZE so the slot can read its
+     *    own partition-window region all the way up to +4 MB —
+     *    enough to reach the FAT in every preset because the FAT
+     *    immediately follows the SCUMM slot (gap = SCUMM_SIZE +
+     *    scratch + settings = ~0.9 MB).  thumbyone_fat_xip_addr
+     *    in thumbyone_disk.c reads BASE from this register at
+     *    runtime to compute the right slot-relative virtual
+     *    address for FAT reads.  Only modifying SIZE, not BASE,
+     *    so the slot's code keeps fetching from the correct
+     *    physical locations — safe to do from flash code. */
+    {
+        uint32_t a0 = qmi_hw->atrans[0];
+        uint32_t base = a0 & 0xFFFu;
+        qmi_hw->atrans[0] = (0x400u << 16) | base;
+    }
     __asm__ volatile("dsb" ::: "memory");
 }
 

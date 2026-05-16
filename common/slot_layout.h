@@ -64,15 +64,30 @@ typedef enum {
     THUMBYONE_SLOT_COUNT = 0x6
 } thumbyone_slot_t;
 
+/* Map a slot enum to its partition INDEX in pt.json — i.e. the index
+ * the bootrom expects from rom_get_partition_table_info.  Indices
+ * are assigned by gen_pt.py in slot-enable order: NES, P8, DOOM,
+ * MPY, SCUMM (any disabled slot is skipped).  So the SCUMM partition
+ * is at index 4 in the default all-on build but at index 0 in the
+ * scumm-only preset.  The static all-on table the original code
+ * used would chain to a non-existent partition on every preset that
+ * dropped any of NES/P8/DOOM/MPY → bootrom reset_usb_boot fallback
+ * → "blank screen" on slot launch.  This must read the same flags
+ * (THUMBYONE_WITH_<X>=0|1, forwarded from CMake) that slot_layout.h
+ * uses everywhere else; see the WITH_X fallback block at the top of
+ * the file. */
 static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
-    switch (s) {
-        case THUMBYONE_SLOT_NES:   return 0;
-        case THUMBYONE_SLOT_P8:    return 1;
-        case THUMBYONE_SLOT_DOOM:  return 2;
-        case THUMBYONE_SLOT_MPY:   return 3;
-        case THUMBYONE_SLOT_SCUMM: return 4;
-        default:                   return -1;
-    }
+    int idx = 0;
+    if (s == THUMBYONE_SLOT_NES)   return THUMBYONE_WITH_NES   ? idx : -1;
+    if (THUMBYONE_WITH_NES)   idx++;
+    if (s == THUMBYONE_SLOT_P8)    return THUMBYONE_WITH_P8    ? idx : -1;
+    if (THUMBYONE_WITH_P8)    idx++;
+    if (s == THUMBYONE_SLOT_DOOM)  return THUMBYONE_WITH_DOOM  ? idx : -1;
+    if (THUMBYONE_WITH_DOOM)  idx++;
+    if (s == THUMBYONE_SLOT_MPY)   return THUMBYONE_WITH_MPY   ? idx : -1;
+    if (THUMBYONE_WITH_MPY)   idx++;
+    if (s == THUMBYONE_SLOT_SCUMM) return THUMBYONE_WITH_SCUMM ? idx : -1;
+    return -1;
 }
 
 /* --- Flash dimensions ---------------------------------------------- */
