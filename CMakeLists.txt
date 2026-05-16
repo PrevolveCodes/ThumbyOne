@@ -62,6 +62,22 @@ option(THUMBYONE_WITH_P8    "Include ThumbyP8 firmware"      ON)
 option(THUMBYONE_WITH_DOOM  "Include ThumbyDOOM firmware"    ON)
 option(THUMBYONE_WITH_MPY   "Include MicroPython firmware"   ON)
 option(THUMBYONE_WITH_SCUMM "Include ThumbyScummby firmware" ON)
+
+# Propagate the WITH_X flags as compile-time defines so slot_layout.h's
+# `#if THUMBYONE_WITH_<X>` conditionals see the *actual* enable state
+# instead of the header's hardcoded `#ifndef ... #define 1` fallback.
+# Without these definitions, every non-default preset (no-doom,
+# scumm-only, …) would build with mismatched FAT offsets between
+# pt.json (correct) and slot_layout.h (always all-on), causing the
+# lobby to read/format the FAT at the wrong flash address and slot
+# launches to chain into wrong partitions.
+foreach(_flag NES P8 DOOM MPY SCUMM)
+    if (THUMBYONE_WITH_${_flag})
+        add_compile_definitions(THUMBYONE_WITH_${_flag}=1)
+    else()
+        add_compile_definitions(THUMBYONE_WITH_${_flag}=0)
+    endif()
+endforeach()
 # THUMBYONE_WITH_MD: include the Mega Drive / Genesis core (PicoDrive)
 # in ThumbyNES. MD's precomputed flash tables (FAME jumptable + YM2612
 # + cz80) add ~850 KB, pushing ThumbyNES past the default 1 MB NES

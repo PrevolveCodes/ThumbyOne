@@ -512,6 +512,24 @@ slack reclaimed **~1 MB of shared FAT** for everyone — no slots dropped.
   - `firmware_thumbyone_nomd.uf2`       — all systems, no Mega Drive — 10.0 MB FAT
   - `firmware_thumbyone_nodoom.uf2`     — drop DOOM (still has NES + P8 + MPY + SCUMM, with MD) — 11.4 MB FAT
   - `firmware_thumbyone_scummonly.uf2`  — SCUMM slot only, everything else stripped — 15.0 MB FAT
+- **Slot-toggle flag forwarding fix.** `slot_layout.h` reads each
+  slot's enable state via `#if THUMBYONE_WITH_<X>`, but the
+  `THUMBYONE_WITH_NES / P8 / DOOM / MPY / SCUMM` flags were never
+  being forwarded from CMake as compile-time defines.  Only the
+  header's fallback `#ifndef ... #define 1` was firing, which
+  meant non-default presets (no-doom, scumm-only, etc.) compiled
+  the lobby + slots with the C side thinking *all* slots were on
+  while `pt.json` correctly described the actual reduced layout.
+  Symptoms: scumm-only showed only 9 MB of free FAT in Windows (the
+  lobby was looking at the default 7 MB-offset/9 MB-size FAT
+  instead of the scumm-only 1 MB-offset/15 MB-size FAT), and
+  launching the SCUMM slot from a non-default preset hung the
+  device on a blank screen (the slot binary was packed at the
+  preset's partition offset but its compile-time code references
+  pointed at the default-layout offset).  Fixed by an explicit
+  `add_compile_definitions(THUMBYONE_WITH_<X>=0|1)` loop in the
+  top-level `CMakeLists.txt`; default build is unaffected because
+  the all-on fallback already matched the all-on configuration.
 
 ### 1.12.1
 
@@ -1588,10 +1606,10 @@ Other combinations build cleanly from the same flags — flipping any single slo
 
 | Configuration | FAT size |
 |---|---:|
-| `WITH_DOOM=OFF WITH_MD=OFF` | ~12.4 MB |
-| `WITH_DOOM=OFF WITH_MPY=OFF` (no MD) | ~13.6 MB |
-| `WITH_NES=OFF WITH_MD=OFF WITH_PCE=OFF` | ~10.0 MB |
-| `WITH_DOOM=OFF WITH_MPY=OFF WITH_NES=OFF` (etc.) | ~14.7 MB |
+| `WITH_DOOM=OFF WITH_MD=OFF` | 12.4 MB |
+| `WITH_DOOM=OFF WITH_MPY=OFF` (no MD) | 13.6 MB |
+| `WITH_NES=OFF WITH_MD=OFF WITH_PCE=OFF` | 11.0 MB |
+| `WITH_DOOM=OFF WITH_MPY=OFF WITH_NES=OFF` (all peripheral slots off) | 14.6 MB |
 
 **SCUMM game sizes for reference:** MI1 ≈ 4.4 MB, MI2 ≈ 9.1 MB, Indy 4 ≈ 9.3 MB. The default 9.0 MB FAT comfortably holds MI1; MI2 or Indy 4 need at least the `_nomd` build, and no preset under 15 MB fits two of {MI2, Indy 4} together — they're each ~9 MB and the total shared FAT can't exceed 15 MB (16 MB flash minus the lobby + SCUMM slot + scratch / settings reserves).
 
