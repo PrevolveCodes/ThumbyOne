@@ -27,9 +27,9 @@ LOBBY_KB           = 128
 NES_KB             = 1024
 NES_KB_WITH_MD     = 2048
 
-P8_KB              = 512
-DOOM_KB            = 2560
-MPY_KB             = 2048
+P8_KB              = 384
+DOOM_KB            = 2432
+MPY_KB             = 1280
 SCUMM_KB           = 640
 
 P8_SCRATCH_KB      = 252

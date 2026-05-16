@@ -82,16 +82,23 @@ static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
 /* --- Per-slot sizes (edit here to resize a slot) ------------------- */
 #define THUMBYONE_LOBBY_MAX_SIZE      (128u * 1024u)
 
+/* Slot sizes are tuned to the actual measured binary footprint plus a
+ * comfortable growth margin (see commit message for the audit table).
+ * Bumping a slot's size shifts every downstream slot + the FAT, so
+ * keep the chain compact. */
+/* Slot sizes are tuned to the measured binary footprint plus a
+ * comfortable growth margin.  Bumping a slot's size shifts every
+ * downstream slot + the FAT, so keep the chain compact. */
 #if THUMBYONE_WITH_MD
-#  define THUMBYONE_NES_SIZE          (2048u * 1024u)   /* +1 MB for PicoDrive */
+#  define THUMBYONE_NES_SIZE          (2048u * 1024u)   /* binary ~1.88 MB + 120 KB headroom */
 #else
-#  define THUMBYONE_NES_SIZE          (1024u * 1024u)
+#  define THUMBYONE_NES_SIZE          (1024u * 1024u)   /* binary ~0.86 MB + 160 KB headroom */
 #endif
 
-#define THUMBYONE_P8_SIZE             (512u * 1024u)
-#define THUMBYONE_DOOM_SIZE           (2560u * 1024u)
-#define THUMBYONE_MPY_SIZE            (2048u * 1024u)
-#define THUMBYONE_SCUMM_SIZE          (640u * 1024u)
+#define THUMBYONE_P8_SIZE             ( 384u * 1024u)   /* binary ~0.30 MB +  75 KB headroom */
+#define THUMBYONE_DOOM_SIZE           (2432u * 1024u)   /* binary ~2.27 MB + 110 KB headroom */
+#define THUMBYONE_MPY_SIZE            (1280u * 1024u)   /* binary ~0.93 MB + 320 KB headroom */
+#define THUMBYONE_SCUMM_SIZE          ( 640u * 1024u)   /* binary ~0.53 MB + 100 KB headroom (still growing) */
 
 /* P8's active-cart flash region — 256 KB total, with the last 4 KB
  * sector reserved as the cross-slot settings mirror.  NOT a
