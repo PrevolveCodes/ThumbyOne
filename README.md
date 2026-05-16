@@ -27,6 +27,7 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
   - [ThumbyP8](#thumbyp8--pico-8)
   - [ThumbyDOOM](#thumbydoom--shareware-doom)
   - [MicroPython + Tiny Game Engine](#micropython--tiny-game-engine)
+  - [ThumbyScummby](#thumbyscummby--scumm-adventures)
 - [Changelog](#changelog)
 - [Tips and troubleshooting](#tips-and-troubleshooting)
 - [Technical specifications](#technical-specifications)
@@ -41,8 +42,15 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
 | **ThumbyP8** | `.p8.png` PICO-8 carts | `/carts/` |
 | **ThumbyDOOM** | Shareware DOOM I — WAD baked into the firmware | *(none — embedded)* |
 | **MicroPython + Engine** | Python games written against the [Tiny Game Engine](https://github.com/austinio7116/TinyCircuits-Tiny-Game-Engine) | `/games/<name>/` |
+| **ThumbyScummby** | SCUMM v4 / v5 adventures — Monkey Island 1, Monkey Island 2, Indiana Jones 4 (Fate of Atlantis), and the original LucasArts `.img` install disks | `/scumm/<game>/` or drop `.img` files into `/scumm/` |
 
-All four systems share one FAT drive, visible over USB when you're in the lobby. Size depends on the build: **8.6 MB in the default (MD-enabled) layout**, 9.6 MB in the backward-compat `THUMBYONE_WITH_MD=OFF` build.
+All five systems share one FAT drive, visible over USB when you're in the lobby. Size depends on the build:
+
+- **9.0 MB** in the default (MD-enabled) layout (`firmware_thumbyone.uf2`)
+- **10.0 MB** in the backward-compat `THUMBYONE_WITH_MD=OFF` build
+- Up to **15.0 MB** in the slimmer SCUMM-only / minimal presets — see [Build matrix](#build-matrix).
+
+In 1.13 every slot got a measured-binary rightsizing audit (MPY was 53% empty, P8 and DOOM had ~150 KB of unused tail each) — the default FAT picked up +0.4 MB without anything being dropped. Larger preset images at the cost of fewer systems.
 
 ---
 
@@ -52,7 +60,7 @@ All four systems share one FAT drive, visible over USB when you're in the lobby.
 >
 > Flashing ThumbyOne **replaces the stock TinyCircuits firmware** with a completely different system. This is a full takeover, not an overlay:
 >
-> - **The TinyCircuits launcher, stock games, and system files will be gone.** ThumbyOne's shared FAT (8.6 MB in the default MD-enabled build, 9.6 MB with `THUMBYONE_WITH_MD=OFF`) sits at a different flash offset than stock — first boot will need to format a fresh volume, and anything you had on the device (saves, scores, installed games) is wiped at that point.
+> - **The TinyCircuits launcher, stock games, and system files will be gone.** ThumbyOne's shared FAT (9.0 MB in the default MD-enabled build, 10.0 MB with `THUMBYONE_WITH_MD=OFF`, up to 15 MB on the slimmer presets — see [Build matrix](#build-matrix)) sits at a different flash offset than stock — first boot will need to format a fresh volume, and anything you had on the device (saves, scores, installed games) is wiped at that point.
 > - The device is easy to flash back to stock afterwards — see instructions below. But stock firmware **doesn't expose a USB drive** — to back up anything from stock first (e.g. save files under `/Saves/`), connect via [Thonny](https://color.thumby.us/pages/getting-started-with-thonny/getting-started-with-thonny/) or `mpremote` and pull files over the REPL. Do that **before** flashing ThumbyOne.
 > - ThumbyOne uses its own filesystem layout (`/roms/`, `/carts/`, `/games/`) — stock `/Games/` Python games won't be visible until you move them into `/games/`.
 > - There is **no going back to stock with your data intact unless you back it up first** once ThumbyOne has first-booted.
@@ -65,9 +73,9 @@ All four systems share one FAT drive, visible over USB when you're in the lobby.
 
 **Download** [`firmware_thumbyone.uf2`](https://github.com/austinio7116/ThumbyOne/blob/main/firmware_thumbyone.uf2) from the root of this repo (or the latest [release](https://github.com/austinio7116/ThumbyOne/releases)) — or [build from source](#build-matrix).
 
-> **Already running ThumbyOne 1.04 or earlier, or upgrading from a `THUMBYONE_WITH_MD=OFF` build?** The MD-enabled default build **moves the shared FAT and resizes it from 9.6 MB to 8.6 MB** to make room for Mega Drive / Genesis emulation. The old FAT is invisible at the new offset — the lobby shows an **`FS BAD / A=FORMAT  B=ABORT`** prompt on first boot. **Hold A for one second** to confirm the format; everything on the old volume is wiped. **Back up `/roms/`, `/carts/`, `/games/`, `/Saves/` etc. over USB first** (instructions above in the [1.05 changelog callout](#whats-new-in-105)). After flashing and reformatting, copy back as much as fits — the new ceiling is 8.6 MB.
+> **Upgrading from any pre-1.13 build?** 1.13's slot rightsizing audit moved the shared FAT base forward by ~1 MB and grew it from 8.6 MB to **9.0 MB** (default MD-enabled build) / 9.6 MB to **10.0 MB** (`WITH_MD=OFF` build). The lobby shows an **`FS BAD / A=FORMAT  B=ABORT`** prompt on first boot at the new offset — **hold A for one second** to confirm the reformat; everything on the old volume is wiped. **Back up `/roms/`, `/carts/`, `/games/`, `/Saves/` first** (USB MSC works as usual under the old firmware), then flash, reformat, and copy back as much as fits in the new (slightly larger) volume.
 >
-> If you don't want Mega Drive / Genesis support, flash a `THUMBYONE_WITH_MD=OFF` build instead — keeps the original 9.6 MB FAT layout so your existing volume mounts untouched. The `firmware_thumbyone_nomd.uf2` file at the repo root is a prebuilt WITH_MD=OFF image.
+> If you only want a subset of systems and don't need the migration prompt at all, flash one of the slimmer preset UF2s — see [Build matrix](#build-matrix). `firmware_thumbyone_scummonly.uf2` for example gives 15 MB FAT for SCUMM-only setups.
 
 1. Power off the Thumby Color.
 2. Hold **DOWN** on the d-pad and plug in USB.
@@ -185,7 +193,7 @@ Two escape hatches for when something goes wrong:
 
 **Hold MENU at boot** → forces the lobby even if a pending slot-chain would otherwise try to start a broken slot. Useful after a bad flash or a hang.
 
-**Hold LB + RB at boot** → the lobby prompts you to keep both held for a one-second countdown, then wipes and reformats the whole shared FAT (8.6 MB in the default MD-enabled build, 9.6 MB in `THUMBYONE_WITH_MD=OFF` builds). Erases all ROMs, carts, games, and saves. Only needed if the FAT itself is corrupt (no slot can read it, or the PC says "unformatted disk").
+**Hold LB + RB at boot** → the lobby prompts you to keep both held for a one-second countdown, then wipes and reformats the whole shared FAT (size depends on the build — 9.0 MB in the default 1.13 MD-enabled build, 10.0 MB without MD, up to 15 MB on the slimmer presets). Erases all ROMs, carts, games, saves, and any extracted SCUMM data. Only needed if the FAT itself is corrupt (no slot can read it, or the PC says "unformatted disk").
 
 No driver weirdness, no Windows Format dialog, no `mpremote` incantations. LB + RB at boot is the canonical wipe.
 
@@ -407,9 +415,103 @@ The icon + description are optional (picker falls back to the directory name and
 
 See the [1.10 changelog](#110) for the supported feature set and known caveats; the technical write-up of how the shim works (and what we had to revert in MicroPython to make Umby & Glow's viper-tag trick work) is in [MicroPython + engine slot](#micropython--engine-slot).
 
+### ThumbyScummby — SCUMM adventures
+
+*Native ScummVM port for SCUMM v4 / v5 — [ThumbyScummby](https://github.com/austinio7116/ThumbyScummby) on Thumby Color.*
+
+Monkey Island 1 (VGA Floppy), Monkey Island 2, and Indiana Jones 4 (Fate of Atlantis) run from a stripped-down ScummVM core, with the engine + DCL decoder + custom 128×128 verb/sentence overlay all fitted into a 640 KB slot. Indy 3 (Last Crusade EGA) is in the descriptor table but not yet wired through the v3 file resolver — coming later.
+
+**Getting a game in:**
+
+| You have… | What to drop into `/scumm/` |
+|---|---|
+| The original LucasArts `.img` install floppies (e.g. `disk1.img`, `disk2.img`) | The `.img` files directly into `/scumm/` |
+| Pre-extracted MI1 data | Make `/scumm/mi1/` and copy in `DISK01-04.LEC`, `000.LFL`, `901-904.LFL` |
+| Pre-extracted MI2 data | Make `/scumm/mi2/` and copy in `monkey2.000` + `monkey2.001` |
+| Pre-extracted Indy 4 data | Make `/scumm/indy4/` and copy in `atlantis.000` + `atlantis.001` |
+
+If you drop `.img` files: on first boot the slot's preload phase walks each `.img` (treating it as a FAT12 floppy image), finds the PCV / LFG! archive inside, decompresses it via PKWARE DCL with the per-file XOR, and writes the extracted files into the right `/scumm/<game>/` subdir. The `.img` is consumed in place — outer FAT clusters get freed as the PCV bytes stream through them, so MI2 / Indy 4 fit during install even though the raw 5–6 `.img` footprint would otherwise blow out the 9 MB shared FAT. (Install peak ≈ final extracted game size + ~1 cluster.) Once the install finishes the picker shows the extracted game; the original `.img` files are gone.
+
+**Picker:**
+
+<p align="center">
+  <em>(Hero card and menu overlay screenshots come once the .scr64 sidecar capture lands — see 1.13 changelog.)</em>
+</p>
+
+Same chrome as the MPY picker, with a SCUMM-orange banner instead of cyan. Game list comes from the engine's built-in `kGameTable` (4 entries: MI1, MI2, Indy 3, Indy 4); each row shows install state from a quick `f_stat` on the required files. Pressing A on an installed game writes `/scumm/.active_game` and reboots into the SCUMM slot with a clean heap (P8-cart-style separate-boot pattern). MENU-long-hold returns to the lobby; MENU-short in the picker opens the overlay with battery / disk / volume / brightness / firmware version / back-to-lobby.
+
+**Controls (in-game):**
+
+| Button | Action |
+|---|---|
+| D-pad | Move on-screen pointer (or scroll viewport in Crop mode) |
+| A | Right-click (verb / inventory pick) |
+| B | Left-click (select / use) |
+| LB + UP/DOWN | Adjust master volume (0–20) |
+| MENU (tap) | Cycle scale mode (Fit / Fill / Crop) |
+| MENU (hold) | Open save / load menu (includes LOG viewer + back-to-lobby) |
+| RB | ESC — skip cutscenes / dismiss banners |
+
+**Notes:**
+
+- **Sizes (extracted):** MI1 ≈ 4.4 MB, MI2 ≈ 9.1 MB, Indy 4 ≈ 9.3 MB. No combination of two of the big v5 games (MI2, Indy 4) coexists on the default 9.0 MB FAT — pick one at a time, or flash the `firmware_thumbyone_nodoom.uf2` / `firmware_thumbyone_scummonly.uf2` preset for more headroom.
+- **Saves** under `/scumm/<game>/saves/slot<N>.sav`. Persistent across reboots; the SCUMM in-game save menu (MENU-long) handles slot selection.
+- **LOG viewer** inside the save menu is 21 columns wide — used for diagnostic output. Pre-engine failures (install errors etc.) write to `/scumm/_install.log` when the picker can't show them via the in-game viewer.
+
 ---
 
 ## Changelog
+
+### 1.13
+
+ThumbyScummby joins ThumbyOne as the fifth slot — SCUMM v4 / v5 adventures
+(Monkey Island 1 & 2, Indy 4 Atlantis) running natively on the RP2350,
+with a proper hero picker matching the MPY one. Every other slot got a
+binary-footprint audit at the same time; MPY in particular was sitting
+in a 2 MB partition while using less than half of it, so trimming the
+slack reclaimed **~1 MB of shared FAT** for everyone — no slots dropped.
+
+- **New slot: ThumbyScummby.** SCUMM v4 (MI1 VGA Floppy) and v5 (MI2,
+  Indy 4 Atlantis) adventures run from `/scumm/<game>/`. You can drop
+  either pre-extracted data files (`DISK*.LEC` + `000/901-904.LFL` for
+  MI1, `monkey2.000/001` for MI2, `atlantis.000/001` for Indy 4) or
+  the original LucasArts `.img` install floppies straight into `/scumm/`
+  — the slot's preload phase identifies the PCV / LFG! archive inside
+  each `.img`, decompresses it via PKWARE DCL, applies the per-game XOR
+  and writes the extracted files into the right `/scumm/<game>/` subdir.
+  The install is incremental: each `.img` is consumed in place (outer
+  FAT clusters freed as PCV bytes stream through them) so MI2 / Indy 4
+  fit during install even though the raw `.img` footprints would
+  otherwise overflow the shared FAT. See the [ThumbyScummby
+  README](https://github.com/austinio7116/ThumbyScummby) for the full
+  technical write-up.
+- **SCUMM picker (MPY parity).** Pre-engine hero card with orange
+  banner, 64×64 thumbnail slot, game title + variant, MENU overlay
+  for battery / disk / volume / brightness / firmware version /
+  back-to-lobby — same chrome as the MPY picker. Launch goes through
+  a P8-cart-style separate-boot handoff (`/scumm/.active_game` →
+  reboot) so the SCUMM engine starts with a clean heap rather than
+  one fragmented by the picker's ~40 KB transient allocations.
+- **Slot rightsizing — +1 MB FAT in the default build.** Measured
+  binary footprints versus the slot allocations they were inheriting
+  from the original PLAN.md:
+  - MPY:   956 KB binary  in a 2048 KB slot  → cut to 1280 KB  (saves 768 KB)
+  - DOOM: 2320 KB binary  in a 2560 KB slot  → cut to 2432 KB  (saves 128 KB)
+  - P8:    309 KB binary  in a  512 KB slot  → cut to  384 KB  (saves 128 KB)
+  - NES, SCUMM unchanged (NES is still 1.9 MB binary tight against its 2 MB; SCUMM is the one growing slot).
+
+  Default-build shared FAT goes from **8.6 MB → 9.0 MB**; the
+  `WITH_MD=OFF` build goes **9.6 MB → 10.0 MB**. No migration
+  required — the FAT base offset changes, but the lobby's
+  `FS BAD / A=FORMAT` prompt handles the move cleanly the same way
+  it did in 1.05.
+- **New preset images.** With slots independently switchable
+  (`-DTHUMBYONE_WITH_DOOM=OFF` etc.) the build matrix now ships
+  prebuilt UF2s targeting different storage / feature trade-offs:
+  - `firmware_thumbyone.uf2`            — everything (default) — 9.0 MB FAT
+  - `firmware_thumbyone_nomd.uf2`       — all systems, no Mega Drive — 10.0 MB FAT
+  - `firmware_thumbyone_nodoom.uf2`     — drop DOOM (still has NES + P8 + MPY + SCUMM, with MD) — 11.4 MB FAT
+  - `firmware_thumbyone_scummonly.uf2`  — SCUMM slot only, everything else stripped — 15.0 MB FAT
 
 ### 1.12.1
 
@@ -1458,31 +1560,44 @@ ThumbyOne is a top-level CMake project that composes four subproject firmwares p
 
 ## Build matrix
 
-The slot flags default to `ON`. Flipping any to `OFF` excludes its subproject from the build **and** greys out its tile in the lobby. `THUMBYONE_WITH_MD` is a separate flag that controls whether the NES slot includes PicoDrive (Mega Drive / Genesis emulation) — it's nested inside `THUMBYONE_WITH_NES`.
+The slot flags default to `ON`. Flipping any to `OFF` excludes its subproject from the build **and** greys out its tile in the lobby. `THUMBYONE_WITH_MD` is a separate flag that controls whether the NES slot includes PicoDrive (Mega Drive / Genesis emulation) — it's nested inside `THUMBYONE_WITH_NES`. Similarly `THUMBYONE_WITH_PCE` is nested inside NES.
 
 ```
 cmake -B build_device -DCMAKE_BUILD_TYPE=Release \
       [-DTHUMBYONE_WITH_NES=ON|OFF] \
-      [-DTHUMBYONE_WITH_MD=ON|OFF]   \   # default ON, requires WITH_NES
+      [-DTHUMBYONE_WITH_MD=ON|OFF]    \   # default ON, requires WITH_NES
+      [-DTHUMBYONE_WITH_PCE=ON|OFF]   \   # default ON, requires WITH_NES
       [-DTHUMBYONE_WITH_P8=ON|OFF] \
       [-DTHUMBYONE_WITH_DOOM=ON|OFF] \
-      [-DTHUMBYONE_WITH_MPY=ON|OFF]
+      [-DTHUMBYONE_WITH_MPY=ON|OFF] \
+      [-DTHUMBYONE_WITH_SCUMM=ON|OFF]
 cmake --build build_device -j8
 # -> build_device/thumbyone.uf2
 ```
 
-Example sizes (release builds):
+Prebuilt presets at the repo root (release builds, post-1.13 slot rightsizing):
 
-| Configuration | UF2 size | FAT size |
-|---|---:|---:|
-| Full with MD (default) | 10.9 MB | 8.6 MB |
-| Full without MD | 8.9 MB | 9.6 MB |
-| NES + P8 only (with MD) | 4.2 MB | 8.6 MB |
-| NES + P8 only (no MD) | 2.2 MB | 9.6 MB |
-| MPY only | 3.2 MB | 9.6 MB |
-| DOOM only | 2.5 MB | 9.6 MB |
+| Preset UF2 | Systems included | UF2 size | FAT size |
+|---|---|---:|---:|
+| `firmware_thumbyone.uf2`            | NES (+MD+PCE) · P8 · DOOM · MPY · **SCUMM** | 12.3 MB | **9.0 MB** |
+| `firmware_thumbyone_nomd.uf2`       | NES (no MD) · P8 · DOOM · MPY · SCUMM | 9.8 MB | **10.0 MB** |
+| `firmware_thumbyone_nodoom.uf2`     | NES (+MD+PCE) · P8 · MPY · SCUMM | 7.6 MB | **11.4 MB** |
+| `firmware_thumbyone_scummonly.uf2`  | SCUMM only | 1.3 MB | **15.0 MB** |
+
+Other combinations build cleanly from the same flags — flipping any single slot to OFF moves the FAT base forward by that slot's allocation and grows the shared FAT correspondingly. Examples:
+
+| Configuration | FAT size |
+|---|---:|
+| `WITH_DOOM=OFF WITH_MD=OFF` | ~12.4 MB |
+| `WITH_DOOM=OFF WITH_MPY=OFF` (no MD) | ~13.6 MB |
+| `WITH_NES=OFF WITH_MD=OFF WITH_PCE=OFF` | ~10.0 MB |
+| `WITH_DOOM=OFF WITH_MPY=OFF WITH_NES=OFF` (etc.) | ~14.7 MB |
+
+**SCUMM game sizes for reference:** MI1 ≈ 4.4 MB, MI2 ≈ 9.1 MB, Indy 4 ≈ 9.3 MB. The default 9.0 MB FAT comfortably holds MI1; MI2 or Indy 4 need at least the `_nomd` build, and no preset under 15 MB fits two of {MI2, Indy 4} together — they're each ~9 MB and the total shared FAT can't exceed 15 MB (16 MB flash minus the lobby + SCUMM slot + scratch / settings reserves).
 
 The MD build adds ~2 MB to the UF2 (the picodrive library + its precomputed YM2612 / FAME / cz80 flash tables) and loses 1 MB of shared FAT to the enlarged NES partition. PCE (added in 1.08) is HuCard-only and adds ~70 KB to the slot; it fits inside the existing partition and doesn't change the FAT layout.
+
+The 1.13 slot rightsizing audit (MPY 2048→1280, DOOM 2560→2432, P8 512→384) reclaimed +1024 KB of shared FAT in every configuration without dropping any features. Margins are sized for each slot's growth pace — SCUMM and MPY keep the most headroom since they're evolving fastest; NES is already close to its 2 MB ceiling and can't be shrunk further while still holding MD + PCE.
 
 ## Build from source
 
