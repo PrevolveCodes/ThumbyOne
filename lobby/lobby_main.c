@@ -430,12 +430,13 @@ static const thumbyone_slot_t g_grid_slot_order[8] = {
 #define THUMBYONE_LOBBY_HAS_SCUMM 1
 #endif
 
-/* Two pages of 4 tiles each.  Page 0: existing emulator/runtime
- * slots.  Page 1: SCUMM + three reserved positions for future
- * slots.  LB/RB switch pages; D-pad navigates within a page. */
-#define LOBBY_PAGES        2
+/* Maximum addressable grid positions — kept at 8 (= 2 reservoir
+ * pages of 4) so the static arrays sized from this stay
+ * forward-compatible if future slots fill in the page-1 reserved
+ * spots.  The *visible* page count is computed at boot from the
+ * actual enabled-slot count below. */
 #define LOBBY_TILES_PER_PAGE 4
-#define LOBBY_TOTAL_SLOTS  (LOBBY_PAGES * LOBBY_TILES_PER_PAGE)
+#define LOBBY_TOTAL_SLOTS    8
 
 static const bool g_grid_slot_present[LOBBY_TOTAL_SLOTS] = {
     THUMBYONE_LOBBY_HAS_NES,
@@ -446,28 +447,51 @@ static const bool g_grid_slot_present[LOBBY_TOTAL_SLOTS] = {
     0, 0, 0,                            /* reserved future slots */
 };
 
-/* Find the first enabled slot anywhere across all pages. */
-static int first_enabled_slot_global(void) {
-    for (int i = 0; i < LOBBY_TOTAL_SLOTS; ++i)
-        if (g_grid_slot_present[i]) return i;
-    return 0;
-}
+/* Compact-visible model: instead of leaving disabled-slot positions
+ * as dim 1/4-brightness placeholders, we squeeze the enabled slots
+ * into the lowest grid positions and skip the empty trailing slots
+ * entirely.  Pages adapt to the actual count — a 1-slot build
+ * (scumm-only preset) renders a single centred tile with no page
+ * pip, a 4-slot build (no-doom) renders one full page with no pip,
+ * a 5-slot build (default) keeps the original two-page carousel.
+ *
+ * g_visible[i] holds the *original* g_grid_slot_order index for
+ * the i-th enabled slot, so icon / label lookups continue to use
+ * the static per-slot arrays.  g_grid_cursor + g_grid_page index
+ * into this compact list (page * LOBBY_TILES_PER_PAGE + cursor =
+ * visible-slot index).  Built once at boot from
+ * g_grid_slot_present[]; immutable thereafter. */
+static int g_visible[LOBBY_TOTAL_SLOTS];
+static int g_visible_count = 0;
+static int g_visible_pages = 1;
 
-/* Find the first enabled slot on a specific page (0..LOBBY_PAGES-1).
- * Returns the within-page index (0..3), or -1 if the page is empty. */
-static int first_enabled_on_page(int page) {
-    int base = page * LOBBY_TILES_PER_PAGE;
-    for (int i = 0; i < LOBBY_TILES_PER_PAGE; ++i) {
-        if (g_grid_slot_present[base + i]) return i;
+static void rebuild_visible_list(void) {
+    g_visible_count = 0;
+    for (int i = 0; i < LOBBY_TOTAL_SLOTS; ++i) {
+        if (g_grid_slot_present[i]) {
+            g_visible[g_visible_count++] = i;
+        }
     }
-    return -1;
+    g_visible_pages = (g_visible_count + LOBBY_TILES_PER_PAGE - 1)
+                    / LOBBY_TILES_PER_PAGE;
+    if (g_visible_pages < 1) g_visible_pages = 1;
 }
 
-/* Back-compat: first enabled slot, returning within-page index of
- * page 0.  Used at boot only; the page state is wired separately. */
-static int first_enabled_slot(void) {
-    int idx = first_enabled_on_page(0);
-    return (idx >= 0) ? idx : 0;
+/* Tile count on a given visible page (0..g_visible_pages-1).
+ * Last page may be partially filled (1..LOBBY_TILES_PER_PAGE). */
+static int tiles_on_page(int page) {
+    int base = page * LOBBY_TILES_PER_PAGE;
+    int remaining = g_visible_count - base;
+    if (remaining < 0) return 0;
+    return remaining > LOBBY_TILES_PER_PAGE ? LOBBY_TILES_PER_PAGE : remaining;
+}
+
+/* Translate visible (page, cursor) → original-slot index.
+ * Returns -1 if the visible position is past g_visible_count. */
+static int visible_to_orig(int page, int cursor) {
+    int vis = page * LOBBY_TILES_PER_PAGE + cursor;
+    if (vis < 0 || vis >= g_visible_count) return -1;
+    return g_visible[vis];
 }
 
 #define GRID_TILE_SIZE  48
@@ -475,21 +499,37 @@ static int first_enabled_slot(void) {
 #define GRID_ORIGIN_Y   13
 #define GRID_GUTTER      6
 
-/* Start the cursor on the first enabled slot so the initial render
- * doesn't highlight a greyed-out tile. If all slots are disabled,
- * stays at 0 — the build is essentially broken in that case but we
- * don't want to crash at boot. */
-static int g_grid_cursor = 0;   /* 0..3 — within-page (overwritten in main) */
-static int g_grid_page   = 0;   /* 0..LOBBY_PAGES-1, LB/RB cycle */
+/* Cursor / page index into the *compact* g_visible[] list.  Cursor
+ * is 0..tiles_on_page(g_grid_page)-1 — for full pages the standard
+ * 2x2 cursor model applies (0=TL, 1=TR, 2=BL, 3=BR), for partial
+ * pages it linearly addresses the rendered tiles. */
+static int g_grid_cursor = 0;
+static int g_grid_page   = 0;
 
-/* Combined slot index = page * 4 + within-page cursor. */
+/* Combined slot index → ORIGINAL g_grid_slot_order[] position
+ * (used for icon, label, slot-enum lookups).  Returns -1 if the
+ * compact list is empty (no enabled slots — build essentially
+ * broken, but we don't want to crash). */
 static inline int grid_slot_idx(void) {
-    return g_grid_page * LOBBY_TILES_PER_PAGE + g_grid_cursor;
+    return visible_to_orig(g_grid_page, g_grid_cursor);
 }
 
-static void grid_tile_origin(int idx, int *ox, int *oy) {
-    int col = idx & 1;
-    int row = idx >> 1;
+/* Compute the tile origin (x, y) for the i-th tile on a page that
+ * has n_on_page tiles total.  Single-tile pages centre the tile
+ * vertically + horizontally — the scumm-only preset leans on this
+ * so the lobby doesn't look like one icon stranded in the top-left
+ * corner.  Multi-tile pages use the existing top-left-anchored
+ * 2x2 layout. */
+static void grid_tile_origin(int i, int n_on_page, int *ox, int *oy) {
+    if (n_on_page == 1) {
+        /* Single centred tile.  Shifted up 4 px from the geometric
+         * centre so it doesn't crowd the footer / pip strip. */
+        *ox = (128 - GRID_TILE_SIZE) / 2;
+        *oy = (128 - GRID_TILE_SIZE) / 2 - 4;
+        return;
+    }
+    int col = i & 1;
+    int row = i >> 1;
     *ox = GRID_ORIGIN_X + col * (GRID_TILE_SIZE + GRID_GUTTER);
     *oy = GRID_ORIGIN_Y + row * (GRID_TILE_SIZE + GRID_GUTTER);
 }
@@ -625,52 +665,51 @@ static void render_home(void) {
     for (int x = 0; x < 128; ++x) g_fb[10 * 128 + x] = COL_BAR_LINE;
     nes_font_draw(g_fb, "ThumbyOne", 2, 2, COL_BAR_FG);
 
-    /* Grid tiles. Each tile is drawn at full brightness first, then
-     * dimmed in place as appropriate:
-     *   - slot not present in this build → 1/4 brightness
-     *   - slot present but not under the cursor → 1/2 brightness
-     *   - cursor tile → full brightness + yellow corner brackets
-     * Corners are drawn outside the 48x48 icon so they don't eat
-     * any actual artwork. */
+    /* Grid tiles.  Render *only* the enabled slots on the current
+     * page (the compact g_visible[] list).  The cursor tile gets
+     * full brightness + yellow corner brackets; the others dim to
+     * 1/2 brightness.  Disabled-slot positions are skipped
+     * entirely — no greyed placeholders.  Single-tile pages
+     * (scumm-only preset) are centred via grid_tile_origin().*/
     {
-        int page_base = g_grid_page * LOBBY_TILES_PER_PAGE;
-        for (int i = 0; i < LOBBY_TILES_PER_PAGE; ++i) {
-            int slot_idx = page_base + i;
-            if (slot_idx >= (int)lobby_icons_count) break;
+        int n = tiles_on_page(g_grid_page);
+        for (int i = 0; i < n; ++i) {
+            int orig = visible_to_orig(g_grid_page, i);
+            if (orig < 0 || orig >= (int)lobby_icons_count) break;
             int ox, oy;
-            grid_tile_origin(i, &ox, &oy);
-            lobby_icon_draw(g_fb, &lobby_icons[slot_idx], ox, oy);
-            if (!g_grid_slot_present[slot_idx]) {
-                dim_tile(ox, oy, 2);        /* hard dim — disabled */
-            } else if (i != g_grid_cursor) {
+            grid_tile_origin(i, n, &ox, &oy);
+            lobby_icon_draw(g_fb, &lobby_icons[orig], ox, oy);
+            if (i != g_grid_cursor) {
                 dim_tile(ox, oy, 1);        /* gentle dim — not selected */
-            }
-            if (i == g_grid_cursor && g_grid_slot_present[slot_idx]) {
+            } else {
                 draw_selection_corners(ox, oy);
             }
         }
     }
 
     /* Page indicator — small dots between the bottom of the grid
-     * and the footer bar.  Both pips drawn in the same blue
-     * (matches the bar-accent cyan); the current page is FILLED
-     * and other pages are HOLLOW (perimeter only), so they read
-     * as a single colour-keyed pair rather than a green/blue
-     * contrast pair.  Only drawn if there's more than one page. */
-    if (LOBBY_PAGES > 1) {
+     * and the footer bar.  Only drawn when the compact layout
+     * actually spans more than one page.  Current page: filled in
+     * the bar-accent cyan.  Other pages: hollow ring in ~50%
+     * brightness cyan — the colour shift does the heavy lifting
+     * since a 3-px square can't show a hollow / filled outline
+     * difference clearly. */
+    if (g_visible_pages > 1) {
         const int dot_y    = 113;            /* just above footer line at y=118 */
         const int dot_w    = 3;
         const int dot_gap  = 3;
-        int total_w = LOBBY_PAGES * dot_w + (LOBBY_PAGES - 1) * dot_gap;
+        const uint16_t COL_PIP_DIM = 0x040F;  /* ~50% brightness cyan (G=32/63, B=15/31) */
+        int total_w = g_visible_pages * dot_w + (g_visible_pages - 1) * dot_gap;
         int dot_x   = (128 - total_w) / 2;
-        for (int p = 0; p < LOBBY_PAGES; ++p) {
+        for (int p = 0; p < g_visible_pages; ++p) {
             bool filled = (p == g_grid_page);
+            uint16_t col = filled ? COL_BAR_LINE : COL_PIP_DIM;
             for (int j = 0; j < dot_w; ++j) {
                 for (int i = 0; i < dot_w; ++i) {
                     bool on_edge = (j == 0 || j == dot_w - 1 ||
                                     i == 0 || i == dot_w - 1);
                     if (filled || on_edge) {
-                        g_fb[(dot_y + j) * 128 + (dot_x + i)] = COL_BAR_LINE;
+                        g_fb[(dot_y + j) * 128 + (dot_x + i)] = col;
                     }
                 }
             }
@@ -687,11 +726,11 @@ static void render_home(void) {
     for (int x = 0; x < 128; ++x) g_fb[118 * 128 + x] = COL_BAR_LINE;
     {
         int sidx = grid_slot_idx();
-        const char *label = g_grid_labels[sidx];
-        uint16_t col = g_grid_slot_present[sidx]
-                         ? COL_BAR_FG : COL_USB_OFF;   /* dim for disabled */
-        int lw = nes_font_width(label);
-        nes_font_draw(g_fb, label, (128 - lw) / 2, 121, col);
+        if (sidx >= 0) {
+            const char *label = g_grid_labels[sidx];
+            int lw = nes_font_width(label);
+            nes_font_draw(g_fb, label, (128 - lw) / 2, 121, COL_BAR_FG);
+        }
     }
 
     /* Tiny clock: HH:MM in the header bar between the "ThumbyOne"
@@ -1612,7 +1651,13 @@ int main(void) {
      * this device. */
     lobby_usb_init();
 
-    g_grid_cursor = first_enabled_slot();
+    /* Build the compact visible-slot list ONCE at boot from the
+     * compile-time WITH_<X> flags.  Everything downstream reads
+     * g_visible[] / g_visible_count / g_visible_pages — there's no
+     * runtime state involved, so no need to rebuild. */
+    rebuild_visible_list();
+    g_grid_cursor = 0;
+    g_grid_page   = 0;
     render_home();
 
     /* Slot-launch intent: set by a button press, consumed after the
@@ -1691,19 +1736,22 @@ int main(void) {
         bool now_lb    = btn_lb_pressed();
         bool now_rb    = btn_rb_pressed();
 
-        /* LB / RB swap pages (only meaningful when LOBBY_PAGES > 1).
-         * Each tap advances by one page in either direction, with
-         * wrap-around.  After switching, snap the cursor to the
-         * first enabled tile on the new page so we don't sit on a
-         * greyed-out slot. */
-        if (LOBBY_PAGES > 1) {
+        /* LB / RB swap pages (only meaningful when the compact list
+         * actually spans more than one page).  Each tap advances by
+         * one page in either direction, with wrap-around.  After
+         * switching, clamp the cursor to the new page's tile count
+         * so a partial last page doesn't leave the cursor pointing
+         * past the rendered tiles. */
+        if (g_visible_pages > 1) {
             int dpage = 0;
             if (now_lb && !prev_lb) dpage -= 1;
             if (now_rb && !prev_rb) dpage += 1;
             if (dpage != 0) {
-                g_grid_page = (g_grid_page + dpage + LOBBY_PAGES) % LOBBY_PAGES;
-                int landing = first_enabled_on_page(g_grid_page);
-                if (landing >= 0) g_grid_cursor = landing;
+                g_grid_page = (g_grid_page + dpage + g_visible_pages)
+                            % g_visible_pages;
+                int n = tiles_on_page(g_grid_page);
+                if (g_grid_cursor >= n) g_grid_cursor = n - 1;
+                if (g_grid_cursor < 0)  g_grid_cursor = 0;
             }
         }
 
@@ -1711,24 +1759,24 @@ int main(void) {
          * next page (wrap-around), matching LB/RB.  Off-page
          * stepping triggers when the cursor is in the leftmost
          * column for LEFT or rightmost column for RIGHT — i.e.
-         * pressing LEFT-LEFT scrolls a page left, etc. */
+         * pressing LEFT-LEFT scrolls a page left, etc.  Only
+         * meaningful with multiple visible pages. */
         bool left_edge_press  = now_left  && !prev_left
                               && (g_grid_cursor & 1) == 0;
         bool right_edge_press = now_right && !prev_right
                               && (g_grid_cursor & 1) == 1;
-        if (LOBBY_PAGES > 1 && (left_edge_press || right_edge_press)) {
+        if (g_visible_pages > 1 && (left_edge_press || right_edge_press)) {
             int dpage = right_edge_press ? +1 : -1;
-            g_grid_page = (g_grid_page + dpage + LOBBY_PAGES) % LOBBY_PAGES;
+            g_grid_page = (g_grid_page + dpage + g_visible_pages)
+                        % g_visible_pages;
             /* Land on the opposite column at the same row so the
              * carousel feels like a single continuous strip. */
             int row = g_grid_cursor >> 1;
             int col = right_edge_press ? 0 : 1;
             int candidate = (row << 1) | col;
-            int slot_idx  = g_grid_page * LOBBY_TILES_PER_PAGE + candidate;
-            if (!g_grid_slot_present[slot_idx]) {
-                int landing = first_enabled_on_page(g_grid_page);
-                if (landing >= 0) candidate = landing;
-            }
+            int n = tiles_on_page(g_grid_page);
+            if (candidate >= n) candidate = n - 1;
+            if (candidate < 0)  candidate = 0;
             g_grid_cursor = candidate;
         } else {
             int  axis_mask = 0;
@@ -1738,15 +1786,16 @@ int main(void) {
             if (now_right && !prev_right) axis_mask ^= 1;
             if (axis_mask) {
                 int candidate = g_grid_cursor ^ axis_mask;
-                int slot_idx  = g_grid_page * LOBBY_TILES_PER_PAGE + candidate;
-                if (!g_grid_slot_present[slot_idx]) {
-                    candidate ^= (axis_mask ^ 3);   /* flip the other axis */
-                    slot_idx = g_grid_page * LOBBY_TILES_PER_PAGE + candidate;
+                int n = tiles_on_page(g_grid_page);
+                /* If the XOR-toggled cell isn't actually rendered
+                 * (partial last page), try flipping the other axis;
+                 * if that's also off-grid, snap back to the first
+                 * rendered tile.  Keeps every key press resolving
+                 * to a real cursor target. */
+                if (candidate >= n || candidate < 0) {
+                    candidate ^= (axis_mask ^ 3);
                 }
-                if (!g_grid_slot_present[slot_idx]) {
-                    int landing = first_enabled_on_page(g_grid_page);
-                    if (landing >= 0) candidate = landing;
-                }
+                if (candidate >= n || candidate < 0) candidate = 0;
                 g_grid_cursor = candidate;
             }
         }
@@ -1771,7 +1820,7 @@ int main(void) {
          * USB / fw + reboot + close). */
         if (pending_slot < 0) {
             int sidx = grid_slot_idx();
-            if (btn_a_pressed() && g_grid_slot_present[sidx]) {
+            if (btn_a_pressed() && sidx >= 0) {
                 pending_slot = (int)g_grid_slot_order[sidx];
                 pending_since_us = (uint64_t)time_us_64();
             } else if (btn_menu_pressed()) {

@@ -1597,19 +1597,17 @@ Prebuilt presets at the repo root (release builds, post-1.13 slot rightsizing):
 
 | Preset UF2 | Systems included | UF2 size | FAT size |
 |---|---|---:|---:|
-| `firmware_thumbyone.uf2`            | NES (+MD+PCE) · P8 · DOOM · MPY · **SCUMM** | 12.3 MB | **9.0 MB** |
-| `firmware_thumbyone_nomd.uf2`       | NES (no MD) · P8 · DOOM · MPY · SCUMM | 9.8 MB | **10.0 MB** |
-| `firmware_thumbyone_nodoom.uf2`     | NES (+MD+PCE) · P8 · MPY · SCUMM | 7.6 MB | **11.4 MB** |
-| `firmware_thumbyone_scummonly.uf2`  | SCUMM only | 1.3 MB | **15.0 MB** |
+| `firmware_thumbyone.uf2`                | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM | 12.3 MB | **9.0 MB** |
+| `firmware_thumbyone_nomd.uf2`           | NES (no MD) · P8 · DOOM · MPY · SCUMM   | 9.8 MB  | **10.0 MB** |
+| `firmware_thumbyone_nodoom.uf2`         | NES (+MD+PCE) · P8 · MPY · SCUMM        | 7.6 MB  | **11.4 MB** |
+| `firmware_thumbyone_nodoom_nomd.uf2`    | NES (no MD) · P8 · MPY · SCUMM          | 5.2 MB  | **12.4 MB** |
+| `firmware_thumbyone_nompy.uf2`          | NES (+MD+PCE) · P8 · DOOM · SCUMM       | 10.4 MB | **10.25 MB** |
+| `firmware_thumbyone_nodoom_nompy.uf2`   | NES (+MD+PCE) · P8 · SCUMM              | 5.8 MB  | **12.65 MB** |
+| `firmware_thumbyone_mpyonly.uf2`        | MPY only                                | 2.1 MB  | **13.75 MB** |
+| `firmware_thumbyone_retro.uf2`          | NES (+MD+PCE) · P8                      | 4.7 MB  | **13.1 MB** |
+| `firmware_thumbyone_scummonly.uf2`      | SCUMM only                              | 1.3 MB  | **15.0 MB** |
 
-Other combinations build cleanly from the same flags — flipping any single slot to OFF moves the FAT base forward by that slot's allocation and grows the shared FAT correspondingly. Examples:
-
-| Configuration | FAT size |
-|---|---:|
-| `WITH_DOOM=OFF WITH_MD=OFF` | 12.4 MB |
-| `WITH_DOOM=OFF WITH_MPY=OFF` (no MD) | 13.6 MB |
-| `WITH_NES=OFF WITH_MD=OFF WITH_PCE=OFF` | 11.0 MB |
-| `WITH_DOOM=OFF WITH_MPY=OFF WITH_NES=OFF` (all peripheral slots off) | 14.6 MB |
+The 9 prebuilt UF2s cover the most common feature/storage tradeoffs.  Any other combination builds cleanly from the same flags — flipping any single slot to OFF moves the FAT base forward by that slot's allocation and grows the shared FAT correspondingly.
 
 **SCUMM game sizes for reference:** MI1 ≈ 4.4 MB, MI2 ≈ 9.1 MB, Indy 4 ≈ 9.3 MB. The default 9.0 MB FAT comfortably holds MI1; MI2 or Indy 4 need at least the `_nomd` build, and no preset under 15 MB fits two of {MI2, Indy 4} together — they're each ~9 MB and the total shared FAT can't exceed 15 MB (16 MB flash minus the lobby + SCUMM slot + scratch / settings reserves).
 

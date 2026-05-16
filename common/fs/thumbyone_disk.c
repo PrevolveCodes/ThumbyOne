@@ -43,42 +43,43 @@ uint32_t thumbyone_disk_sector_size(void) {
 }
 
 /* Compute the XIP virtual address that reads from the given byte
- * offset within the shared FAT.  Two cases, picked at runtime from
- * ATRANS[0]'s actual configuration:
+ * offset within the shared FAT.  The virtual XIP space is divided
+ * into four 4 MB windows by ATRANS[0..3]:
  *
- *  1. FAT lies entirely within the slot's 4 MB ATRANS[0] window (the
- *     bootrom sets BASE = slot_phys_offset, SIZE = 0x400 / 4 MB).
- *     This is always true for the SCUMM slot — the FAT immediately
- *     follows the SCUMM partition with only ~256 KB of scratch +
- *     settings in between, so FAT-relative offset is well under 4
- *     MB.  We use the slot-relative virtual address (XIP_BASE +
- *     fat_offset_within_window), which ATRANS[0] then translates
- *     to (slot_phys + fat_offset_within_window) → the right FAT
- *     byte for any slot location.  This works equally for the
- *     default firmware (FAT at 7 MB just after SCUMM at 6.2 MB)
- *     and for the scumm-only preset (FAT at 1 MB just after SCUMM
- *     at 128 KB) — the *gap* is identical, only the absolute
- *     offsets shift, and ATRANS[0]'s BASE field absorbs that
- *     shift.
+ *   ATRANS[0]:  virtual 0..4 MB    — the slot's own partition
+ *                                    (BASE = slot's physical offset,
+ *                                     SIZE widened to 0x400 / 4 MB
+ *                                     by thumbyone_slot_init).
+ *   ATRANS[1]:  virtual 4..8 MB    — identity over physical 4..8 MB
+ *   ATRANS[2]:  virtual 8..12 MB   — identity over physical 8..12 MB
+ *   ATRANS[3]:  virtual 12..16 MB  — identity over physical 12..16 MB
  *
- *  2. FAT is too far from the slot to fit in ATRANS[0]'s 4 MB
- *     window (e.g. NES slot in default firmware: NES at 128 KB,
- *     FAT at 7 MB, gap ~7 MB).  Fall back to absolute virtual
- *     addressing — ATRANS[1..3]'s identity mapping over physical
- *     4..16 MB handles it.
+ * For any given FAT byte we pick whichever window can reach it.
+ * Specifically:
  *
- * This makes a single common implementation correct for every
- * slot and every preset, with no padding waste in slim presets.
- * The runtime check costs one register read + branch per
- * disk-op which is negligible vs. the actual flash read latency. */
+ *  - The portion of FAT that lies within (slot_phys, slot_phys + 4MB)
+ *    is reachable via SLOT-RELATIVE virtual addressing through
+ *    ATRANS[0].  The virtual offset within the window is
+ *    (FAT_OFFSET - slot_phys_base) + byte_offset; if that's < 4 MB,
+ *    ATRANS[0]'s BASE field translates it back to the right physical
+ *    FAT byte.
+ *
+ *  - Anything past that uses ABSOLUTE virtual addressing
+ *    (XIP_BASE + FAT_OFFSET + byte_offset), which lands in
+ *    ATRANS[1..3]'s identity-mapped range.
+ *
+ * The runtime branch is on the *resulting* virtual address, not on
+ * the FAT base location — this matters because FAT can extend
+ * across the 4 MB ATRANS[0] boundary (scumm-only preset: FAT base
+ * 1 MB, end 16 MB → first ~3.1 MB of FAT goes through ATRANS[0],
+ * the rest through ATRANS[1..3]). */
 static inline const uint8_t *thumbyone_fat_xip_addr(uint32_t byte_offset) {
     uint32_t atrans0 = qmi_hw->atrans[0];
     uint32_t slot_phys_base = (atrans0 & 0xFFFu) * 4096u;
-    uint32_t fat_within_slot_window = THUMBYONE_FAT_OFFSET - slot_phys_base;
-    if (fat_within_slot_window < 0x400000u) {
-        return (const uint8_t *)(XIP_BASE_ADDR
-                                  + fat_within_slot_window
-                                  + byte_offset);
+    uint32_t slot_relative_virt = (THUMBYONE_FAT_OFFSET - slot_phys_base)
+                                  + byte_offset;
+    if (slot_relative_virt < 0x400000u) {
+        return (const uint8_t *)(XIP_BASE_ADDR + slot_relative_virt);
     }
     return (const uint8_t *)(XIP_BASE_ADDR
                               + THUMBYONE_FAT_OFFSET
