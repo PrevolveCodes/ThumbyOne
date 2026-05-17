@@ -96,9 +96,11 @@ With ThumbyOne running, plug the device in (while sitting in the **lobby**). It 
 
 | Content | Folder | File types |
 |---|---|---|
-| NES / SMS / GG / GB / MD ROMs | `/roms/` | `.nes`, `.sms`, `.gg`, `.gb`, `.gbc`, `.md`, `.gen`, `.bin` |
+| NES / SMS / GG / GB / MD / PCE ROMs | `/roms/` | `.nes`, `.sms`, `.gg`, `.gb`, `.gbc`, `.md`, `.gen`, `.bin`, `.pce` |
 | PICO-8 carts | `/carts/` | `.p8.png` |
 | MicroPython games | `/games/<Name>/` | Folder per game with `main.py`, `icon.bmp`, `arcade_description.txt`, assets |
+| SCUMM adventures (pre-extracted data) | `/scumm/<game>/` | `DISK*.LEC` + `*.LFL` (MI1), `monkey2.000/001` (MI2), `atlantis.000/001` (Indy 4), or `NN.LFL` (Indy 3) |
+| SCUMM adventures (original install floppies) | `/scumm/` | `.img` — the device walks each `.img`, extracts the PCV/LFG! archive inside, and writes the result into `/scumm/<game>/` automatically.  Slow (10–30 min for v5 games) and needs a post-install `defrag fat` from the lobby; pre-extracted is faster.  See [ThumbyScummby section](#thumbyscummby--scumm-adventures) for the full how-to. |
 
 **Example:**
 ```
@@ -115,6 +117,15 @@ With ThumbyOne running, plug the device in (while sitting in the **lobby**). It 
         icon.bmp
         arcade_description.txt
         assets/
+/scumm/
+    monkey1-disk1.img       (drop .img files at the root for on-device install)
+    monkey1-disk2.img
+    ...
+    mi1/
+        *.LFL               (pre-extracted MI1 data — DISK*.LEC + 000.LFL + 90n.LFL)
+        *.LEC
+    indy4/
+        atlantis.*          (pre-extracted Indy 4 data — atlantis.000 + atlantis.001)
 ```
 
 When you're done copying, **eject the drive** (Windows: right-click → Eject; macOS: drag to Trash; Linux: `sync && umount`). The on-screen USB dot turns from blue back to dim-grey; the physical LED goes back to green. Now pick a system with the d-pad and press **A**.
@@ -154,10 +165,11 @@ Inside the MENU overlay, **LEFT / RIGHT** adjusts the highlighted slider (bright
 
 | Slot | Return gesture |
 |---|---|
-| ThumbyNES (NES / SMS / GG / GB) | **MENU** (hold ~0.5 s in-game) → pause menu → **Back to lobby** |
+| ThumbyNES (NES / SMS / GG / GB / MD / PCE) | **MENU** (hold ~0.5 s in-game) → pause menu → **Back to lobby** |
 | ThumbyP8 (PICO-8) | **MENU** (hold ~0.5 s in-game) → PICO-8 pause menu → **Back to lobby** |
 | ThumbyDOOM | In-game Main Menu → **Quit Game** (no confirm dialog in slot mode) |
 | MicroPython + Engine | **MENU** held ~5 s in-game — direct reboot to the lobby (no on-screen prompt; game state is lost, so the hold is deliberately long to prevent accidents) |
+| ThumbyScummby (SCUMM adventures) | **MENU** (hold ~0.5 s in-game) → save menu → **LOBBY** |
 
 A small **USB** label + LED dot in the top-right corner of the lobby — and the device's physical RGB LED — both show the USB state:
 
@@ -186,9 +198,10 @@ ThumbyOne exposes a **single** USB drive, and only while you're **in the lobby**
 1. Boot into the lobby.
 2. Plug in USB. A drive appears named **ThumbyOne Storage**.
 3. Drop files into the right folder:
-   - ROMs into `/roms/` (any of `.nes`, `.sms`, `.gg`, `.gb`)
+   - ROMs into `/roms/` (any of `.nes`, `.sms`, `.gg`, `.gb`, `.gbc`, `.md`, `.gen`, `.bin`, `.pce`)
    - PICO-8 carts into `/carts/` (`.p8.png`)
    - MicroPython games into `/games/<GameName>/` (a folder per game with `main.py` + assets)
+   - SCUMM adventures: either pre-extracted data into `/scumm/<game>/` (`.LEC` + `.LFL` for MI1, `.000` / `.001` for MI2 / Indy 4, `NN.LFL` for Indy 3 — fast, recommended), or original `.img` install floppies dropped at `/scumm/` for the device to extract on first boot (slow — 10–30 min for v5 games, plus a `defrag fat` pass afterwards)
 4. Eject the drive (Windows: right-click → Eject; macOS: drag to Trash; Linux: `sync && umount`).
 5. Pick a system with the d-pad, press A.
 
