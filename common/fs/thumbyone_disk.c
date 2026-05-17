@@ -75,7 +75,27 @@ uint32_t thumbyone_disk_sector_size(void) {
  * the rest through ATRANS[1..3]). */
 static inline const uint8_t *thumbyone_fat_xip_addr(uint32_t byte_offset) {
     uint32_t atrans0 = qmi_hw->atrans[0];
-    uint32_t slot_phys_base = (atrans0 & 0xFFFu) * 4096u;
+    uint32_t atrans1 = qmi_hw->atrans[1];
+    uint32_t slot_4kb       = atrans0 & 0xFFFu;
+    uint32_t slot_phys_base = slot_4kb * 4096u;
+    uint32_t a1_base        = atrans1 & 0xFFFu;
+    uint32_t expected_cont  = (slot_4kb + 0x400u) & 0xFFFu;
+
+    /* SCUMM slot reconfigures ATRANS[1..3] as continuous extensions
+     * of ATRANS[0] so a single virtual base can address all 16 MB
+     * of flash slot-relative.  When that pattern is in effect,
+     * always use slot-relative — the absolute path would land on
+     * the wrong physical bytes because ATRANS[1..3] no longer
+     * identity-map. */
+    if (a1_base == expected_cont) {
+        return (const uint8_t *)(XIP_BASE_ADDR
+                                  + (THUMBYONE_FAT_OFFSET - slot_phys_base)
+                                  + byte_offset);
+    }
+
+    /* Default layout: ATRANS[1..3] are identity over physical
+     * 4..16 MB.  Use slot-relative for early FAT bytes that fall
+     * inside ATRANS[0]'s window, absolute otherwise. */
     uint32_t slot_relative_virt = (THUMBYONE_FAT_OFFSET - slot_phys_base)
                                   + byte_offset;
     if (slot_relative_virt < 0x400000u) {

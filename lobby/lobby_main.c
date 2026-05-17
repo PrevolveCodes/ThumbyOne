@@ -35,6 +35,7 @@
 #include "font.h"
 #include "lobby_usb.h"
 #include "lobby_icons.h"
+#include "lobby_defrag.h"
 #include "pico/time.h"
 #include "hardware/adc.h"
 #include "thumbyone_disk.h"
@@ -214,6 +215,56 @@ static bool confirm_erase_chord(void) {
         sleep_ms(STEP_MS);
     }
     return btn_lb_pressed() && btn_rb_pressed();
+}
+
+static void show_defrag_result(int rc) {
+    for (int k = 0; k < 128 * 128; ++k) g_fb[k] = COL_BG;
+    const char *top = (rc < 0) ? "DEFRAG" : "DEFRAG";
+    const char *bot = (rc < 0) ? "FAIL"   : "DONE";
+    uint16_t col    = (rc < 0) ? COL_ACTION : COL_TITLE;
+    int w = nes_font_width_2x(top);
+    nes_font_draw_2x(g_fb, top, (128 - w) / 2, 8, col);
+    w = nes_font_width_2x(bot);
+    nes_font_draw_2x(g_fb, bot, (128 - w) / 2, 22, col);
+
+    char line[24];
+    if (rc < 0) {
+        int last_err = lobby_defrag_last_error();
+        snprintf(line, sizeof(line), "rc=%d err=%d", rc, last_err);
+    } else {
+        snprintf(line, sizeof(line), "%d clusters", rc);
+    }
+    nes_font_draw(g_fb, line, (128 - nes_font_width(line)) / 2, 60, COL_TEXT);
+    nes_font_draw(g_fb, "moved", (128 - nes_font_width("moved")) / 2, 70, COL_TEXT);
+
+    nes_font_draw(g_fb, "press any button",  6, 100, COL_TEXT);
+    nes_font_draw(g_fb, "to return", 24, 110, COL_TEXT);
+    nes_lcd_present(g_fb);
+    nes_lcd_wait_idle();
+
+    /* Wait until all input is released, then for any new press. */
+    while (btn_a_pressed() || btn_b_pressed() || btn_menu_pressed() ||
+           btn_lb_pressed() || btn_rb_pressed() ||
+           btn_up_pressed() || btn_down_pressed() ||
+           btn_left_pressed() || btn_right_pressed()) {
+        lobby_usb_task();
+        sleep_ms(10);
+    }
+    while (!(btn_a_pressed() || btn_b_pressed() || btn_menu_pressed() ||
+             btn_lb_pressed() || btn_rb_pressed() ||
+             btn_up_pressed() || btn_down_pressed() ||
+             btn_left_pressed() || btn_right_pressed())) {
+        lobby_usb_task();
+        sleep_ms(10);
+    }
+    /* Drain the press so the home loop doesn't immediately re-act. */
+    while (btn_a_pressed() || btn_b_pressed() || btn_menu_pressed() ||
+           btn_lb_pressed() || btn_rb_pressed() ||
+           btn_up_pressed() || btn_down_pressed() ||
+           btn_left_pressed() || btn_right_pressed()) {
+        lobby_usb_task();
+        sleep_ms(10);
+    }
 }
 
 
@@ -846,12 +897,14 @@ typedef enum {
     LMI_TIME,       /* shows current RTC value; A opens set-time submenu */
     LMI_VOL,        /* adjustable: LEFT/RIGHT to change */
     LMI_BRIGHT,     /* adjustable: LEFT/RIGHT to change, live-applied */
+    LMI_DEFRAG,     /* A opens the cluster-level FAT defragmenter */
     LMI_CLOSE,
     LMI_COUNT,
 } lobby_menu_item_t;
 
 static bool lobby_menu_item_selectable(lobby_menu_item_t it) {
-    return it == LMI_TIME || it == LMI_VOL || it == LMI_BRIGHT || it == LMI_CLOSE;
+    return it == LMI_TIME || it == LMI_VOL || it == LMI_BRIGHT
+        || it == LMI_DEFRAG || it == LMI_CLOSE;
 }
 
 /* Scratch backdrop used while the menu is up — captured at open,
@@ -940,7 +993,7 @@ static void draw_thin_bar(int x, int y, int w, int h,
  * but lets standalone-lobby compiles still produce a sensible
  * About-row string). */
 #ifndef THUMBYONE_FW_VERSION
-#define THUMBYONE_FW_VERSION "1.12.1"
+#define THUMBYONE_FW_VERSION "1.13"
 #endif
 
 /* --- SET TIME submenu --------------------------------------------------
@@ -1338,6 +1391,14 @@ static void render_lobby_menu(int cursor) {
 
     /* Action rows. */
     {
+        int cursor_here = (cursor == LMI_DEFRAG);
+        if (cursor_here) fill_row_hl(y, row_h);
+        uint16_t fg = cursor_here ? L_COL_HIGHLT : L_COL_FG;
+        if (cursor_here) nes_font_draw(g_fb, ">", 1, y, fg);
+        nes_font_draw(g_fb, "defrag fat", 8, y, fg);
+        y += row_h;
+    }
+    {
         int cursor_here = (cursor == LMI_CLOSE);
         if (cursor_here) fill_row_hl(y, row_h);
         uint16_t fg = cursor_here ? L_COL_HIGHLT : L_COL_FG;
@@ -1503,6 +1564,26 @@ static bool lobby_menu_open(void) {
             prev_menu = btn_menu_pressed();
             continue;
         }
+        if (a && !prev_a && cursor == LMI_DEFRAG) {
+            /* Hand off to the cluster-level defragmenter — it owns
+             * the screen for the duration (its own preview UI:
+             * LEFT/RIGHT tune K, A applies, B cancels) and returns
+             * the cluster-move count or a negative error code. */
+            int rc = lobby_defrag_compact(g_fb);
+            show_defrag_result(rc);
+            /* Re-render the parent menu and resync prev-states so a
+             * still-held button from the defragger UI doesn't fire
+             * the menu handler on the next iteration. */
+            render_lobby_menu(cursor);
+            prev_up = btn_up_pressed();
+            prev_down = btn_down_pressed();
+            prev_left = btn_left_pressed();
+            prev_right = btn_right_pressed();
+            prev_a = btn_a_pressed();
+            prev_b = btn_b_pressed();
+            prev_menu = btn_menu_pressed();
+            continue;
+        }
         if ((b && !prev_b) || (mb && !prev_menu)) close_menu = true;
 
         if (close_menu) {
@@ -1644,6 +1725,12 @@ int main(void) {
      * FAT is mounted. The LCD driver came up at full brightness
      * during init; this is what takes it to the user-set level. */
     thumbyone_backlight_set(thumbyone_settings_load_brightness());
+
+    /* The cluster-level defragmenter needs access to the lobby's
+     * FATFS so it can walk fatbase/database/csize/etc. Hand it the
+     * pointer now that the mount has succeeded. The defrag itself is
+     * triggered later by the LB+MENU hidden combo from the main loop. */
+    lobby_defrag_set_fs(&g_fs);
 
     /* Bring up USB MSC — single place in the firmware that exposes
      * the shared FAT to a host. Slots never enumerate USB, so this

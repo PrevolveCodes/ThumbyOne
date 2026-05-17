@@ -5,12 +5,18 @@
 > *One firmware to rule them all, one lobby to find them.*
 > *One file to bring them all, and in the Thumby bind them.*
 
-ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](https://thumby.us/) — the tiny colour handheld with a 128×128 screen, dual-core Arm Cortex-M33, 520 KB SRAM, and 16 MB of on-board flash. One flash gives you **NES**, **Master System**, **Game Gear**, **Game Boy**, **Mega Drive (Genesis)**, **PC Engine / TurboGrafx-16**, **PICO-8**, **DOOM**, and the full **MicroPython + Tiny Game Engine** experience, each optimized to run perfectly on the device.
+ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](https://thumby.us/) — the tiny colour handheld with a 128×128 screen, dual-core Arm Cortex-M33, 520 KB SRAM, and 16 MB of on-board flash. One flash gives you **NES**, **Master System**, **Game Gear**, **Game Boy**, **Mega Drive (Genesis)**, **PC Engine / TurboGrafx-16**, **PICO-8**, **DOOM**, **Monkey Island / Indiana Jones (SCUMM)**, and the full **MicroPython + Tiny Game Engine** experience, each optimized to run perfectly on the device.
 
 <p align="center">
   <img src="docs/screenshots/nes-game.jpg" width="240" alt="NES on Thumby Color">
   <img src="docs/screenshots/p8-celeste.jpg" width="240" alt="Celeste Classic on PICO-8">
   <img src="docs/screenshots/doom-gameplay.jpg" width="240" alt="Doom on Thumby Color">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/scumm-mi1-bar.jpg" width="240" alt="Monkey Island — three pirates at the Scumm Bar">
+  <img src="docs/screenshots/mpy-picker.jpg" width="240" alt="MicroPython picker — DeepThumb">
+  <img src="docs/screenshots/lobby.jpg" width="240" alt="ThumbyOne lobby — five-slot grid">
 </p>
 
 ---
@@ -21,6 +27,7 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
 - [Quickstart](#quickstart)
 - [The lobby](#the-lobby)
 - [Transferring files](#transferring-files)
+- [Defragmenting the shared FAT](#defragmenting-the-shared-fat)
 - [Wiping / recovery](#wiping--recovery)
 - [The systems](#the-systems)
   - [ThumbyNES](#thumbynes--nes--master-system--game-gear--game-boy)
@@ -135,11 +142,13 @@ The lobby is the home screen. It's a 2×2 grid of system icons: NES, PICO-8, DOO
 |---|---|
 | D-pad | Move selection between the four tiles |
 | **A** | Launch the selected system |
-| **MENU** | Open the lobby overlay (volume + brightness sliders, battery, disk, USB, firmware) |
+| **MENU** | Open the lobby overlay (volume + brightness sliders, battery, disk, USB, firmware, set-time, **defrag fat**) |
 | **MENU** (held at boot) | Force lobby (bypass any pending slot chain) |
 | **LB + RB** (held at boot) | Wipe and reformat the shared FAT |
 
 Inside the MENU overlay, **LEFT / RIGHT** adjusts the highlighted slider (brightness or volume). Changes apply live — the backlight dims as you scrub — and persist to the shared FAT so every slot picks them up on the next launch.
+
+**Defrag fat** in the menu opens a cluster-level FAT defragmenter with a preview-then-confirm UX (see [Defragmenting the shared FAT](#defragmenting-the-shared-fat) below). Useful after a heavy install pass — particularly the SCUMM `.img` workflow, which scatters extracted game data across the volume.
 
 **Getting back to the lobby** depends on which slot you're in — each system has a native pause / picker menu with a **Back to lobby** item:
 
@@ -184,6 +193,19 @@ ThumbyOne exposes a **single** USB drive, and only while you're **in the lobby**
 5. Pick a system with the d-pad, press A.
 
 To transfer more later: pick MENU inside any system → **Back to lobby** → plug in → repeat.
+
+---
+
+## Defragmenting the shared FAT
+
+`MENU → defrag fat` in the lobby compacts the shared volume so files sit in contiguous clusters again.  Slots read game data straight out of flash, which works fastest (and in a few cases, *only*) when files are contiguous.  Run a defrag pass after a big upload session — particularly after a SCUMM `.img` install (atlantis.001 / monkey2.001 come out heavily fragmented).  It's a no-op on an already-clean volume, so running it "just in case" is cheap.
+
+<p align="center">
+  <img src="docs/screenshots/defrag-preview.png" width="380" alt="Defrag preview — before/after cluster maps, frag count, A=apply B=cancel">
+  <img src="docs/screenshots/defrag-moving.png"  width="380" alt="Defrag running — live cluster map with DO NOT POWER OFF banner and progress counter">
+</p>
+
+The full how-and-why — preview UI, planner weights, flash-wear note — is in [Tips and troubleshooting → FAT defragmenter](#fat-defragmenter).
 
 ---
 
@@ -239,8 +261,7 @@ A six-in-one retro emulator running Nofrendo for NES, smsplus for Master System 
 - Play-while-cropped pan chord (LB + d-pad) for MD and PCE — pan the source viewport without losing game control
 - Game Boy Color carts run with their native CGB palette (DMG carts use the six built-in shade palettes)
 - **Cart-RTC support for Pokemon Crystal / Gold / Silver** (new in 1.11) — the GB cart's MBC3 real-time clock is driven from the lobby-set BM8563, so day-night cycle, time-of-day-only encounters, and berry growth all work correctly. Other GBC RTC carts (Harvest Moon GB 2, etc.) get the same fix for free
-- Chained-XIP fallback — fragmented ROMs still map from flash and run full-speed without a defrag
-- Cluster-level defragmenter with before/after preview and live move visualisation (picker menu → **Defragment now**)
+- Chained-XIP fallback — fragmented NES / SMS / GB / PCE ROMs still map from flash and run full-speed without a defrag (MD carts use the contiguous-only path and need a defrag if fragmented — see lobby's `defrag fat`)
 - Configurable CPU clock per-ROM
 - Hand-painted 12×8 tab icons in the picker (new in 1.08) — same bitmaps drive the no-screenshot placeholder thumbnails
 
@@ -261,10 +282,6 @@ A six-in-one retro emulator running Nofrendo for NES, smsplus for Master System 
 | MENU (tap) | Open picker menu |
 | MENU (held ~0.5 s, in-game) | Open the in-game pause menu (contains **Back to lobby**, save-state, palette, fast-forward, etc.) |
 | Hold B (on picker) | Toggle favourite for the highlighted ROM |
-
-#### Defragmenter
-
-ThumbyNES has a full-volume FAT defragmenter with a preview-and-confirm UX and live cluster-map visualisation, reachable from the picker menu's **Defragment now** action. It's only needed occasionally — chained-XIP means fragmented carts still load and play — so the full write-up lives under [Tips and troubleshooting → FAT defragmenter](#fat-defragmenter) rather than taking up space here.
 
 ### ThumbyP8 — PICO-8
 
@@ -419,6 +436,12 @@ See the [1.10 changelog](#110) for the supported feature set and known caveats; 
 
 *Native ScummVM port for SCUMM v4 / v5 — [ThumbyScummby](https://github.com/austinio7116/ThumbyScummby) on Thumby Color.*
 
+<p align="center">
+  <img src="docs/screenshots/scumm-mi1-boot.jpg" width="240" alt="The Secret of Monkey Island boot splash">
+  <img src="docs/screenshots/scumm-mi1-bar.jpg" width="240" alt="MI1 — three pirates at the Scumm Bar">
+  <img src="docs/screenshots/scumm-mi1-underwater.jpg" width="240" alt="MI1 — underwater scene with the Pick Up cursor">
+</p>
+
 Monkey Island 1 (VGA Floppy), Monkey Island 2, and Indiana Jones 4 (Fate of Atlantis) run from a stripped-down ScummVM core, with the engine + DCL decoder + custom 128×128 verb/sentence overlay all fitted into a 640 KB slot. Indy 3 (Last Crusade EGA) is in the descriptor table but not yet wired through the v3 file resolver — coming later.
 
 **Getting a game in:**
@@ -430,15 +453,37 @@ Monkey Island 1 (VGA Floppy), Monkey Island 2, and Indiana Jones 4 (Fate of Atla
 | Pre-extracted MI2 data | Make `/scumm/mi2/` and copy in `monkey2.000` + `monkey2.001` |
 | Pre-extracted Indy 4 data | Make `/scumm/indy4/` and copy in `atlantis.000` + `atlantis.001` |
 
-If you drop `.img` files: on first boot the slot's preload phase walks each `.img` (treating it as a FAT12 floppy image), finds the PCV / LFG! archive inside, decompresses it via PKWARE DCL with the per-file XOR, and writes the extracted files into the right `/scumm/<game>/` subdir. The `.img` is consumed in place — outer FAT clusters get freed as the PCV bytes stream through them, so MI2 / Indy 4 fit during install even though the raw 5–6 `.img` footprint would otherwise blow out the 9 MB shared FAT. (Install peak ≈ final extracted game size + ~1 cluster.) Once the install finishes the picker shows the extracted game; the original `.img` files are gone.
+If you drop `.img` files: on first boot the slot's preload phase walks each `.img` (treating it as a FAT12 floppy image), finds the PCV / LFG! archive inside, decompresses it via PKWARE DCL with the per-file XOR, and writes the extracted files into the right `/scumm/<game>/` subdir. The `.img` is consumed in place — outer FAT clusters get freed as the PCV bytes stream through them, so MI2 / Indy 4 fit during install even though the raw 5–6 `.img` footprint would otherwise blow out the shared FAT. (Install peak ≈ final extracted game size + ~1 cluster.) Once the install finishes the picker shows the extracted game; the original `.img` files are gone.
+
+**`.img` install is slow and produces fragmented files.** Expect **10–30 minutes** for a v5 game (MI2 / Indy 4) on hardware — the slot reads each .img cluster from XIP, runs PKWARE DCL decompression in software, applies the per-file XOR, and writes the extracted bytes back to FAT cluster-by-cluster while incrementally freeing the source .img clusters. That last detail is also why the extracted file ends up heavily fragmented: FatFs's first-fit allocator interleaves the freshly-freed .img clusters with the growing output, scattering a 9 MB `atlantis.001` across every other cluster on the volume. The engine reads game data via XIP-mapped flash pointers + offsets, which require contiguity, so a fragmented install will boot to a black screen.
+
+**After a `.img` install, run `MENU → defrag fat` in the lobby** to lay the extracted files out contiguously. Expect another **several minutes** for the cluster-level cycle sort to rearrange a near-full 9 MB volume into a clean layout. See [Defragmenting the shared FAT](#defragmenting-the-shared-fat).
+
+**Faster alternative: drop pre-extracted files instead.** Pull the game data out of the `.img` floppies on a desktop using **ScummVM Extract** (`extract_scumm_mac` / `extract_scumm_pc` from the ScummVM tools) or via **DOSBox** running the original installer to a host directory, then copy the resulting `monkey2.000` / `monkey2.001` / `atlantis.000` / `atlantis.001` / `DISK01-04.LEC` / `000.LFL` / `901-904.LFL` into the right `/scumm/<game>/` subdir directly. The drag-onto-USB path puts each file into one or two FAT writes — no decompression on-device, no cluster freeing dance, and on a mostly-empty volume the host's FAT driver writes the file as a single contiguous run from the first allocation onward. Total time: a few seconds per file. No post-install defrag needed.
 
 **Picker:**
 
 <p align="center">
-  <em>(Hero card and menu overlay screenshots come once the .scr64 sidecar capture lands — see 1.13 changelog.)</em>
+  <img src="docs/screenshots/scumm-picker.jpg" width="380" alt="SCUMM picker — Monkey Island 1 hero card with orange banner">
 </p>
 
-Same chrome as the MPY picker, with a SCUMM-orange banner instead of cyan. Game list comes from the engine's built-in `kGameTable` (4 entries: MI1, MI2, Indy 3, Indy 4); each row shows install state from a quick `f_stat` on the required files. Pressing A on an installed game writes `/scumm/.active_game` and reboots into the SCUMM slot with a clean heap (P8-cart-style separate-boot pattern). MENU-long-hold returns to the lobby; MENU-short in the picker opens the overlay with battery / disk / volume / brightness / firmware version / back-to-lobby.
+Orange SCUMM-themed banner, 64×64 cover-art thumbnail, game title + variant. Game list comes from the engine's built-in `kGameTable` (4 entries: MI1, MI2, Indy 3, Indy 4); each row shows install state from a quick `f_stat` on the required files. Pressing A on an installed game writes `/scumm/.active_game` and reboots into the SCUMM slot with a clean heap (so the engine starts with all 330 KB of RAM available rather than ~290 KB fragmented by the picker's transient allocations). MENU-long-hold returns to the lobby; MENU-short in the picker opens the overlay with battery / disk / volume / brightness / firmware version / back-to-lobby.
+
+**In-game:**
+
+<p align="center">
+  <img src="docs/screenshots/scumm-mi1-dialog.jpg" width="240" alt="MI1 dialog response menu">
+  <img src="docs/screenshots/scumm-saveload.jpg" width="240" alt="SCUMM save / load menu with per-slot screenshot thumbnails">
+  <img src="docs/screenshots/scumm-menu.jpg" width="240" alt="SCUMM in-game menu — save, load, volume, text size, speech font, log, lobby">
+</p>
+
+Dialog choices and verbs render through a custom 21-column 128×128 overlay (left). Save and load use slot-based persistence with per-slot 64×64 thumbnails captured at save time (centre) — pick a slot by sight rather than slot number. The in-game menu (right) covers save / load / volume / text size / speech font, a LOG viewer for engine diagnostics, and a one-press path back to the ThumbyOne lobby.
+
+<p align="center">
+  <img src="docs/screenshots/scumm-textsize.jpg" width="380" alt="TEXT SIZE slider overlay — L/R adjust, A/B accept">
+</p>
+
+The 128×128 screen is square but a SCUMM scene is 320×200 — so dialog and verb text would normally crowd out gameplay.  A live TEXT SIZE slider scales the engine's text down so you can see more of the room behind it; speech font is also user-swappable for a wider/narrower face.
 
 **Controls (in-game):**
 
@@ -464,72 +509,110 @@ Same chrome as the MPY picker, with a SCUMM-orange banner instead of cyan. Game 
 
 ### 1.13
 
-ThumbyScummby joins ThumbyOne as the fifth slot — SCUMM v4 / v5 adventures
-(Monkey Island 1 & 2, Indy 4 Atlantis) running natively on the RP2350,
-with a proper hero picker matching the MPY one. Every other slot got a
-binary-footprint audit at the same time; MPY in particular was sitting
-in a 2 MB partition while using less than half of it, so trimming the
-slack reclaimed **~1 MB of shared FAT** for everyone — no slots dropped.
+> ⚠️  **Back up before flashing.**  1.13 reshuffles the on-flash
+> partition layout to make room for the new SCUMM slot, which means
+> the shared FAT moves to a different offset.  When you flash 1.13
+> on top of 1.12.x the lobby will see an unrecognised FAT and
+> prompt for a reformat — your ROMs, carts, MicroPython games,
+> SCUMM data, and **all saves and save states** will be wiped.
+> Drop into the 1.12.x lobby first, plug in USB, copy the whole
+> drive contents to a folder on your PC, then flash 1.13 and copy
+> everything back when the new firmware is up.  Same drill applies
+> if you switch between 1.13 preset UF2s with different feature
+> sets (e.g. moving from the default build to `_scummonly`).
 
-- **New slot: ThumbyScummby.** SCUMM v4 (MI1 VGA Floppy) and v5 (MI2,
-  Indy 4 Atlantis) adventures run from `/scumm/<game>/`. You can drop
-  either pre-extracted data files (`DISK*.LEC` + `000/901-904.LFL` for
-  MI1, `monkey2.000/001` for MI2, `atlantis.000/001` for Indy 4) or
-  the original LucasArts `.img` install floppies straight into `/scumm/`
-  — the slot's preload phase identifies the PCV / LFG! archive inside
-  each `.img`, decompresses it via PKWARE DCL, applies the per-game XOR
-  and writes the extracted files into the right `/scumm/<game>/` subdir.
-  The install is incremental: each `.img` is consumed in place (outer
-  FAT clusters freed as PCV bytes stream through them) so MI2 / Indy 4
-  fit during install even though the raw `.img` footprints would
-  otherwise overflow the shared FAT. See the [ThumbyScummby
-  README](https://github.com/austinio7116/ThumbyScummby) for the full
-  technical write-up.
-- **SCUMM picker (MPY parity).** Pre-engine hero card with orange
-  banner, 64×64 thumbnail slot, game title + variant, MENU overlay
-  for battery / disk / volume / brightness / firmware version /
-  back-to-lobby — same chrome as the MPY picker. Launch goes through
-  a P8-cart-style separate-boot handoff (`/scumm/.active_game` →
-  reboot) so the SCUMM engine starts with a clean heap rather than
-  one fragmented by the picker's ~40 KB transient allocations.
-- **Slot rightsizing — +1 MB FAT in the default build.** Measured
-  binary footprints versus the slot allocations they were inheriting
-  from the original PLAN.md:
-  - MPY:   956 KB binary  in a 2048 KB slot  → cut to 1280 KB  (saves 768 KB)
-  - DOOM: 2320 KB binary  in a 2560 KB slot  → cut to 2432 KB  (saves 128 KB)
-  - P8:    309 KB binary  in a  512 KB slot  → cut to  384 KB  (saves 128 KB)
-  - NES, SCUMM unchanged (NES is still 1.9 MB binary tight against its 2 MB; SCUMM is the one growing slot).
+Monkey Island, Indy 4, a smarter FAT layout that hands you a free
+megabyte of storage, and preset firmware images so you can pick
+the trade-off between systems and storage that suits you.
 
-  Default-build shared FAT goes from **8.6 MB → 9.0 MB**; the
-  `WITH_MD=OFF` build goes **9.6 MB → 10.0 MB**. No migration
-  required — the FAT base offset changes, but the lobby's
-  `FS BAD / A=FORMAT` prompt handles the move cleanly the same way
-  it did in 1.05.
-- **New preset images.** With slots independently switchable
-  (`-DTHUMBYONE_WITH_DOOM=OFF` etc.) the build matrix now ships
-  prebuilt UF2s targeting different storage / feature trade-offs:
-  - `firmware_thumbyone.uf2`            — everything (default) — 9.0 MB FAT
-  - `firmware_thumbyone_nomd.uf2`       — all systems, no Mega Drive — 10.0 MB FAT
-  - `firmware_thumbyone_nodoom.uf2`     — drop DOOM (still has NES + P8 + MPY + SCUMM, with MD) — 11.4 MB FAT
-  - `firmware_thumbyone_scummonly.uf2`  — SCUMM slot only, everything else stripped — 15.0 MB FAT
-- **Slot-toggle flag forwarding fix.** `slot_layout.h` reads each
-  slot's enable state via `#if THUMBYONE_WITH_<X>`, but the
-  `THUMBYONE_WITH_NES / P8 / DOOM / MPY / SCUMM` flags were never
-  being forwarded from CMake as compile-time defines.  Only the
-  header's fallback `#ifndef ... #define 1` was firing, which
-  meant non-default presets (no-doom, scumm-only, etc.) compiled
-  the lobby + slots with the C side thinking *all* slots were on
-  while `pt.json` correctly described the actual reduced layout.
-  Symptoms: scumm-only showed only 9 MB of free FAT in Windows (the
-  lobby was looking at the default 7 MB-offset/9 MB-size FAT
-  instead of the scumm-only 1 MB-offset/15 MB-size FAT), and
-  launching the SCUMM slot from a non-default preset hung the
-  device on a blank screen (the slot binary was packed at the
-  preset's partition offset but its compile-time code references
-  pointed at the default-layout offset).  Fixed by an explicit
-  `add_compile_definitions(THUMBYONE_WITH_<X>=0|1)` loop in the
-  top-level `CMakeLists.txt`; default build is unaffected because
-  the all-on fallback already matched the all-on configuration.
+**New: SCUMM adventures.**
+
+Three classic LucasArts adventures now run natively on the device,
+no companion app required:
+
+- **The Secret of Monkey Island** (VGA Floppy)
+- **Monkey Island 2: LeChuck's Revenge**
+- **Indiana Jones 4 and the Fate of Atlantis** (Floppy)
+
+(Indiana Jones 3 — *The Last Crusade* — is in the picker's game
+table but its v3 file format isn't fully wired yet; coming in a
+follow-up.)
+
+You can either drop pre-extracted game files into `/scumm/<game>/`
+(fastest — a few seconds per file) or drop the original LucasArts
+`.img` install floppies straight into `/scumm/` and let the device
+install them itself.  See the [ThumbyScummby section](#thumbyscummby--scumm-adventures)
+for the full how-to, including the **strong recommendation to
+pre-extract on a desktop** rather than use the `.img` flow if you
+have the option — `.img` install takes 10–30 minutes for the v5
+games and produces fragmented files that then need a
+defragmentation pass.
+
+**More storage, even with a whole new slot added.**
+
+Every existing slot's binary got measured against the size of the
+partition it was actually using, and several had been sitting in
+partitions much bigger than they needed.  Trimming the slack freed
+about **1 MB** across the existing slots — enough to fit the new
+SCUMM slot *and* still hand back more storage to the shared FAT
+than 1.12 had:
+
+| Build               | 1.12 shared FAT | 1.13 shared FAT |
+|---------------------|----------------:|----------------:|
+| Default             | 8.6 MB          | **9.0 MB**      |
+| No Mega Drive       | 9.6 MB          | **10.0 MB**     |
+
+So even after paying for a whole new adventure-games slot, you end
+up with more room for ROMs / carts / games than 1.12 gave you.
+Slimmer presets (see below) reclaim even more.
+
+**The defragmenter moved into the lobby.**
+
+ThumbyNES's FAT defragmenter used to live inside the NES picker
+menu — but the FAT is shared across every slot, so cross-slot
+compaction belongs at the layer that owns the volume.  Open the
+lobby menu (MENU button), scroll to **`defrag fat`**, press A.
+Same preview-then-confirm UX, same live cluster-map visualisation,
+same red "DO NOT POWER OFF" overlay during the cycle sort — just
+in the lobby now, so it works for NES ROMs, MicroPython games,
+SCUMM data, anything on the shared FAT.
+
+You'll want to run it after dropping a lot of new ROMs at once,
+after a SCUMM `.img` install, or any time the device feels like
+something might be sitting fragmented.  Detail in
+[Defragmenting the shared FAT](#defragmenting-the-shared-fat).
+
+**Preset firmware images.**
+
+If you don't need every system, the slimmer presets give you a
+bigger shared FAT:
+
+| Image                                 | What's in it                                  | Shared FAT |
+|---------------------------------------|-----------------------------------------------|-----------:|
+| `firmware_thumbyone.uf2`              | Everything (default)                           | **9.0 MB** |
+| `firmware_thumbyone_nomd.uf2`         | Everything except Mega Drive                  | **10.0 MB** |
+| `firmware_thumbyone_nodoom.uf2`       | Drop DOOM (keep NES + P8 + MPY + SCUMM, with MD) | **11.4 MB** |
+| `firmware_thumbyone_scummonly.uf2`    | SCUMM only — everything else stripped         | **15.0 MB** |
+
+The `_scummonly` preset is the only one with room for two of the
+big v5 SCUMM games (MI2 + Indy 4) at the same time.  Full
+breakdown in [Build matrix](#build-matrix).
+
+**Background fix: SCUMM addressing past 4 MB.**
+
+Indy 4's `atlantis.001` is a single 9 MB file the engine reads
+straight out of flash.  The Pico's address-translation hardware
+only exposes 4 MB of virtual space per partition slot by default,
+so reads past the 4 MB mark inside the SCUMM slot were landing on
+the wrong physical bytes and the engine hung on a black screen
+launching Indy 4 from the `_scummonly` preset.
+
+Fixed by reconfiguring the slot's three secondary address
+translators at boot so the SCUMM slot can address all 16 MB of
+flash through one continuous pointer.  Affects only the SCUMM
+slot's own runtime — every other slot (NES, P8, DOOM, MPY) is
+untouched and keeps its existing addressing, so there's no
+performance change for ThumbyNES-inclusive builds.
 
 ### 1.12.1
 
@@ -1115,25 +1198,25 @@ Most fragmented carts fall back to the chained-XIP path ([added in 1.03](#whats-
 
 ### FAT defragmenter
 
-ThumbyNES runs cartridges straight out of flash via **XIP** rather than copying them to RAM — that's how a 1 MB Game Boy Color cart fits on a device with a ~330 KB heap. There are two XIP paths:
+Most slots run game data straight out of flash via **XIP** rather than copying it to RAM — that's how a 1 MB Game Boy Color cart, a 2 MB Mega Drive cart, or a 9 MB SCUMM `atlantis.001` file all fit on a device with a few hundred KB of heap. There are two XIP paths:
 
-1. **Contiguous mmap** — when the file's FAT chain is a single cluster run, the whole ROM maps to one flat address range in flash. Every ROM byte access is a single flash read. Optimal path.
-2. **Chained XIP** *(new in 1.03)* — when the file is fragmented, the loader builds a per-cluster pointer table and every ROM read does a shift + mask + table lookup to find the right cluster. Still zero-copy, but the indirection adds CPU cost on every byte the core touches.
+1. **Contiguous mmap** — when the file's FAT chain is a single cluster run, the whole file maps to one flat address range in flash. Every byte access is a single flash read. Optimal path.
+2. **Chained XIP** *(new in 1.03)* — when the file is fragmented, the loader builds a per-cluster pointer table and every read does a shift + mask + table lookup to find the right cluster. Still zero-copy, but the indirection adds CPU cost on every byte the core touches.  ThumbyNES uses this as a fallback for small carts; bigger carts (MD, GBA) and the SCUMM engine use *contiguous-only* and refuse to run a fragmented file.
 
-**Most games are fine either way.** Lighter carts (early NES, Game Boy, most SMS) stay locked to their native refresh rate on chained XIP. Heavier ones — dense NES mapper carts, some Game Boy Color games with large tilemaps, a few SMS titles with aggressive sample playback — can drop frames on chained XIP when they wouldn't on contiguous mmap. If a fragmented cart feels sluggish, defragging is the fix.
+**Most games are fine either way.** Lighter carts (early NES, Game Boy, most SMS) stay locked to their native refresh rate on chained XIP. Heavier ones — dense NES mapper carts, some Game Boy Color games with large tilemaps, a few SMS titles with aggressive sample playback — can drop frames on chained XIP when they wouldn't on contiguous mmap. SCUMM v5 games (Indy 4, MI2) fail outright if `atlantis.001` / `monkey2.001` lands fragmented after a `.img` install — they need contiguity, which is why post-install defrag is part of the SCUMM workflow.
 
 **Why run the defragmenter:**
-- **Moves currently-fragmented carts onto the fast path.** Every cart on the volume ends up as a contiguous chain, so every cart runs via direct mmap with no per-byte indirection. If a cart was dropping frames because it was fragmented, a defrag puts it right.
-- **New uploads stay on the fast path too.** Defragging consolidates all free space into one run at the end of the volume. The next ROM you drop over USB lands in that contiguous run, which means it starts life as a contiguous file — no fragmentation, no chained XIP, no redefrag needed.
+- **Moves currently-fragmented files onto the fast path.** Every file on the volume ends up as a contiguous chain, so every cart / game runs via direct mmap with no per-byte indirection. If a cart was dropping frames because it was fragmented, a defrag puts it right.
+- **New uploads stay on the fast path too.** Defragging consolidates all free space into one run at the end of the volume. The next ROM / cart / file you drop over USB lands in that contiguous run, which means it starts life as a contiguous file — no fragmentation, no chained XIP, no redefrag needed.
 
-**Why you can also not bother:** chained XIP means a fragmented volume isn't broken — every cart still loads and plays. Lighter games won't notice the difference. Defrag when a specific cart feels sluggish, or periodically just to keep future uploads on the fast path.
+**Why you can also not bother:** for NES / SMS / GB content, chained XIP means a fragmented volume isn't broken — every cart still loads and plays. Lighter games won't notice the difference. Defrag when a specific cart feels sluggish, after a SCUMM `.img` install, or periodically just to keep future uploads on the fast path.
 
-Trigger it from the ThumbyNES picker menu → **Defragment now**. You get a preview first and nothing is written until you confirm.
+Trigger it from the **lobby's MENU overlay → `defrag fat`**.  Promoted out of the ThumbyNES picker in 1.13 — the FAT is shared across slots, so cross-slot compaction lives at the layer that owns the volume.  You get a preview first and nothing is written until you confirm.
 
 **Preview screen** — before/after cluster maps, frag count, largest free contiguous block, total files and bytes, and the planner's current K weight. **LEFT / RIGHT** on the preview screen tunes K (the trade-off between writes and free-space consolidation); **A** applies, **B** cancels.
 
 <p align="center">
-  <img src="docs/screenshots/nes-defrag-preview.png" width="240" alt="Defrag preview — before/after cluster map, A=apply B=cancel">
+  <img src="docs/screenshots/defrag-preview.png" width="240" alt="Defrag preview — before/after cluster map, A=apply B=cancel">
 </p>
 
 **Variable K weighting** — the planner picks among block-shift configurations (up to 2^16 enumerated; greedy hill-climb above that) by minimising `moves − K × free_consolidation_gain`. K is log-spaced through `0, 1, 2, 3, 5, 8, 13, 25, 50, 100, 200, 500, PACK`:
@@ -1146,7 +1229,7 @@ Trigger it from the ThumbyNES picker menu → **Defragment now**. You get a prev
 **During execution** — clusters move live; the map redraws per file (one hue per file, cycled through a 15-colour palette). A red "DO NOT POWER OFF" banner at the top is mirrored by the front LED going solid red while the FAT is mid-write.
 
 <p align="center">
-  <img src="docs/screenshots/nes-defrag-moving.png" width="240" alt="Defrag running — live cluster map with DO NOT POWER OFF banner and progress counter">
+  <img src="docs/screenshots/defrag-moving.png" width="240" alt="Defrag running — live cluster map with DO NOT POWER OFF banner and progress counter">
 </p>
 
 The pass does an **in-place cluster-level cycle sort** (same family as Norton SpeedDisk and ext4 `e4defrag`): it plans the target layout first, then cycles each cluster into place using only two cluster-sized RAM buffers (2 KB total on ThumbyOne's 1 KB-cluster FAT). The cycle machinery needs as little as **one free cluster** on disk to operate, so it can compact a 99%-full volume — a file-level rewrite couldn't, since that would need 2× the largest file free at once. Phases: cluster move, FAT rebuild, directory-entry patch, FatFs remount. A post-pass re-check counts fragmented files against the original to confirm the pass worked.
@@ -1525,6 +1608,52 @@ Both builds reserve the same 128 KB MicroPython C heap (libc `malloc`) and the s
 
 That extra heap is what unblocked import-heavy startup cases like Thumbalaga (MemoryError on its 30th `import` under stock; fine under ThumbyOne).
 
+### ThumbyScummby slot
+
+The smallest of the five game slots: **640 KB partition** (vs 2 MB for NES, 1.28 MB for MPY) carrying a native C++ port of the SCUMM v3 / v4 / v5 interpreter for *The Secret of Monkey Island*, *Monkey Island 2*, *Indiana Jones 4 — Fate of Atlantis*, and (game-table-only, file-resolver coming) *Indiana Jones 3*.  Source lives in [`ThumbyScummby`](https://github.com/austinio7116/ThumbyScummby).
+
+**ScummVM transcription, not link.**  The engine isn't a runtime dependency on the upstream ScummVM library; it's a hand-transcribed subset of the engine source, slimmed to just the code paths the four target games use.  HE engines, v0 / v6 / v7 / v8, the NES/Mac/SegaCD ScummVM variants, the dialog manager, and most of the audio plugin tree are stripped at vendor time.  What remains: the v3 / v4 / v5 opcode tables, the script VM, the resource manager, the actor / costume system, the sound shim (AdLib OPL2 + iMUSE), the BMOMP sprite codec, and a Thumby-native platform layer.  Result is a ~530 KB engine binary that fits in 640 KB of flash with room for further game-specific bring-up.
+
+**Game data lives on the shared FAT, not in the slot binary.**  Each game's resources sit under `/scumm/<game>/` — `DISK*.LEC` + `00.LFL` / `90n.LFL` for MI1, `monkey2.000/001` for MI2, `atlantis.000/001` for Indy 4.  The engine reads them via **XIP-mapped flash pointers** straight off the FAT volume — no RAM copy.  Loading `atlantis.001` (9.2 MB) into heap on a 330 KB-budget device is obviously a non-starter; XIP makes it free.  The catch is contiguity: a single base pointer plus offset only resolves correctly if the file is one straight cluster run, so the SCUMM workflow includes a post-install defragmenter pass (see [Defragmenting the shared FAT](#defragmenting-the-shared-fat)).
+
+**Continuous ATRANS — addressing past 4 MB.**  The RP2350's QMI hardware exposes flash as four 4 MB virtual windows (`ATRANS[0..3]`), each independently mapped to a 4 MB physical-flash slice via a base register.  By default each partition slot's `ATRANS[0]` points at its own partition (so slot code can run from `XIP_BASE`), while `ATRANS[1..3]` identity-map physical 4–16 MB.  That works for slots that never touch flash above their own 4 MB virtual window — but the SCUMM engine reads a single 9 MB file as one base pointer plus offset, which crosses the 4 MB boundary into `ATRANS[1]`.  In the SCUMM partition layout (slot at low physical offset, FAT in higher physical space), the identity mapping doesn't line up with the slot-relative view the engine needs; reads past 4 MB land on the wrong physical bytes and the engine hangs on a black screen.  The slot reconfigures `ATRANS[1..3]` at boot to be continuous extensions of `ATRANS[0]` (`BASE[N] = slot_base + N*0x400`), so a single virtual pointer addresses all 16 MB of flash from the slot's perspective.  Only fires inside the SCUMM slot's runtime; other slots are unaffected.
+
+**Display pipeline — 320×200 to 128×128.**  SCUMM scenes are 320×200, 256-colour, with a 320×8 sentence strip at the top and a 320×56 verb panel at the bottom.  The verb panel doesn't survive the squeeze to 128×128 in any usable form, so it's blanked at engine startup — verb selection happens through a custom on-demand overlay (LB tap opens a 9-verb picker; tooltip beneath the cursor labels the default action).  Three scale modes (cycled by MENU tap):
+
+- **FIT** — whole 320×200 frame letter-boxed into 128×80 with 24 px borders top and bottom.  Default; everything's visible at once at the cost of pixel detail.
+- **FILL** — full-width 128×80 crop, vertical pan tracks the cursor.  Trades pixel density for scene coverage.
+- **CROP** — 1:1 native, 128×128 viewport scrolls under a 320×200 scene driven by cursor proximity to the edges.  Faithful pixels, asks more of the player.
+
+The frame composer runs in C++, takes the engine's 320×200 8-bpp surface plus the 256×3 RGB palette, and does the downsample + RGB565 conversion straight into the LCD framebuffer.  No intermediate canvas.
+
+**Custom 128×128 overlay UI.**  ScummVM's stock verb panel + sentence line are sized for 320×200 and unreadable when squashed to 128 px.  ThumbyScummby blanks them and runs three custom overlays sized for the small screen:
+
+- **Sentence strip** — top of the screen, one line, shows the currently-selected verb plus the hovered object's name ("Walk to bartender", "Pick up coin").  Standard SCUMM functionality, re-rendered through our own font.
+- **Verb / dialog picker** (LB tap) — full-screen list of available verbs in the current scene; A picks one.  Doubles as the dialog-tree response picker when the scene's in dialog mode.
+- **Inventory picker** (RB tap) — full-screen list of held items; A picks one to use.
+- **Cursor tooltip** — labels the cursor with the contextual default action (*Look at*, *Open*, *Pick up*, *Talk to*).  In MI1 this is read directly from the game's own hover machinery (script 23 writes the chosen verb id into Var[182]) — a 100% authentic match for what right-click would do.
+
+**Audio — DOSBox OPL2 + iMUSE.**  AdLib music (MI1, Indy 3) is rendered by a vendored DOSBox OPL2 emulator at 22050 Hz, mixed mono through the same PWM ISR the other slots use.  MI2 / Indy 4 deliver iMUSE Standard MIDI File payloads wrapped in a SCUMM `MDhd` header with the OPL instrument table inline as SCUMM-format SysEx; the same OPL2 emu plays back the SMF stream.  All audio paths run from the audio ISR; no separate thread.
+
+**SCUMM saves with screenshot thumbnails.**  Slot-based save / load (4 slots per game), each save bundling a 64×64 RGB565 thumbnail captured at save time.  The save / load menu renders the four slots as a 2×2 grid of thumbnails so you pick by sight rather than slot number.  Saves live under `/scumm/<game>/saves/slot<N>.sav` — durable across reboots, reformats need a backup-and-restore.
+
+**Install from `.img` floppies — PCV/LFG! extraction.**  The original LucasArts installer floppies are FAT12 disks containing a single PCV / LFG! archive with chunked PKWARE-DCL-compressed file data XOR'd with a per-game key.  Dropping the floppy images directly into `/scumm/` triggers an on-device install pass that walks the floppy's FAT12, finds the PCV archive, decompresses each chunk with our [`dcl.cpp`](https://github.com/austinio7116/ThumbyScummby/blob/main/device_pico/dcl.cpp), applies the per-game XOR, and writes the extracted files into the right `/scumm/<game>/` subdir.  Incremental cluster freeing means a 9 MB game's `.img` set can be installed even though the raw set wouldn't otherwise fit on the FAT.  Trade-off: install is slow (10–30 minutes for a v5 game on hardware) and produces heavily fragmented output; users are warned in the picker to run `defrag fat` after install, or to drop pre-extracted files instead.
+
+**Separate-boot launch.**  The slot ships a small **launcher / picker** that runs before the engine itself.  The picker shows a hero-card for each installed game (cover-art thumbnail, title, variant), lets the user pick, writes `/scumm/.active_game` to the FAT, and then **reboots into the SCUMM slot a second time**.  The picker code never coexists in memory with the engine — same separate-boot pattern P8 uses for cart launches.  Reason: the picker's transient allocations (game-table parse, cover-art decode, MENU overlay backdrop) fragment heap; doing the heap-hungry engine init *after* a fresh reboot guarantees a clean 330 KB heap rather than ~290 KB peppered with picker leftovers.
+
+**SRAM discipline:**
+
+The 520 KB SRAM budget is *much* tighter for SCUMM than for the other slots — the engine itself uses far more working memory (script VM state, actor table, costume table, sound channels, palette manager, every loaded room's compressed graphics) than NES/SMS/GB cores do.  The squeeze relies on:
+
+- **Reduced-memory configs.**  `REDUCE_MEMORY_USAGE=1` zeroes ScummVM's in-class HashMap node pools — saves ~48 KB on ConfigManager alone (DomainMap pre-allocates 10 Domain-sized chunks inline).  Several other upstream `#if MEMORY_TIGHT` paths are forced on.
+- **No `dynamic_cast` / RTTI.**  `-fno-rtti -fno-exceptions`.  ScummVM's `Common::ReadStream` polymorphism via `dynamic_cast` is replaced by a small set of statically-typed stream classes — saves ~16 KB of typeinfo + RTTI tables.
+- **Audio mix buffer kept small.**  4 audio channels at 22050 Hz mono, 8 KB ring — same budget as the other slots.
+- **No save-game history / no autosave thumbnails persisted.**  Save thumbnails are captured live at save time; the load menu reads them from the `.sav` file on demand, never caching more than the currently-rendered slot.
+- **Sound resource cache cap.**  The default ScummVM 16 MB resource cap is reduced to ~30 KB; old resources expire aggressively.  Audible only on the very first frame after a long room transition.
+- **Continuous-ATRANS-aware FAT addressing.**  The `thumbyone_disk` helper detects whether `ATRANS[1].BASE == ATRANS[0].BASE + 0x400` and switches between slot-relative and absolute addressing accordingly.  Common code; one cheap runtime check.
+
+**LOG viewer.**  Built into the save / load menu — 21 columns wide, scrollable list of engine diagnostics.  Used for in-the-field debugging of save/load failures or resource-not-found errors when the user can't reproduce on a PC.  Pre-engine failures (install errors, missing files) can't reach this viewer, so they fall back to writing `/scumm/_install.log` on the FAT, readable from the lobby's USB MSC mount.
+
 ## Lobby architecture
 
 - **Icon pipeline**: [`tools/pack_icons.py`](tools/pack_icons.py) runs at build time, reads the four PNGs in `lobby/icons/`, quantises each to a 16-colour adaptive palette, packs two 4-bit indices per byte → ~1.1 KB per icon + 32 bytes palette. Total icon data: ~4.8 KB, vs ~18 KB for raw RGB565. The blitter in [`lobby/lobby_icons.c`](lobby/lobby_icons.c) decodes on the fly — one shift + one palette lookup per pixel.
@@ -1691,6 +1820,7 @@ Each system in ThumbyOne is a complete standalone firmware in its own repo; Thum
 - **[ThumbyNES](https://github.com/austinio7116/ThumbyNES)** — NES / SMS / GG / Game Boy / Mega Drive / PC Engine emulator
 - **[ThumbyP8](https://github.com/austinio7116/P8Thumb)** — PICO-8 fantasy console
 - **[ThumbyDOOM](https://github.com/austinio7116/ThumbyDOOM)** — shareware DOOM
+- **[ThumbyScummby](https://github.com/austinio7116/ThumbyScummby)** — SCUMM v3 / v4 / v5 adventures (Monkey Island 1 & 2, Indy 4)
 - **[TinyCircuits-Tiny-Game-Engine](https://github.com/austinio7116/TinyCircuits-Tiny-Game-Engine)** (austinio7116 fork) — MicroPython + engine slot
 - **[mp-thumby](https://github.com/austinio7116/micropython)** (`thumbyone-slot` branch) — MicroPython port with the ThumbyOne hooks
 
@@ -1706,6 +1836,9 @@ Each system in ThumbyOne is a complete standalone firmware in its own repo; Thum
   - **[PicoDrive](https://github.com/notaz/picodrive)** by notaz (Grazvydas Ignotas) — Mega Drive / Genesis 68K + Z80 + VDP + YM2612 / SN76489. ThumbyNES vendors a HuCard-only-style trim with the FAME 68K and CZ80 cores.
   - **[HuExpress](https://github.com/ducalex/retro-go)** (from the retro-go ODROID-GO fork of David Michel and Cédric Stiehl's [Hu-Go!](http://www.zeograd.com/parent.php?section=hugo)) — PC Engine / TurboGrafx-16 HuC6280 + VDC + VCE + PSG. ThumbyNES strips it down to HuCards-only and replaces the upstream full-frame renderer with a per-scanline composite.
 - **[rp2040-doom](https://github.com/kilograham/rp2040-doom)** — Graham Sanderson's tour-de-force DOOM port (Chocolate Doom → RP2040/RP2350).
+- **[ScummVM](https://www.scummvm.org/)** — the SCUMM virtual machine, opcode tables, file format work, and decades of reverse engineering that ThumbyScummby's transcribed engine subset stands on.  ThumbyScummby is a fan project; **please buy the original games** ([Monkey Island 1 & 2 on the Special Edition reissues](https://store.steampowered.com/app/32360/The_Secret_of_Monkey_Island_Special_Edition/), [Indiana Jones and the Fate of Atlantis on GOG](https://www.gog.com/en/game/indiana_jones_and_the_fate_of_atlantis)) to support the LucasArts/Disney legacy and ScummVM's ongoing work.
+- **[LucasArts](https://en.wikipedia.org/wiki/LucasArts)** (now Lucasfilm Games / Disney) — wrote the original SCUMM engine and the adventure games it runs. The PCV/LFG! container format, the DCL compression, and the per-game XOR encoding were all reverse-engineered for ScummVM; ThumbyScummby's installer reads them via the same code-paths.
+- **[DOSBox OPL2 emulator](https://www.dosbox.com/)** — vendored verbatim for AdLib music playback in MI1 / Indy 3 / Indy 4 MDhd payloads.
 - **[Lexaloffle](https://www.lexaloffle.com/)** — creators of PICO-8. ThumbyP8 is a clean-room implementation of the documented API; if you play carts you like, [buy PICO-8](https://www.lexaloffle.com/pico-8.php) to support the creators and the community.
 - **[MicroPython](https://micropython.org/)** — Damien George and contributors.
 - **[Pico SDK](https://github.com/raspberrypi/pico-sdk)** and **[tinyUSB](https://github.com/hathach/tinyusb)** — the backbone of every RP2xxx project.

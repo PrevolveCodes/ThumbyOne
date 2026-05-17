@@ -51,7 +51,7 @@ set(THUMBYONE_UNIFIED_BUILD ON)
 # DOOM is deliberately excluded — it tracks the ThumbyDOOM port's
 # own versioning ("ThumbyDOOM v1.2"), not ThumbyOne's release
 # cadence.
-set(THUMBYONE_FW_VERSION "1.12.1")
+set(THUMBYONE_FW_VERSION "1.13")
 add_compile_definitions(THUMBYONE_FW_VERSION="${THUMBYONE_FW_VERSION}")
 
 # ----- Slot selection --------------------------------------------------
@@ -156,6 +156,7 @@ add_executable(lobby
     lobby/lobby_main.c
     lobby/lobby_usb.c
     lobby/lobby_icons.c
+    lobby/lobby_defrag.c
     ${LOBBY_ICONS_GEN}
     ${THUMBYONE_PICKER_UI_SRC}
     ${THUMBYONE_COMMON_SRC}
