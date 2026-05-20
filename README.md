@@ -51,7 +51,7 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
 | **ThumbyDOOM** | Shareware DOOM I — WAD baked into the firmware | *(none — embedded)* |
 | **MicroPython + Engine** | Python games written against the [Tiny Game Engine](https://github.com/austinio7116/TinyCircuits-Tiny-Game-Engine) | `/games/<name>/` |
 | **ThumbyScummby** | SCUMM v4 / v5 adventures — Monkey Island 1, Monkey Island 2, Indiana Jones 4 (Fate of Atlantis), and the original LucasArts `.img` install disks | `/scumm/<game>/` or drop `.img` files into `/scumm/` |
-| **ThumbyCraft** *(new in 1.14)* | Bare-metal Minecraft-style voxel game — infinite procedural world, mining, crafting, redstone, mobs, four save slots | `/thumbycraft/` (managed by the game; back up the whole tree) |
+| **ThumbyCraft** *(new in 1.14, refreshed in 1.14.1)* | Bare-metal Minecraft-style voxel game — infinite procedural world, mining, crafting, redstone, mobs, eight structured-roof building variants (cottages, longhouse, watchtower, church, castle), four picker-driven control schemes, four save slots with full chest + furnace persistence | `/thumbycraft/` (managed by the game; back up the whole tree) |
 
 All six systems share one FAT drive, visible over USB when you're in the lobby. Size depends on the build:
 
@@ -545,9 +545,20 @@ ThumbyCraft is a Minecraft-style voxel game built from scratch for the 128×128 
 **The world:**
 
 - Infinite in X / Z, 64 cells tall. A 64×64×64 window slides with you, regenerating new terrain at the edges from a deterministic seed. Walk back later and your edits are exactly where you left them.
-- Procedural biomes: grassland plains, mountain biomes (taller peaks, stone surfaces, denser ore), flatland rivers carving smoothly down to water level, three tree species (small oak, big oak with branches, mountain pines), rare 5×5 plank huts to shelter in.
+- Procedural biomes: grassland plains, mountain biomes (taller peaks, stone surfaces, denser ore), flatland rivers carving smoothly down to water level, three tree species (small oak, big oak with branches, mountain pines).
+- **Eight building variants** scattered across the lowlands — every one with a structured roof, none of them plain plank boxes:
+  - **A-Frame Lodge** (5×5) — steep plank gabled ridge, wood corner posts, single back window.
+  - **Hipped Cottage** (5×5) — plank 4-sided pyramid roof, twin back windows.
+  - **Longhouse** (7×3) — long plank gabled ridge along the long axis.
+  - **L-Hipped Cabin** (5×5 L-footprint) — single ridge running the length of the long arm.
+  - **L-Gabled Cabin** (5×5 L-footprint) — twin ridges, one per wing, meeting at the inner corner.
+  - **Watchtower** (3×3, 7 tall) — stone shaft with a cobble crenellated parapet and a torch on top.
+  - **Church** (5×5, 7 tall) — steep gabled stone-and-plank nave with a wood-log steeple rising over the back and a torch belfry on top.
+  - **Castle Keep** (7×7) — stone fortress with alternating cobble battlements all the way around and glass arrow slits on every side.
+
+  Cottages are common; landmark builds (watchtower 9%, church 8%, castle 5%) are genuinely rare.
 - Cave systems mixed from rounded "cheese" chambers and long thin "spaghetti" tunnels — denser in mountain biomes because their taller columns expose more underground volume. Coal, iron, silver, gold, diamond, and redstone ores at depth-gated densities.
-- 5-minute day / night cycle with a sun arc, gradient sky, stars at night, drifting clouds. Hostile mobs spawn in darkness (caves or surface at night); they catch fire in direct sunlight if caught out at dawn.
+- 5-minute day / night cycle with a sun arc, gradient sky, stars at night, drifting clouds. Hostile mobs spawn in darkness (caves or surface at night); they catch fire in direct sunlight if caught out at dawn. Passive mobs (pigs, cows) only ever spawn on dry land.
 - A 10-block fall-damage grace, so casual drops are free; beyond that you take 1 HP per cell, capped.
 
 **Survival, crafting, redstone:**
@@ -560,6 +571,8 @@ ThumbyCraft is a Minecraft-style voxel game built from scratch for the 128×128 
 
 - Mine with tier-gated pickaxes (wood / stone / iron / silver / gold / diamond) — better picks unlock harder ores and break faster.
 - 3×3 craft grid plus a recipe book. Bake ores in a furnace (coal as fuel; wood / planks / sticks burn shorter), store loot in chests (4 active chests with 16 slots each).
+- Hut chests roll **rarity-tiered loot** on first open. Common (50%) gives crafting fodder; Uncommon (30%) adds iron + bow + wood pickaxe; Rare (15%) adds stone tools + redstone dust; Legendary (5%) gets iron tools, gold ingots, and a 50% diamond drop. Building type and chest tier are rolled independently, so a plain plank cabin can still hide a legendary chest and a stone house can be near-empty.
+- Hotbar slots clear themselves in survival mode when a block runs out — no more visually "holding" the last torch you placed. Pick another up and the slot fills back in.
 - Five hostile mob types — slimes, skeletons (drop a bow + 2-3 arrows), spiders, creepers (1-second fuse + spherical explosion + chain-fire TNT), and a giant boss spider only the diamond sword can damage. Spawn the boss by powering a diamond block with redstone.
 - Full redstone toolkit: levers, wire dust (auto-connects through redstone blocks), pressure pads, doors, trapdoors, ladders, sticky pistons (3-part model, six-direction facing, drag blocks both ways), TNT.
 
@@ -586,14 +599,16 @@ ThumbyCraft is a Minecraft-style voxel game built from scratch for the 128×128 
 
 - Save data lives on the shared FAT under `/thumbycraft/` — one folder per save slot for chunks, plus a small `.meta` file with the player state + screenshot thumbnail. Back the whole tree up over USB MSC like everything else.
 - Four save slots. **MENU → Save / Load world** picks a slot. Save thumbnails are visible at both the title screen and the in-game slot picker.
+- **Everything in your world persists** across save/load: the chunks you've modified (block edits), chest contents (4 slots × 16 items), furnace state (input/fuel/output, smelt progress, fuel timer), and your control-scheme + auto-save preferences. Hut chests no longer refill with their original loot on reload.
 - **Auto save** is a menu option with four modes — Off, every 60s, on Idle (5 s of no input + no walking), or Event (default: saves on menu open, menu close, sunrise / sunset). Defaults to Event so the save hitch lands at natural pause points instead of mid-walk.
 - **New world** generates a fresh seed and clears in-RAM world state. Save slots are untouched until you explicitly save to one.
 
-**Controls in-game:**
+**Controls in-game (Classic scheme — the default):**
 
 | Button | Action |
 |---|---|
 | LB held | Walk forward (gravity on); ascend in fly mode; climb ladders (pitch picks up/down) |
+| LB double-tap-hold | Walk **backwards** (release-and-repress within 300 ms, hold the 2nd press) |
 | RB tap | Jump |
 | D-pad | Look (turn left/right + pitch up/down) |
 | A | Break block / attack mob / draw bow (hold) |
@@ -602,7 +617,16 @@ ThumbyCraft is a Minecraft-style voxel game built from scratch for the 128×128 
 | MENU + A | Toggle fly (creative only) |
 | MENU (tap) | Open pause menu |
 
-The pause menu hosts inventory, crafting, recipes, controls cheat-sheet, save / load, game mode, music + SFX volumes, and the auto-save mode. The in-game auto-save events fire on menu open and close, so opening the menu from a stable position is a quick way to commit progress.
+**Pick your control scheme.** The pause menu's **Controls** entry now opens a 4-card picker — pick whichever layout you prefer; selection persists per save:
+
+- **Classic** (default, above).
+- **Classic flip** — LB jump, RB walk (with the same double-tap-hold reverse on RB).
+- **Walk + strafe** — D-pad U/D walks forward/back, L/R strafes sideways; **LB held** flips the d-pad into look mode (turn + pitch); RB jumps.
+- **Walk + turn** — D-pad U/D walks forward/back, L/R turns; **LB held** overlays pitch on U/D; RB jumps.
+
+Ladder climbing follows whichever scheme is active: classic schemes use the walk button + pitch (look up to ascend); d-pad schemes use D-pad UP / DOWN directly while standing in a ladder cell.
+
+The pause menu also hosts inventory, crafting, recipes, save / load, game mode, music + SFX volumes, and the auto-save mode. The in-game auto-save events fire on menu open and close, so opening the menu from a stable position is a quick way to commit progress.
 
 ---
 
@@ -1946,13 +1970,15 @@ The 520 KB SRAM budget is *much* tighter for SCUMM than for the other slots — 
 
 ### ThumbyCraft slot
 
-The newcomer in 1.14: **512 KB partition** carrying a from-scratch C voxel game.  Smallest game slot in the ThumbyOne lineup (a third the size of MPY, a fifth of NES+MD), but the only one that's pure bare-metal — no MicroPython runtime, no port of an existing engine, no AdLib emulator dependency.  Source lives in [`ThumbyCraft`](https://github.com/austinio7116/ThumbyCraft).
+The newcomer in 1.14, with 1.14.1 refreshing the buildings + save layer: **512 KB partition** carrying a from-scratch C voxel game.  Smallest game slot in the ThumbyOne lineup (a third the size of MPY, a fifth of NES+MD), but the only one that's pure bare-metal — no MicroPython runtime, no port of an existing engine, no AdLib emulator dependency.  Source lives in [`ThumbyCraft`](https://github.com/austinio7116/ThumbyCraft).
 
 **Bare-metal end to end.**  The engine sits directly on `pico/stdlib.h` plus a small hardware shim — `craft_lcd_gc9107.c` for the SPI + DMA framebuffer push, `craft_audio_pwm.c` for the PWM-IRQ ring buffer, `craft_buttons.c` for GPIO edge detection.  No `framebuf` indirection, no engine event loop, no Python tick.  Means a tight ~370 KB `.text` footprint with ~140 KB of headroom in the 512 KB slot, and a render path that's just C compiled with `-O3 -ffast-math -mfpu=fpv5-sp-d16` running from `.time_critical` SRAM.
 
 **Per-pixel CPU raycaster, dual-core tile work-stealing.**  No GPU.  Every one of 128×128 = 16 384 pixels per frame is generated by a 3D DDA walking the resident world buffer voxel by voxel; up to 64 steps per ray, ~5 ns per step on the SRAM-resident path.  The two M33 cores share that workload through a **tile work-stealing scheduler** rather than a fixed half/half split: the 128-row frame is sliced into 16 tiles of 8 rows each, and both cores `__atomic_fetch_add` against a single shared counter, grabbing the next tile as soon as their current one finishes.  Self-balancing under any view direction (sky-heavy strips finish fast and the other core picks up more terrain-heavy tiles automatically), where a static 50/50 split was bleeding ~6 ms whenever one half was visually busier than the other.  Tile size of 8 rows lands per-tile cost in the 3–5 ms range — orders of magnitude bigger than the ~50 ns CAS overhead, so dispatch is invisible.
 
-**Sliding 64³ window over an infinite world.**  X / Z are conceptually unbounded; Y is fixed 0..63.  A 256 KB `craft_world_blocks` buffer (64×64×64 bytes) is the resident window, anchored by a `(origin_x, origin_z)` pair.  When the player walks within 16 cells of an edge, the window slides one axis at a time — `memmove` shifts the overlap region in-place, the new strip is regenerated from a 4-octave FBM noise heightmap + ridge-noise rivers + 3D noise caves + per-position-hashed trees & huts, and any player edits in the entering chunks are restored from flash.  A 16-cell shift regenerates ~1 024 columns in ~7 ms, fitting inside a frame.
+**Sliding 64³ window over an infinite world.**  X / Z are conceptually unbounded; Y is fixed 0..63.  A 256 KB `craft_world_blocks` buffer (64×64×64 bytes) is the resident window, anchored by a `(origin_x, origin_z)` pair.  When the player walks within 16 cells of an edge, the window slides one axis at a time — `memmove` shifts the overlap region in-place, the new strip is regenerated from a 4-octave FBM noise heightmap + ridge-noise rivers + 3D noise caves + per-position-hashed trees & buildings, and any player edits in the entering chunks are restored from flash.  A 16-cell shift regenerates ~1 024 columns in ~7 ms, fitting inside a frame.
+
+**Eight building variants from a single per-cell rule.**  1.14.1 replaces the original plain plank box with eight visually-distinct designs, each expressed as a tight per-cell function `hut_block_local(dx, dz, dy, dir, type)`.  Per-type footprint helpers (`hut_w / hut_h / hut_top`) bound each design to its actual size — 3×3 for the watchtower, 7×3 for the longhouse, 5×5 L-shape for the L-cabins, 7×7 for the castle — so smaller buildings spawn more readily on hilly lowlands (`hut_origin_at` only requires the type's real footprint to be flat).  World-column scan widens from 5×5 → 7×7 origin candidates per column to accommodate the castle's bounding box, but since buildings are still 1/4096 cols the absolute cost stays fractional.  Material families are intentionally cohesive: PLANK + WOOD cottages form the settlement family; STONE + COBBLE reserved for the watchtower and castle; STONE + PLANK + WOOD for the church's nave + steeple.  Hut chest loot rolls one of four rarity tiers (Common 50% / Uncommon 30% / Rare 15% / Legendary 5%) on first open — independent of building type, so a plain plank cabin can still hide a legendary chest.
 
 **Per-world chunk store with nonce-filtered isolation.**  Player edits — torch placements, dug blocks, redstone wires, planted huts — are persisted as `(lx, y, lz, blk)` records keyed by `(chunk_x, chunk_z)`.  In slot mode the backend is FatFs files under `/thumbycraft/<region>/<cx>_<cz>.cnk`, with five regions: one per save slot (`slot0/` .. `slot3/`) and one `scratch/` for unsaved new worlds.  The store is **bound** to one region + 32-bit nonce at a time; reads filter out files whose stamped nonce doesn't match the active binding.  That's what makes "New World" a single-instruction operation: instead of deleting the scratch directory (slow on FatFs), the runtime just picks a fresh random nonce, and old files become invisible until overwritten.  Save-into-slot copies all valid scratch files into the slot's directory, restamped with the slot's freshly-bumped seq number as nonce — atomic-ish at the save-record level, and per-slot regions can't accidentally surface each other's data even on hash collision.
 
@@ -1962,7 +1988,7 @@ The newcomer in 1.14: **512 KB partition** carrying a from-scratch C voxel game.
 
 **Auto-save with audio-aware flush policy.**  The pause menu carries a four-mode auto-save toggle: **Off**, **60s** (periodic), **Idle** (5 s of no input + no XZ movement), **Event** (default — fires on menu open / close edges and sun-y zero crossings at dawn / dusk).  Every mode runs through one shared 5 s debounce window so two triggers can't double-fire.  Each FatFs write costs ~30–50 ms with all IRQs masked, during which the audio PWM peripheral keeps outputting whatever sample value was last set — the next IRQ-allowed sample value jumps and reads as an audible click in the music.  Standalone gets away with running a background drain timer that spreads chunk evictions (one sector every 2 s), but in slot mode the drain is disabled entirely (`PERSIST_PERIOD = 1.0e9f`).  Persistence is save-only: chunks accumulate in the SRAM dirty queue until a manual or auto save fires, then the whole queue flushes synchronously in one ~30–50 ms hitch that Event mode lines up with a natural pause point.  The 32-entry dirty queue still force-flushes its oldest entry on overflow, so a walk-forever session can't lose progress.
 
-**Save metadata: 32×32 thumbnail per slot.**  Slot metadata lives in `/thumbycraft/slot<N>.meta` — a 4 KB file mirroring the standalone flash sector layout: magic `'TCS3'` + seq + record-len + the player record (camera pose, hotbar, inventory, autosave level, chunks-nonce) at the start, a CRC32, then a 32×32 RGB565 thumbnail at offset 2048 (exactly 2 KB).  The title screen reads thumbnails directly from disk to render the four-slot grid; the in-game save / load picker uses the same.
+**Save record v5 — full session persistence.**  Slot metadata lives in `/thumbycraft/slot<N>.meta` — a 4 KB file mirroring the standalone flash sector layout: magic `'TCS3'` + seq + record-len + the player record + CRC32, then a 32×32 RGB565 thumbnail at offset 2048 (exactly 2 KB).  v5 (new in 1.14.1) extends the player record with the chest table (4 chests × 45 B = 180 B) and the furnace table (8 furnaces × 27 B = 216 B), serialised byte-explicit little-endian by `craft_chests_serialise()` + `craft_furnaces_serialise()`.  Before v5 those tables were SRAM-only and got wiped on every load, which is why hut chests refilled with their original loot each reload (the deterministic seed function ran from scratch on first touch) and player-placed chests came back empty.  Format bump is strict — v4 saves no longer load.  Record size grew from ~252 B → ~648 B, still well under the 4 064 B per-sector cap.  Autosave level + control scheme also persist via 4-bit nibbles packed into the legacy PAD byte (no format bump needed for those — they're carried inside the existing pre-v5 layout).  The title screen reads thumbnails directly from disk to render the four-slot grid; the in-game save / load picker uses the same.
 
 **Multicore lockout for flash safety.**  Background chunk persists (and Auto-save firings) call `multicore_lockout_start_blocking()` so core 1 is parked during the ~10 ms XIP-disable window.  Core 1 calls `multicore_lockout_victim_init()` on startup to register the SIO FIFO IRQ handler — without that, core 0 hangs forever the first time it tries to write flash from inside the render loop's working tick.
 
