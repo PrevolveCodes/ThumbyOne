@@ -120,7 +120,7 @@ static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
 #define THUMBYONE_DOOM_SIZE           (2432u * 1024u)   /* binary ~2.27 MB + 110 KB headroom */
 #define THUMBYONE_MPY_SIZE            (1280u * 1024u)   /* binary ~0.93 MB + 320 KB headroom */
 #define THUMBYONE_SCUMM_SIZE          ( 640u * 1024u)   /* binary ~0.53 MB + 100 KB headroom (still growing) */
-#define THUMBYONE_CRAFT_SIZE          ( 768u * 1024u)   /* binary ~0.55 MB + ~220 KB headroom */
+#define THUMBYONE_CRAFT_SIZE          ( 512u * 1024u)   /* binary ~0.37 MB + ~140 KB headroom (~38% margin) */
 
 /* P8's active-cart flash region — 256 KB total, with the last 4 KB
  * sector reserved as the cross-slot settings mirror.  NOT a

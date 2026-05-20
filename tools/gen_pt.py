@@ -31,7 +31,7 @@ P8_KB              = 384
 DOOM_KB            = 2432
 MPY_KB             = 1280
 SCUMM_KB           = 640
-CRAFT_KB           = 768
+CRAFT_KB           = 512
 
 P8_SCRATCH_KB      = 252
 SETTINGS_MIRROR_KB = 4

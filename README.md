@@ -35,6 +35,7 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
   - [ThumbyDOOM](#thumbydoom--shareware-doom)
   - [MicroPython + Tiny Game Engine](#micropython--tiny-game-engine)
   - [ThumbyScummby](#thumbyscummby--scumm-adventures)
+  - [ThumbyCraft](#thumbycraft--voxel-survival)
 - [Changelog](#changelog)
 - [Tips and troubleshooting](#tips-and-troubleshooting)
 - [Technical specifications](#technical-specifications)
@@ -50,14 +51,19 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
 | **ThumbyDOOM** | Shareware DOOM I — WAD baked into the firmware | *(none — embedded)* |
 | **MicroPython + Engine** | Python games written against the [Tiny Game Engine](https://github.com/austinio7116/TinyCircuits-Tiny-Game-Engine) | `/games/<name>/` |
 | **ThumbyScummby** | SCUMM v4 / v5 adventures — Monkey Island 1, Monkey Island 2, Indiana Jones 4 (Fate of Atlantis), and the original LucasArts `.img` install disks | `/scumm/<game>/` or drop `.img` files into `/scumm/` |
+| **ThumbyCraft** *(new in 1.14)* | Bare-metal Minecraft-style voxel game — infinite procedural world, mining, crafting, redstone, mobs, four save slots | `/thumbycraft/` (managed by the game; back up the whole tree) |
 
-All five systems share one FAT drive, visible over USB when you're in the lobby. Size depends on the build:
+All six systems share one FAT drive, visible over USB when you're in the lobby. Size depends on the build:
 
-- **9.0 MB** in the default (MD-enabled) layout (`firmware_thumbyone.uf2`)
-- **10.0 MB** in the backward-compat `THUMBYONE_WITH_MD=OFF` build
+- **8.5 MB** in the default (MD-enabled) layout (`firmware_thumbyone.uf2`)
+- **9.5 MB** in the backward-compat `THUMBYONE_WITH_MD=OFF` build
 - Up to **15.0 MB** in the slimmer SCUMM-only / minimal presets — see [Build matrix](#build-matrix).
 
-In 1.13 every slot got a measured-binary rightsizing audit (MPY was 53% empty, P8 and DOOM had ~150 KB of unused tail each) — the default FAT picked up +0.4 MB without anything being dropped. Larger preset images at the cost of fewer systems.
+**Note on the new ThumbyCraft slot:** it currently ships only in the
+default `firmware_thumbyone.uf2` (and its `_nomd` sibling). The
+slimmer preset images (`_nodoom`, `_scummonly`, `_retro` etc.) stay
+on the original five systems — flash the main image if you want
+ThumbyCraft.
 
 ---
 
@@ -67,7 +73,7 @@ In 1.13 every slot got a measured-binary rightsizing audit (MPY was 53% empty, P
 >
 > Flashing ThumbyOne **replaces the stock TinyCircuits firmware** with a completely different system. This is a full takeover, not an overlay:
 >
-> - **The TinyCircuits launcher, stock games, and system files will be gone.** ThumbyOne's shared FAT (9.0 MB in the default MD-enabled build, 10.0 MB with `THUMBYONE_WITH_MD=OFF`, up to 15 MB on the slimmer presets — see [Build matrix](#build-matrix)) sits at a different flash offset than stock — first boot will need to format a fresh volume, and anything you had on the device (saves, scores, installed games) is wiped at that point.
+> - **The TinyCircuits launcher, stock games, and system files will be gone.** ThumbyOne's shared FAT (8.5 MB in the default MD-enabled build with ThumbyCraft, 9.5 MB with `THUMBYONE_WITH_MD=OFF`, up to 15 MB on the slimmer presets that don't include ThumbyCraft — see [Build matrix](#build-matrix)) sits at a different flash offset than stock — first boot will need to format a fresh volume, and anything you had on the device (saves, scores, installed games) is wiped at that point.
 > - The device is easy to flash back to stock afterwards — see instructions below. But stock firmware **doesn't expose a USB drive** — to back up anything from stock first (e.g. save files under `/Saves/`), connect via [Thonny](https://color.thumby.us/pages/getting-started-with-thonny/getting-started-with-thonny/) or `mpremote` and pull files over the REPL. Do that **before** flashing ThumbyOne.
 > - ThumbyOne uses its own filesystem layout (`/roms/`, `/carts/`, `/games/`) — stock `/Games/` Python games won't be visible until you move them into `/games/`.
 > - There is **no going back to stock with your data intact unless you back it up first** once ThumbyOne has first-booted.
@@ -80,7 +86,7 @@ In 1.13 every slot got a measured-binary rightsizing audit (MPY was 53% empty, P
 
 **Download** [`firmware_thumbyone.uf2`](https://github.com/austinio7116/ThumbyOne/blob/main/firmware_thumbyone.uf2) from the root of this repo (or the latest [release](https://github.com/austinio7116/ThumbyOne/releases)) — or [build from source](#build-matrix).
 
-> **Upgrading from any pre-1.13 build?** 1.13's slot rightsizing audit moved the shared FAT base forward by ~1 MB and grew it from 8.6 MB to **9.0 MB** (default MD-enabled build) / 9.6 MB to **10.0 MB** (`WITH_MD=OFF` build). The lobby shows an **`FS BAD / A=FORMAT  B=ABORT`** prompt on first boot at the new offset — **hold A for one second** to confirm the reformat; everything on the old volume is wiped. **Back up `/roms/`, `/carts/`, `/games/`, `/Saves/` first** (USB MSC works as usual under the old firmware), then flash, reformat, and copy back as much as fits in the new (slightly larger) volume.
+> **Upgrading from any pre-1.14 build?** 1.14 adds the ThumbyCraft slot (512 KB) to the default firmware, which moves the shared FAT forward and shrinks it from 9.0 MB to **8.5 MB** (default MD-enabled build) / 10.0 MB to **9.5 MB** (`WITH_MD=OFF` build). The lobby shows an **`FS BAD / A=FORMAT  B=ABORT`** prompt on first boot at the new offset — **hold A for one second** to confirm the reformat; everything on the old volume is wiped. **Back up `/roms/`, `/carts/`, `/games/`, `/scumm/`, `/Saves/` first** (USB MSC works as usual under the old firmware), then flash, reformat, and copy back as much as fits in the new (slightly smaller) volume. *Slimmer preset images (`_nodoom`, `_scummonly`, `_retro`) don't include ThumbyCraft and keep the 1.13 FAT sizes — only the default `firmware_thumbyone.uf2` and its `_nomd` sibling shrink.*
 >
 > If you only want a subset of systems and don't need the migration prompt at all, flash one of the slimmer preset UF2s — see [Build matrix](#build-matrix). `firmware_thumbyone_scummonly.uf2` for example gives 15 MB FAT for SCUMM-only setups.
 
@@ -228,7 +234,7 @@ Two escape hatches for when something goes wrong:
 
 **Hold MENU at boot** → forces the lobby even if a pending slot-chain would otherwise try to start a broken slot. Useful after a bad flash or a hang.
 
-**Hold LB + RB at boot** → the lobby prompts you to keep both held for a one-second countdown, then wipes and reformats the whole shared FAT (size depends on the build — 9.0 MB in the default 1.13 MD-enabled build, 10.0 MB without MD, up to 15 MB on the slimmer presets). Erases all ROMs, carts, games, saves, and any extracted SCUMM data. Only needed if the FAT itself is corrupt (no slot can read it, or the PC says "unformatted disk").
+**Hold LB + RB at boot** → the lobby prompts you to keep both held for a one-second countdown, then wipes and reformats the whole shared FAT (size depends on the build — 8.5 MB in the default 1.14 MD+CRAFT-enabled build, 9.5 MB without MD, up to 15 MB on the slimmer presets that drop ThumbyCraft and other systems). Erases all ROMs, carts, games, saves, and any extracted SCUMM / ThumbyCraft data. Only needed if the FAT itself is corrupt (no slot can read it, or the PC says "unformatted disk").
 
 No driver weirdness, no Windows Format dialog, no `mpremote` incantations. LB + RB at boot is the canonical wipe.
 
@@ -409,7 +415,7 @@ MicroPython with the Tiny Game Engine C module baked in, running a custom C pick
 - **Custom C picker** replaces the launcher: loads instantly (no Python startup wait), shows a proper hero view.
 - **ROM-backed `/system/`** — the engine's `filesystem/system/` tree (fonts, splashes, launcher assets, ~376 KB) is packed into the firmware image and mounted as a read-only MicroPython VFS. Saves FAT space and means `/system/` is always available without a first-boot copy.
 - **No USB REPL** — the MPY slot doesn't enumerate as a serial port because the lobby owns USB. Games just run; no Thonny connection possible while in a game. Lobby-based transfers only.
-- **Flash scratch partition** — `TextureResource(in_ram=False)` stores into the upper 768 KB of the MPY partition rather than the chip-wide default, so loading textures doesn't clobber sibling slots.
+- **Flash scratch partition** — `TextureResource(in_ram=False)` stores into the upper 512 KB of the MPY partition rather than the chip-wide default, so loading textures doesn't clobber sibling slots.
 - **Per-game saves** — each game gets its own `/Saves/games/<name>/` namespace.
 
 **Controls:**
@@ -512,9 +518,91 @@ The 128×128 screen is square but a SCUMM scene is 320×200 — so dialog and ve
 
 **Notes:**
 
-- **Sizes (extracted):** MI1 ≈ 4.4 MB, MI2 ≈ 9.1 MB, Indy 4 ≈ 9.3 MB. No combination of two of the big v5 games (MI2, Indy 4) coexists on the default 9.0 MB FAT — pick one at a time, or flash the `firmware_thumbyone_nodoom.uf2` / `firmware_thumbyone_scummonly.uf2` preset for more headroom.
+- **Sizes (extracted):** MI1 ≈ 4.4 MB, MI2 ≈ 9.1 MB, Indy 4 ≈ 9.3 MB. The default 1.14 build with ThumbyCraft has only **8.5 MB** of shared FAT — large enough for MI1 but **not** MI2 or Indy 4. For the v5 games flash the `firmware_thumbyone_nodoom.uf2` / `firmware_thumbyone_scummonly.uf2` preset for more headroom (and note those presets don't include the ThumbyCraft slot).
 - **Saves** under `/scumm/<game>/saves/slot<N>.sav`. Persistent across reboots; the SCUMM in-game save menu (MENU-long) handles slot selection.
 - **LOG viewer** inside the save menu is 21 columns wide — used for diagnostic output. Pre-engine failures (install errors etc.) write to `/scumm/_install.log` when the picker can't show them via the in-game viewer.
+
+---
+
+### ThumbyCraft — voxel survival
+
+*Original bare-metal voxel game for the Thumby Color — [ThumbyCraft](https://github.com/austinio7116/ThumbyCraft).*
+
+<p align="center">
+  <img src="docs/screenshots/craft-title.jpg" width="380" alt="ThumbyCraft title screen — four save-slot thumbnails plus New World tile">
+</p>
+
+ThumbyCraft is a Minecraft-style voxel game built from scratch for the 128×128 RGB565 screen, dual-core M33, and 520 KB SRAM of the Thumby Color. Everything you see is rendered in real time by a per-pixel CPU raycaster — there's no GPU on the chip. Two cores share the per-frame raycast workload through a tile work-stealing scheduler.
+
+**Getting in:** select the grass-top-dirt tile in the lobby and the slot boots into ThumbyCraft's title screen. The title shows four save slots with 32×32 screenshot thumbnails and a "New world" tile underneath. Pick a saved slot to continue, or **New world** to spawn into a fresh procedural world.
+
+<p align="center">
+  <img src="docs/screenshots/craft-gameplay.jpg" width="240" alt="Surface gameplay — grass and dirt, HUD with hearts">
+  <img src="docs/screenshots/craft-redstone.jpg" width="240" alt="Redstone circuit on a hillside — wire trace lit">
+  <img src="docs/screenshots/craft-cave.jpg" width="240" alt="Underground cave system lit by torches">
+</p>
+
+**The world:**
+
+- Infinite in X / Z, 64 cells tall. A 64×64×64 window slides with you, regenerating new terrain at the edges from a deterministic seed. Walk back later and your edits are exactly where you left them.
+- Procedural biomes: grassland plains, mountain biomes (taller peaks, stone surfaces, denser ore), flatland rivers carving smoothly down to water level, three tree species (small oak, big oak with branches, mountain pines), rare 5×5 plank huts to shelter in.
+- Cave systems mixed from rounded "cheese" chambers and long thin "spaghetti" tunnels — denser in mountain biomes because their taller columns expose more underground volume. Coal, iron, silver, gold, diamond, and redstone ores at depth-gated densities.
+- 5-minute day / night cycle with a sun arc, gradient sky, stars at night, drifting clouds. Hostile mobs spawn in darkness (caves or surface at night); they catch fire in direct sunlight if caught out at dawn.
+- A 10-block fall-damage grace, so casual drops are free; beyond that you take 1 HP per cell, capped.
+
+**Survival, crafting, redstone:**
+
+<p align="center">
+  <img src="docs/screenshots/craft-craft-pickaxe.jpg" width="240" alt="Crafting a wooden pickaxe in the 3x3 grid">
+  <img src="docs/screenshots/craft-recipes.jpg" width="240" alt="Recipe book showing diamond sword recipe">
+  <img src="docs/screenshots/craft-inventory.jpg" width="240" alt="Inventory page with mined blocks">
+</p>
+
+- Mine with tier-gated pickaxes (wood / stone / iron / silver / gold / diamond) — better picks unlock harder ores and break faster.
+- 3×3 craft grid plus a recipe book. Bake ores in a furnace (coal as fuel; wood / planks / sticks burn shorter), store loot in chests (4 active chests with 16 slots each).
+- Five hostile mob types — slimes, skeletons (drop a bow + 2-3 arrows), spiders, creepers (1-second fuse + spherical explosion + chain-fire TNT), and a giant boss spider only the diamond sword can damage. Spawn the boss by powering a diamond block with redstone.
+- Full redstone toolkit: levers, wire dust (auto-connects through redstone blocks), pressure pads, doors, trapdoors, ladders, sticky pistons (3-part model, six-direction facing, drag blocks both ways), TNT.
+
+<p align="center">
+  <img src="docs/screenshots/craft-redstone.jpg" width="380" alt="Redstone circuit on a hillside — lever, wire trace, piston">
+</p>
+
+**Bow auto-aim:** with a bow and arrows on the hotbar, **hold A** to enter draw mode — the crosshair lerps onto the nearest hostile within 16 blocks (±60° cone) and turns yellow. Pitch stays under D-pad control for arc shots over walls. **Release A** to fire; the crosshair snaps back to centre. Missed arrows are pickupable.
+
+<p align="center">
+  <img src="docs/screenshots/craft-torch-place.jpg" width="240" alt="Placing a torch — block highlighted by picker outline">
+  <img src="docs/screenshots/craft-hilltop.jpg" width="240" alt="Hilltop with bow held — view across grassland">
+</p>
+
+**Music:** Debussy's *Clair de Lune* played as actual MIDI through an in-game 6-voice polyphonic synth. Each loop picks a new key + direction (forward or reverse); pitch glides higher in caves and lower on mountaintops, so the music breathes with the world.
+
+**Saving:**
+
+<p align="center">
+  <img src="docs/screenshots/craft-menu.jpg" width="240" alt="Pause menu top — Resume / Inventory / Craft / Recipes / Controls / Save / Load / Game mode">
+  <img src="docs/screenshots/craft-menu-autosave.jpg" width="240" alt="Pause menu scrolled to Auto save: Event row">
+  <img src="docs/screenshots/craft-chest.jpg" width="240" alt="Chest UI showing a stash of mined blocks and tools">
+</p>
+
+- Save data lives on the shared FAT under `/thumbycraft/` — one folder per save slot for chunks, plus a small `.meta` file with the player state + screenshot thumbnail. Back the whole tree up over USB MSC like everything else.
+- Four save slots. **MENU → Save / Load world** picks a slot. Save thumbnails are visible at both the title screen and the in-game slot picker.
+- **Auto save** is a menu option with four modes — Off, every 60s, on Idle (5 s of no input + no walking), or Event (default: saves on menu open, menu close, sunrise / sunset). Defaults to Event so the save hitch lands at natural pause points instead of mid-walk.
+- **New world** generates a fresh seed and clears in-RAM world state. Save slots are untouched until you explicitly save to one.
+
+**Controls in-game:**
+
+| Button | Action |
+|---|---|
+| LB held | Walk forward (gravity on); ascend in fly mode; climb ladders (pitch picks up/down) |
+| RB tap | Jump |
+| D-pad | Look (turn left/right + pitch up/down) |
+| A | Break block / attack mob / draw bow (hold) |
+| B | Place selected block / interact (toggle door / lever / chest / furnace) |
+| MENU + LB / RB | Cycle hotbar slot |
+| MENU + A | Toggle fly (creative only) |
+| MENU (tap) | Open pause menu |
+
+The pause menu hosts inventory, crafting, recipes, controls cheat-sheet, save / load, game mode, music + SFX volumes, and the auto-save mode. The in-game auto-save events fire on menu open and close, so opening the menu from a stable position is a quick way to commit progress.
 
 ---
 
@@ -522,61 +610,103 @@ The 128×128 screen is square but a SCUMM scene is 320×200 — so dialog and ve
 
 ### 1.14
 
-> ⚠️  **Back up before flashing.**  1.14 reshuffles the partition
-> table to add the ThumbyCraft slot, which means the shared FAT base
-> moves forward by 768 KB (the slot binary's size).  On first boot
-> the lobby will see an unrecognised FAT and prompt for a reformat —
-> your ROMs, carts, MicroPython games, SCUMM data, ThumbyCraft saves
-> (if any from a 1.13 standalone build), and **all saves and save
-> states** will be wiped.  Boot into 1.13 first, plug in USB, copy
-> the whole drive contents to a folder on your PC, then flash 1.14
-> and copy back as much as fits.  Subsequent 1.14.x builds shouldn't
-> need another wipe.
+> ⚠️  **Back up before flashing.**  1.14 reshuffles the on-flash
+> partition layout to make room for the new ThumbyCraft slot, which
+> means the shared FAT moves to a different offset.  When you flash
+> 1.14 on top of 1.13.x the lobby will see an unrecognised FAT and
+> prompt for a reformat — your ROMs, carts, MicroPython games,
+> SCUMM data, and **all saves and save states** will be wiped.
+> Drop into the 1.13.x lobby first, plug in USB, copy the whole
+> drive contents to a folder on your PC, then flash 1.14 and copy
+> everything back when the new firmware is up.
 
-**New: ThumbyCraft slot.** A bare-metal Minecraft-style voxel game
-joins the line-up — per-pixel DDA raycaster, 64³ resident window
-over an infinite procedural world, full survival + crafting +
-redstone, four save slots stored on the shared FAT.  Lobby tile is a
-grass-top-dirt block; selecting it boots into ThumbyCraft's title
-screen.  Slot is 768 KB; FAT shrinks accordingly — **8.25 MB** in the
-default MD-enabled build (was 9.0 MB), **9.25 MB** with `WITH_MD=OFF`
-(was 10.0 MB).
+> ℹ️  **The new ThumbyCraft slot ships only in `firmware_thumbyone.uf2`
+> (the default all-on build) and the matching no-MD build.**  The
+> slimmer preset images (`_nodoom`, `_scummonly`, `_retro` etc.) are
+> rebuilt from 1.13 sources for storage compatibility but stay on
+> the original five systems — no ThumbyCraft tile in those.  If you
+> want the new game, flash the main image.
 
-**Lobby tile layout: stable 2x2 across pages.** Page 2 (with SCUMM +
-CRAFT) no longer re-centres a partial tile — every page lays icons
-at the same fixed grid positions as page 1, so the carousel feels
-like turning pages of one contact sheet instead of a re-flowing
-gallery.
+ThumbyCraft arrives — a bare-metal voxel game by Mark Austin built
+from the ground up for the Thumby Color's 128×128 RGB565 screen
+and dual-core M33.  Plus a cleaner lobby grid that doesn't shift
+icons around when paging.
 
-**ThumbyCraft persistence model (slot mode):**
+**New: ThumbyCraft.**
 
-- Per-world chunk storage on the FAT: `/thumbycraft/<region>/<cx>_<cz>.cnk`,
-  one tiny file per edited chunk.  A world with 20 edited chunks
-  uses ~80 KB on disk — not 1 MB.
-- Player metadata at `/thumbycraft/slot<N>.meta` (4 KB per slot,
-  includes a 32x32 RGB565 thumbnail).
-- Auto-save menu in-game (Off / 60s / Idle / Events), defaults to
-  **Event**: full save fires on menu open, menu close, and day/night
-  flip — natural pause moments instead of mid-walk hitches.
-- Window-shift no longer eagerly flushes chunks to flash; chunks
-  stay in the SRAM mod hash + dirty queue and only land on disk via
-  a save (auto or manual) or the 32-entry overflow safety net.
-- "Edited chunks" bitmap rebuilt on slot bind skips the
-  `f_open(FR_NO_FILE)` round-trip on chunks the player hasn't
-  touched — window restore drops from ~30 ms of FatFs directory
-  walks down to single-digit ms.
+A pocket-sized take on the Minecraft loop — explore an infinite
+procedural world, mine, craft, build, fight off mobs, manage HP
+and hunger, all rendered in real time on a 128-pixel screen by a
+per-pixel CPU raycaster.
 
-**ThumbyCraft worldgen pass:**
+<p align="center">
+  <img src="docs/screenshots/craft-title.jpg" width="380" alt="ThumbyCraft on the Thumby Color — title screen with save slots">
+</p>
 
-- River channels now actually carve below water level (previous
-  `min_h` clamp left them as sand stamps at WL with no water on top).
-- Bank slope smooths to the channel edge regardless of natural
-  elevation, scaled by `(1 - mountain_factor)` — no more sheer cliffs
-  between flatland rivers and adjacent hills.
-- Cave density tightened: cheese threshold 0.62→0.66 (≈20%→≈10%
-  fill) and a `h-8` depth ceiling so cave mouths can't carve through
-  the dirt sub-surface band.  Walking past a hill no longer reveals
-  swiss-cheese cliff faces.
+<p align="center">
+  <img src="docs/screenshots/craft-gameplay.jpg" width="240" alt="Daytime surface gameplay">
+  <img src="docs/screenshots/craft-cave.jpg" width="240" alt="Underground cave system">
+  <img src="docs/screenshots/craft-torch-place.jpg" width="240" alt="Placing a torch">
+</p>
+
+What's in the slot:
+
+- **Infinite procedural world** with grass plains, mountain
+  biomes, rivers, caves, trees (oak, large oak, pines), and rare
+  5×5 plank huts to take shelter in.
+- **Survival mode** with HP, fall damage, regen, and a 5-minute
+  day / night cycle.  Night and dark caves spawn hostile mobs —
+  slimes, spiders, skeletons (drop a bow + arrows on death),
+  creepers (fuse + explode + chain-detonate TNT), and a giant
+  boss spider that takes only diamond-sword hits.
+- **Mining and crafting** — wood / stone / iron / silver / gold
+  / diamond tool tiers, a 3×3 craft grid, recipe book, furnace
+  (smelt iron ore / sand / cobble / silver / gold / diamond /
+  redstone ores), and storage chests.
+- **Redstone circuits** — levers, redstone wire, pressure pads,
+  doors, trapdoors, sticky pistons, TNT.  Activate a diamond
+  block to spawn the boss.
+- **Bow auto-aim** — hold A with a bow + arrows to snap the
+  crosshair onto the nearest hostile within 16 blocks.  Release
+  to fire.  Pitch stays manual for arc shots.
+- **Live Debussy *Clair de Lune* soundtrack** — real MIDI played
+  through a 6-voice polyphonic synth.  Each loop picks a new key
+  and direction; pitch glides higher in caves and lower on
+  mountaintops.
+- **Four save slots** with 32×32 screenshot thumbnails.  Choose
+  your auto-save behaviour from the in-game menu: off, every
+  60 s, on idle (5 s of no input + no walking), or on natural
+  pause events (menu open, menu close, sunrise / sunset).
+  Defaults to **Events**.
+
+Save data lives on the shared FAT under `/thumbycraft/` —
+back it up to your PC over USB MSC like everything else.  See
+the [ThumbyCraft section](#thumbycraft--voxel-survival) for
+controls and the full feature list.
+
+**Lobby tile layout: stable across pages.**
+
+When the lobby has more than four enabled systems (and 1.14
+introduces the sixth), the carousel pages.  Previously page 2
+re-centred its tiles if only one or two were present, which
+made the icons appear to *move* as you flipped pages.  Now
+every page lays icons at the same fixed grid positions —
+turning pages feels like turning pages of one contact sheet
+rather than a re-flowing gallery.
+
+**Storage.**
+
+The ThumbyCraft slot is 512 KB, and the shared FAT shrinks
+accordingly:
+
+| Build               | 1.13 shared FAT | 1.14 shared FAT |
+|---------------------|----------------:|----------------:|
+| Default (with MD)   | 9.0 MB          | **8.5 MB**     |
+| `WITH_MD=OFF`       | 10.0 MB         | **9.5 MB**     |
+
+Slimmer presets (`_nodoom`, `_scummonly`, etc.) are unaffected
+because they don't include the ThumbyCraft slot.  See [Build
+matrix](#build-matrix).
 
 ### 1.13
 
@@ -1352,37 +1482,43 @@ No two slots are in memory at the same time. Each slot has the whole 520 KB SRAM
 
 Two layouts depending on `THUMBYONE_WITH_MD`:
 
-### Default build (`THUMBYONE_WITH_MD=ON`)
+### Default build (`THUMBYONE_WITH_MD=ON`, `THUMBYONE_WITH_CRAFT=ON`)
 
-NES slot is 2 MB to hold PicoDrive's precomputed tables; every downstream partition shifts +1 MB and the shared FAT loses 1 MB of ROM storage.
+NES slot is 2 MB to hold PicoDrive's precomputed tables; every downstream partition shifts. SCUMM landed in 1.13, CRAFT in 1.14 — both eat into the shared FAT.
 
 | Partition  | Offset     | Size    | XIP address     | Purpose |
 |-----------:|-----------:|--------:|-----------------|---------|
 | Lobby      | `0x000000` | 128 KB  | `0x10000000`    | Selector, USB MSC, mkfs, handoff consumption |
 | Handoff sector | `0x010000` | 4 KB | `0x10010000`    | Cross-slot payload (bigger than watchdog scratch can hold) |
 | NES        | `0x020000` | **2 MB** | `0x10020000`   | ThumbyNES + **MD (PicoDrive)** |
-| P8         | `0x220000` | 512 KB  | `0x10220000`    | ThumbyP8 firmware |
-| DOOM       | `0x2A0000` | 2.5 MB  | `0x102A0000`    | ThumbyDOOM + shareware WAD |
-| MPY        | `0x520000` | 2 MB    | `0x10520000`    | MicroPython + engine + 768 KB resource scratch |
-| P8 scratch | `0x720000` | 252 KB  | `0x10720000`    | P8 active-cart working area |
-| Settings sector | `0x75F000` | 4 KB | `0x1075F000`    | System-wide volume + brightness |
-| Shared FAT | `0x760000` | **8.6 MB** | `0x10760000` | `/roms`, `/carts`, `/games`, `/Saves`, `/.favs`, `/.active_game` |
+| P8         | `0x220000` | 384 KB  | `0x10220000`    | ThumbyP8 firmware |
+| DOOM       | `0x280000` | 2432 KB | `0x10280000`    | ThumbyDOOM + shareware WAD |
+| MPY        | `0x4E0000` | 1280 KB | `0x104E0000`    | MicroPython + engine |
+| SCUMM      | `0x620000` | 640 KB  | `0x10620000`    | ThumbyScummby (engine + picker; data on FAT) |
+| CRAFT      | `0x6C0000` | 512 KB  | `0x106C0000`    | ThumbyCraft (engine + textures; world data on FAT) |
+| P8 scratch | `0x740000` | 252 KB  | `0x10740000`    | P8 active-cart working area |
+| Settings sector | `0x77F000` | 4 KB | `0x1077F000`    | System-wide volume + brightness |
+| Shared FAT | `0x780000` | **8.5 MB** | `0x10780000` | `/roms`, `/carts`, `/games`, `/scumm/`, `/thumbycraft/`, `/Saves`, `/.favs`, `/.active_game` |
 
-### Backward-compat build (`THUMBYONE_WITH_MD=OFF`)
+### Backward-compat build (`THUMBYONE_WITH_MD=OFF`, `THUMBYONE_WITH_CRAFT=ON`)
 
-Original layout with 1 MB NES and full 9.6 MB FAT. MD emulation is excluded entirely (no `.md/.gen/.bin` support in the picker).
+NES partition shrinks to 1 MB. MD emulation is excluded (no `.md/.gen/.bin` support in the picker).
 
 | Partition  | Offset     | Size    | XIP address     | Purpose |
 |-----------:|-----------:|--------:|-----------------|---------|
-| NES        | `0x020000` | 1 MB    | `0x10020000`    | ThumbyNES (NES/SMS/GG/GB only) |
-| P8         | `0x120000` | 512 KB  | `0x10120000`    | ThumbyP8 firmware |
-| DOOM       | `0x1A0000` | 2.5 MB  | `0x101A0000`    | ThumbyDOOM + shareware WAD |
-| MPY        | `0x420000` | 2 MB    | `0x10420000`    | MicroPython + engine |
-| P8 scratch | `0x620000` | 252 KB  | `0x10620000`    | — |
-| Settings sector | `0x65F000` | 4 KB | `0x1065F000`    | — |
-| Shared FAT | `0x660000` | 9.6 MB  | `0x10660000`    | — |
+| NES        | `0x020000` | 1 MB    | `0x10020000`    | ThumbyNES (NES / SMS / GG / GB / PCE only) |
+| P8         | `0x120000` | 384 KB  | `0x10120000`    | ThumbyP8 firmware |
+| DOOM       | `0x180000` | 2432 KB | `0x10180000`    | ThumbyDOOM + shareware WAD |
+| MPY        | `0x3E0000` | 1280 KB | `0x103E0000`    | MicroPython + engine |
+| SCUMM      | `0x520000` | 640 KB  | `0x10520000`    | ThumbyScummby |
+| CRAFT      | `0x5C0000` | 512 KB  | `0x105C0000`    | ThumbyCraft |
+| P8 scratch | `0x640000` | 252 KB  | `0x10640000`    | — |
+| Settings sector | `0x67F000` | 4 KB | `0x1067F000`    | — |
+| Shared FAT | `0x680000` | **9.5 MB** | `0x10680000` | — |
 
-Canonical source: [`common/slot_layout.h`](common/slot_layout.h) (preprocessor-selects the layout based on `THUMBYONE_WITH_MD`). Must stay in lock-step with [`common/pt.json`](common/pt.json) (no-MD) and [`common/pt_with_md.json`](common/pt_with_md.json) (with-MD), which are the partition tables consumed by the RP2350 bootrom.
+Disabling individual slots (`-DTHUMBYONE_WITH_SCUMM=OFF`, `-DTHUMBYONE_WITH_CRAFT=OFF`, etc.) shifts everything downstream and grows the FAT correspondingly. The slimmer preset images at the repo root (`_nodoom`, `_scummonly`, `_retro`, ...) build from various subsets — currently they all keep `THUMBYONE_WITH_CRAFT=OFF`; only the main `firmware_thumbyone.uf2` and its `_nomd` sibling ship the ThumbyCraft slot.
+
+Canonical source: [`common/slot_layout.h`](common/slot_layout.h) (preprocessor-selects the layout based on the `THUMBYONE_WITH_*` flags). The partition table consumed by the RP2350 bootrom is generated at build time from the same flags by [`tools/gen_pt.py`](tools/gen_pt.py).
 
 ## Boot and handoff
 
@@ -1578,7 +1714,7 @@ main()
 
 **ROM-backed `/system/` VFS**: the engine's `filesystem/system/` tree (fonts, splashes, launcher assets, ~376 KB of 51 files) is packed into the firmware image at build time by [`tools/pack_system_rom.py`](tools/pack_system_rom.py) as a single 242 KB byte blob + 51-entry directory table. The C module in [`mp-thumby/ports/rp2/thumbyone_rom_vfs.c`](https://github.com/austinio7116/micropython/blob/thumbyone-slot/ports/rp2/thumbyone_rom_vfs.c) implements the MicroPython VFS protocol against that blob — `open()`, `stat()`, `ilistdir()`, stream read / seek / tell / close. `_boot_fat.py` mounts it at `/system` after the shared-FAT root mount, so `open('/system/assets/foo.bmp')` resolves transparently without consuming any FAT space. Added in 1.10: the same blob is **also mounted at `/lib`** with a `/lib`-prefixed path lookup, so legacy games that import from the original Thumby's library path (e.g. `from /lib/thumbyGrayscale import Grayscale` patterns, or any open(`/lib/...`) lookup) resolve into the same firmware-baked content with no FAT space cost. The `ThumbyOneRomVFS` C class accepts an optional path-prefix argument that gets prepended to entry lookups, so we mount the same underlying blob twice with different visible roots.
 
-**Flash resource scratch override**: the Tiny Game Engine stores non-in-RAM textures into "flash scratch" via `hardware_flash`. The engine's default scratch region is at 1 MB from chip base — which in ThumbyOne is the **NES partition**. Left as-is, `TextureResource("foo.bmp")` would erase NES firmware, leading to truly glorious sprite corruption. The CMake passes `-DFLASH_RESOURCE_SPACE_BASE=0x560000u -DFLASH_RESOURCE_SPACE_SIZE=0xC0000u`, which points scratch at the upper 768 KB of the MPY partition; the engine source is `#ifndef`-guarded so the override takes effect.
+**Flash resource scratch override**: the Tiny Game Engine stores non-in-RAM textures into "flash scratch" via `hardware_flash`. The engine's default scratch region is at 1 MB from chip base — which in ThumbyOne is the **NES partition**. Left as-is, `TextureResource("foo.bmp")` would erase NES firmware, leading to truly glorious sprite corruption. The CMake passes `-DFLASH_RESOURCE_SPACE_BASE=0x560000u -DFLASH_RESOURCE_SPACE_SIZE=0xC0000u`, which points scratch at the upper 512 KB of the MPY partition; the engine source is `#ifndef`-guarded so the override takes effect.
 
 **USBDEV disabled**: the MPY slot builds with `MICROPY_HW_ENABLE_USBDEV=0` + `MICROPY_HW_USB_MSC=0` + `MICROPY_PY_OS_DUPTERM=0`. No CDC serial, no MSC, no `stdin_ringbuf` dependency. Lobby owns USB; slot is USB-silent. The engine's multiplayer-link module (`engine_link_rp3.c`) is gated behind the same flag and compiles into no-op stubs.
 
@@ -1793,23 +1929,24 @@ cmake --build build_device -j8
 # -> build_device/thumbyone.uf2
 ```
 
-Prebuilt presets at the repo root (release builds, post-1.13 slot rightsizing):
+Prebuilt presets at the repo root (release builds):
 
 | Preset UF2 | Systems included | UF2 size | FAT size |
 |---|---|---:|---:|
-| `firmware_thumbyone.uf2`                | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM | 12.3 MB | **9.0 MB** |
-| `firmware_thumbyone_nomd.uf2`           | NES (no MD) · P8 · DOOM · MPY · SCUMM   | 9.8 MB  | **10.0 MB** |
-| `firmware_thumbyone_nodoom.uf2`         | NES (+MD+PCE) · P8 · MPY · SCUMM        | 7.6 MB  | **11.4 MB** |
-| `firmware_thumbyone_nodoom_nomd.uf2`    | NES (no MD) · P8 · MPY · SCUMM          | 5.2 MB  | **12.4 MB** |
-| `firmware_thumbyone_nompy.uf2`          | NES (+MD+PCE) · P8 · DOOM · SCUMM       | 10.4 MB | **10.25 MB** |
-| `firmware_thumbyone_nodoom_nompy.uf2`   | NES (+MD+PCE) · P8 · SCUMM              | 5.8 MB  | **12.65 MB** |
-| `firmware_thumbyone_mpyonly.uf2`        | MPY only                                | 2.1 MB  | **13.75 MB** |
-| `firmware_thumbyone_retro.uf2`          | NES (+MD+PCE) · P8                      | 4.7 MB  | **13.1 MB** |
-| `firmware_thumbyone_scummonly.uf2`      | SCUMM only                              | 1.3 MB  | **15.0 MB** |
+| `firmware_thumbyone.uf2`                | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM · CRAFT | 12.7 MB | **8.5 MB** |
+| `firmware_thumbyone_nocraft.uf2`        | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM         | 12.1 MB | **9.0 MB** |
+| `firmware_thumbyone_nomd.uf2`           | NES (no MD) · P8 · DOOM · MPY · SCUMM           | 9.8 MB  | **10.0 MB** |
+| `firmware_thumbyone_nodoom.uf2`         | NES (+MD+PCE) · P8 · MPY · SCUMM                | 7.6 MB  | **11.4 MB** |
+| `firmware_thumbyone_nodoom_nomd.uf2`    | NES (no MD) · P8 · MPY · SCUMM                  | 5.2 MB  | **12.4 MB** |
+| `firmware_thumbyone_nompy.uf2`          | NES (+MD+PCE) · P8 · DOOM · SCUMM               | 10.4 MB | **10.25 MB** |
+| `firmware_thumbyone_nodoom_nompy.uf2`   | NES (+MD+PCE) · P8 · SCUMM                      | 5.8 MB  | **12.65 MB** |
+| `firmware_thumbyone_mpyonly.uf2`        | MPY only                                        | 2.1 MB  | **13.75 MB** |
+| `firmware_thumbyone_retro.uf2`          | NES (+MD+PCE) · P8                              | 4.7 MB  | **13.1 MB** |
+| `firmware_thumbyone_scummonly.uf2`      | SCUMM only                                      | 1.3 MB  | **15.0 MB** |
 
-The 9 prebuilt UF2s cover the most common feature/storage tradeoffs.  Any other combination builds cleanly from the same flags — flipping any single slot to OFF moves the FAT base forward by that slot's allocation and grows the shared FAT correspondingly.
+The prebuilt UF2s cover the most common feature/storage tradeoffs. Only the default `firmware_thumbyone.uf2` ships with the ThumbyCraft slot in 1.14 — every other preset omits it and keeps the 1.13 FAT sizes. Any other combination builds cleanly from the same flags — flipping any single slot to OFF moves the FAT base forward by that slot's allocation and grows the shared FAT correspondingly.
 
-**SCUMM game sizes for reference:** MI1 ≈ 4.4 MB, MI2 ≈ 9.1 MB, Indy 4 ≈ 9.3 MB. The default 9.0 MB FAT comfortably holds MI1; MI2 or Indy 4 need at least the `_nomd` build, and no preset under 15 MB fits two of {MI2, Indy 4} together — they're each ~9 MB and the total shared FAT can't exceed 15 MB (16 MB flash minus the lobby + SCUMM slot + scratch / settings reserves).
+**SCUMM game sizes for reference:** MI1 ≈ 4.4 MB, MI2 ≈ 9.1 MB, Indy 4 ≈ 9.3 MB. The default 8.5 MB FAT comfortably holds MI1; MI2 or Indy 4 need at least the `_nomd` or `_nocraft` build, and no preset under 15 MB fits two of {MI2, Indy 4} together — they're each ~9 MB and the total shared FAT can't exceed 15 MB (16 MB flash minus the lobby + SCUMM slot + scratch / settings reserves).
 
 The MD build adds ~2 MB to the UF2 (the picodrive library + its precomputed YM2612 / FAME / cz80 flash tables) and loses 1 MB of shared FAT to the enlarged NES partition. PCE (added in 1.08) is HuCard-only and adds ~70 KB to the slot; it fits inside the existing partition and doesn't change the FAT layout.
 
