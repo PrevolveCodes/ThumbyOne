@@ -627,10 +627,10 @@ The pause menu hosts inventory, crafting, recipes, controls cheat-sheet, save / 
 > the original five systems — no ThumbyCraft tile in those.  If you
 > want the new game, flash the main image.
 
-ThumbyCraft arrives — a bare-metal voxel game by Mark Austin built
-from the ground up for the Thumby Color's 128×128 RGB565 screen
-and dual-core M33.  Plus a cleaner lobby grid that doesn't shift
-icons around when paging.
+ThumbyCraft arrives — a bare-metal voxel game built from the ground
+up for the Thumby Color's 128×128 RGB565 screen and dual-core M33.
+Plus a cleaner lobby grid that doesn't shift icons around when
+paging.
 
 **New: ThumbyCraft.**
 
