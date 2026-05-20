@@ -13,6 +13,7 @@ build_*/
 !firmware_thumbyone_retro.uf2
 !firmware_thumbyone_scummonly.uf2
 !firmware_thumbyone_revert.uf2
+!firmware_thumbyone_nocraft.uf2
 *.elf
 *.bin
 *.map
