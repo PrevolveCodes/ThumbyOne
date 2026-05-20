@@ -632,6 +632,47 @@ The pause menu also hosts inventory, crafting, recipes, save / load, game mode, 
 
 ## Changelog
 
+### 1.14.2
+
+> ℹ️  **No FAT reformat needed.** 1.14.2 ships only ThumbyCraft
+> changes inside the existing slot — partition layout is unchanged
+> from 1.14 / 1.14.1. Flash on top and your `/roms`, `/carts`,
+> `/games`, `/scumm/`, NES / P8 / DOOM / MPY / SCUMM saves all
+> survive.
+
+> ℹ️  **ThumbyCraft saves from 1.14.1 still load.** The save format
+> bumps from v5 → v6 to persist mechanical-block orientations, but
+> the deserialiser dual-reads — v5 worlds come back exactly as they
+> did on 1.14.1 (mechanical blocks revert to floor mount, same as
+> before), and from the first save they're written as v6 with full
+> orientation state.
+
+**ThumbyCraft 1.14.2.**
+
+* **Levers, pistons, doors, trapdoors, ladders and torches keep
+  their facing across saves.**  Orientation was stored in a SRAM
+  hash that got wiped on load, so every mechanical block came back
+  default-floor-mounted.  Save v6 serialises the hash into the slot
+  blob; v5 saves still load (no regression).
+* **Glass blocks are now translucent** — rays pass through the cell
+  with a faint cyan tint so you can see what's behind them, like
+  water but lighter.  Picks still stop at glass so you can break or
+  place against it.
+* **Water surface is visibly animated** at 4 Hz — two pre-baked
+  frames toggle each tick.  The previous integer-stepped per-pixel
+  regen was technically running but the deltas were too subtle to
+  read as motion.
+* **Renderer perf pass** — sky/texture-pointer caches, half-res
+  held-item viewport, hotbar-plate ray skip, dead-clamp removal.
+  Several percent FPS back across the board with no visual change.
+* **Two new pause-menu toggles (both default OFF):**
+  * **Far LOD** — hits past ~32 cells use the texture's centre texel
+    as a flat colour instead of UV sampling.  Visible LOD pop as you
+    walk; small FPS win.
+  * **Interlace** — render half the rows per frame, alternating
+    phase, skipped rows keep their previous-frame content (classic
+    comb-tear on motion in exchange for a meaningful FPS lift).
+
 ### 1.14.1
 
 > ℹ️  **No FAT reformat needed.** 1.14.1 ships only ThumbyCraft
