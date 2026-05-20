@@ -520,6 +520,64 @@ The 128×128 screen is square but a SCUMM scene is 320×200 — so dialog and ve
 
 ## Changelog
 
+### 1.14
+
+> ⚠️  **Back up before flashing.**  1.14 reshuffles the partition
+> table to add the ThumbyCraft slot, which means the shared FAT base
+> moves forward by 768 KB (the slot binary's size).  On first boot
+> the lobby will see an unrecognised FAT and prompt for a reformat —
+> your ROMs, carts, MicroPython games, SCUMM data, ThumbyCraft saves
+> (if any from a 1.13 standalone build), and **all saves and save
+> states** will be wiped.  Boot into 1.13 first, plug in USB, copy
+> the whole drive contents to a folder on your PC, then flash 1.14
+> and copy back as much as fits.  Subsequent 1.14.x builds shouldn't
+> need another wipe.
+
+**New: ThumbyCraft slot.** A bare-metal Minecraft-style voxel game
+joins the line-up — per-pixel DDA raycaster, 64³ resident window
+over an infinite procedural world, full survival + crafting +
+redstone, four save slots stored on the shared FAT.  Lobby tile is a
+grass-top-dirt block; selecting it boots into ThumbyCraft's title
+screen.  Slot is 768 KB; FAT shrinks accordingly — **8.25 MB** in the
+default MD-enabled build (was 9.0 MB), **9.25 MB** with `WITH_MD=OFF`
+(was 10.0 MB).
+
+**Lobby tile layout: stable 2x2 across pages.** Page 2 (with SCUMM +
+CRAFT) no longer re-centres a partial tile — every page lays icons
+at the same fixed grid positions as page 1, so the carousel feels
+like turning pages of one contact sheet instead of a re-flowing
+gallery.
+
+**ThumbyCraft persistence model (slot mode):**
+
+- Per-world chunk storage on the FAT: `/thumbycraft/<region>/<cx>_<cz>.cnk`,
+  one tiny file per edited chunk.  A world with 20 edited chunks
+  uses ~80 KB on disk — not 1 MB.
+- Player metadata at `/thumbycraft/slot<N>.meta` (4 KB per slot,
+  includes a 32x32 RGB565 thumbnail).
+- Auto-save menu in-game (Off / 60s / Idle / Events), defaults to
+  **Event**: full save fires on menu open, menu close, and day/night
+  flip — natural pause moments instead of mid-walk hitches.
+- Window-shift no longer eagerly flushes chunks to flash; chunks
+  stay in the SRAM mod hash + dirty queue and only land on disk via
+  a save (auto or manual) or the 32-entry overflow safety net.
+- "Edited chunks" bitmap rebuilt on slot bind skips the
+  `f_open(FR_NO_FILE)` round-trip on chunks the player hasn't
+  touched — window restore drops from ~30 ms of FatFs directory
+  walks down to single-digit ms.
+
+**ThumbyCraft worldgen pass:**
+
+- River channels now actually carve below water level (previous
+  `min_h` clamp left them as sand stamps at WL with no water on top).
+- Bank slope smooths to the channel edge regardless of natural
+  elevation, scaled by `(1 - mountain_factor)` — no more sheer cliffs
+  between flatland rivers and adjacent hills.
+- Cave density tightened: cheese threshold 0.62→0.66 (≈20%→≈10%
+  fill) and a `h-8` depth ceiling so cave mouths can't carve through
+  the dirt sub-surface band.  Walking past a hill no longer reveals
+  swiss-cheese cliff faces.
+
 ### 1.13
 
 > ⚠️  **Back up before flashing.**  1.13 reshuffles the on-flash
