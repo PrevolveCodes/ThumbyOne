@@ -608,6 +608,89 @@ The pause menu hosts inventory, crafting, recipes, controls cheat-sheet, save / 
 
 ## Changelog
 
+### 1.14.1
+
+> ℹ️  **No FAT reformat needed.** 1.14.1 ships only ThumbyCraft
+> updates inside the existing slot — partition layout is unchanged
+> from 1.14. Flash on top of 1.14 and your `/roms`, `/carts`,
+> `/games`, `/scumm/`, NES / P8 / DOOM / MPY / SCUMM saves all
+> survive untouched.
+
+> ⚠️  **ThumbyCraft saves from 1.14 will NOT load** — the save
+> format inside `/thumbycraft/slot<N>.meta` bumps from v4 → v5 so
+> chest + furnace contents now persist across loads (see below).
+> v4 slot files are detected and rejected at the title screen;
+> pick **New world** to start fresh on 1.14.1. Only ThumbyCraft
+> worlds are affected — saves for every other system are
+> untouched. (1.14 only landed days ago, so anyone hit by this is
+> on a recent test world.)
+
+**ThumbyCraft 1.14.1.**
+
+* **Eight building variants with structured roofs.**  The plain
+  plank boxes from 1.14 are gone.  Buildings now spawn in eight
+  visually distinct designs — none with a flat-square roof:
+  A-Frame Lodge (steep gable), Hipped Cottage (4-sided pyramid),
+  Longhouse (7×3 with a long gabled ridge), L-Hipped + L-Gabled
+  Cabins (L footprint with corner-ridge or twin-ridge roofs),
+  Watchtower (3×3 stone shaft with crenellated parapet + torch),
+  Church (steep gabled nave with a wood-log steeple + torch
+  belfry), and Castle Keep (7×7 stone fortress with cobble
+  battlements).  Materials split the lineup: PLANK + WOOD
+  cottages form the settlement family; STONE + COBBLE for the
+  watchtower and castle; STONE + PLANK + WOOD log for the church.
+  Distribution is weighted so the landmark builds (church 8%,
+  castle 5%) are genuinely rare while the cottage family fills
+  out the typical settlement.
+
+* **Chest + furnace contents persist across saves.**  Previously
+  hut chests refilled with their original loot every reload and
+  player-placed chests came back empty — both because the SRAM
+  state tables weren't serialised into the save blob.  v5 now
+  embeds the chest array (4 active chests, 16 slots each) and
+  furnace array (8 active furnaces, smelt progress + fuel timer
+  included) into the save record.  Save what you stored and
+  reload it back unchanged.
+
+* **Rarity-tiered chest loot.**  Hut chests now roll one of four
+  rarity tiers — Common (50%), Uncommon (30%), Rare (15%),
+  Legendary (5%).  Each tier adds layers: Common is just sticks
+  + planks; Uncommon adds iron / bow + arrows / wood pickaxe;
+  Rare adds stone tools + redstone dust; Legendary throws in
+  iron tools, gold ingots, and a 50% diamond drop.  Tier is
+  rolled independently of building type, so a plain plank cabin
+  can still hide a legendary chest.
+
+* **Control scheme picker** (Menu → Controls).  Four input
+  layouts:
+  - **Classic** (default) — D-pad turn + pitch, LB walk, RB jump.
+  - **Classic flip** — LB jump, RB walk.
+  - **Walk + strafe** — D-pad U/D walk fwd/back, L/R strafe,
+    LB-held flips D-pad into look mode.
+  - **Walk + turn** — D-pad U/D walk fwd/back, L/R turn,
+    LB-held adds pitch on U/D.
+
+  In the LB/RB walk schemes, **double-tap-then-hold** the walk
+  button (within 300 ms between presses) to walk backwards
+  instead of forwards.  Selection persists per save.
+
+* **Hotbar slot clears on depletion.**  In survival mode, a
+  hotbar slot whose block has been used up to zero inventory now
+  clears to empty — both visually and functionally.  No more
+  "holding" a depleted torch.  Pick the block up again and the
+  slot fills back in.
+
+* **No more spawn-in-water.**  Player spawn scan + passive-mob
+  spawn both rejected shoreline tiles where the head cell was
+  water — fixed in this version.  Pigs + cows always spawn on
+  dry land now, and a freshly-rolled world won't drop you into a
+  river on game start.
+
+* **Auto-step + worldgen polish.** Mountain-edge cliff smoothing,
+  cave depth-floor refinements, and tighter river bank slopes
+  (mostly carried over from late-1.14 fixes the changelog didn't
+  call out individually — folded in here for completeness).
+
 ### 1.14
 
 > ⚠️  **Back up before flashing.**  1.14 reshuffles the on-flash
