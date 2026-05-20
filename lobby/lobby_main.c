@@ -445,17 +445,15 @@ static void draw_usb_row(usb_row_state_t st) {
 
 /* Slot order in the grid must match the lobby_icons[] indexing
  * emitted by pack_icons.py (NES, P8, DOOM, MPY, then page-1 tiles
- * starting at index 4: SCUMM + 3 reserved). */
+ * starting at index 4: SCUMM, CRAFT + 2 reserved). */
 static const thumbyone_slot_t g_grid_slot_order[8] = {
     THUMBYONE_SLOT_NES,
     THUMBYONE_SLOT_P8,
     THUMBYONE_SLOT_DOOM,
     THUMBYONE_SLOT_MPY,
-    /* Page 1: SCUMM + reserved future slots.  Order matters — the
-     * grid_idx for each entry below maps directly to the visual
-     * tile position on its page. */
+    /* Page 1: SCUMM, CRAFT, then 2 reserved future slots. */
     THUMBYONE_SLOT_SCUMM,
-    THUMBYONE_SLOT_LOBBY,  /* placeholder — unused tile #5 */
+    THUMBYONE_SLOT_CRAFT,
     THUMBYONE_SLOT_LOBBY,  /* placeholder — unused tile #6 */
     THUMBYONE_SLOT_LOBBY,  /* placeholder — unused tile #7 */
 };
@@ -480,6 +478,9 @@ static const thumbyone_slot_t g_grid_slot_order[8] = {
 #ifndef THUMBYONE_LOBBY_HAS_SCUMM
 #define THUMBYONE_LOBBY_HAS_SCUMM 1
 #endif
+#ifndef THUMBYONE_LOBBY_HAS_CRAFT
+#define THUMBYONE_LOBBY_HAS_CRAFT 1
+#endif
 
 /* Maximum addressable grid positions — kept at 8 (= 2 reservoir
  * pages of 4) so the static arrays sized from this stay
@@ -495,7 +496,8 @@ static const bool g_grid_slot_present[LOBBY_TOTAL_SLOTS] = {
     THUMBYONE_LOBBY_HAS_DOOM,
     THUMBYONE_LOBBY_HAS_MPY,
     THUMBYONE_LOBBY_HAS_SCUMM,
-    0, 0, 0,                            /* reserved future slots */
+    THUMBYONE_LOBBY_HAS_CRAFT,
+    0, 0,                               /* reserved future slots */
 };
 
 /* Compact-visible model: instead of leaving disabled-slot positions
@@ -565,20 +567,14 @@ static inline int grid_slot_idx(void) {
     return visible_to_orig(g_grid_page, g_grid_cursor);
 }
 
-/* Compute the tile origin (x, y) for the i-th tile on a page that
- * has n_on_page tiles total.  Single-tile pages centre the tile
- * vertically + horizontally — the scumm-only preset leans on this
- * so the lobby doesn't look like one icon stranded in the top-left
- * corner.  Multi-tile pages use the existing top-left-anchored
- * 2x2 layout. */
+/* Compute the tile origin (x, y) for the i-th tile on a page.
+ * Always uses the fixed 2x2 anchor (TL, TR, BL, BR) so partial pages
+ * keep their tiles at the same screen positions as full pages. The
+ * user finds layout-shift between pages disorienting — keeping the
+ * grid stable makes the carousel feel like turning pages of one
+ * fixed contact sheet. */
 static void grid_tile_origin(int i, int n_on_page, int *ox, int *oy) {
-    if (n_on_page == 1) {
-        /* Single centred tile.  Shifted up 4 px from the geometric
-         * centre so it doesn't crowd the footer / pip strip. */
-        *ox = (128 - GRID_TILE_SIZE) / 2;
-        *oy = (128 - GRID_TILE_SIZE) / 2 - 4;
-        return;
-    }
+    (void)n_on_page;
     int col = i & 1;
     int row = i >> 1;
     *ox = GRID_ORIGIN_X + col * (GRID_TILE_SIZE + GRID_GUTTER);
@@ -624,7 +620,8 @@ static const char *const g_grid_labels[LOBBY_TOTAL_SLOTS] = {
     "DOOM",
     "MICROPYTHON",
     "SCUMM (MI / Indy)",
-    "", "", "",                /* reserved */
+    "CRAFT",
+    "", "",                    /* reserved */
 };
 
 /* ThumbyOne palette — dark navy header/footer bars with a cyan

@@ -43,7 +43,7 @@ ICONS = [
     ("doom",  "DOOM"),
     ("mpy",   "MPY"),
     ("scumm", "SCUMM"),
-    ("blank", ""),
+    ("craft", "CRAFT"),
     ("blank", ""),
     ("blank", ""),
 ]

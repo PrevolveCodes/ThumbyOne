@@ -62,6 +62,7 @@ option(THUMBYONE_WITH_P8    "Include ThumbyP8 firmware"      ON)
 option(THUMBYONE_WITH_DOOM  "Include ThumbyDOOM firmware"    ON)
 option(THUMBYONE_WITH_MPY   "Include MicroPython firmware"   ON)
 option(THUMBYONE_WITH_SCUMM "Include ThumbyScummby firmware" ON)
+option(THUMBYONE_WITH_CRAFT "Include ThumbyCraft firmware"   ON)
 
 # Propagate the WITH_X flags as compile-time defines so slot_layout.h's
 # `#if THUMBYONE_WITH_<X>` conditionals see the *actual* enable state
@@ -71,7 +72,7 @@ option(THUMBYONE_WITH_SCUMM "Include ThumbyScummby firmware" ON)
 # pt.json (correct) and slot_layout.h (always all-on), causing the
 # lobby to read/format the FAT at the wrong flash address and slot
 # launches to chain into wrong partitions.
-foreach(_flag NES P8 DOOM MPY SCUMM)
+foreach(_flag NES P8 DOOM MPY SCUMM CRAFT)
     if (THUMBYONE_WITH_${_flag})
         add_compile_definitions(THUMBYONE_WITH_${_flag}=1)
     else()
@@ -211,6 +212,7 @@ target_compile_definitions(lobby PRIVATE
     THUMBYONE_LOBBY_HAS_DOOM=$<IF:$<BOOL:${THUMBYONE_WITH_DOOM}>,1,0>
     THUMBYONE_LOBBY_HAS_MPY=$<IF:$<BOOL:${THUMBYONE_WITH_MPY}>,1,0>
     THUMBYONE_LOBBY_HAS_SCUMM=$<IF:$<BOOL:${THUMBYONE_WITH_SCUMM}>,1,0>
+    THUMBYONE_LOBBY_HAS_CRAFT=$<IF:$<BOOL:${THUMBYONE_WITH_CRAFT}>,1,0>
 )
 pico_embed_pt_in_binary(lobby ${THUMBYONE_PT_JSON})
 add_dependencies(lobby thumbyone_pt_json)
@@ -396,6 +398,27 @@ if (THUMBYONE_WITH_SCUMM)
     list(APPEND THUMBYONE_SLOT_UF2_REBASES
         "${SCUMM_UF2_NAME}=0x10000000:${SCUMM_REBASE_DST}")
     list(APPEND THUMBYONE_SLOT_DEPS ${SCUMM_TARGET})
+endif()
+
+
+# ----- ThumbyCraft slot ----------------------------------------------
+# Per-world chunk + save data lives in the shared FAT under
+# /thumbycraft/. Slot binary is just the engine + title screen.
+if (THUMBYONE_WITH_CRAFT)
+    set(THUMBYONE_SLOT_MODE "craft")
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../ThumbyCraft/device
+                     ${CMAKE_BINARY_DIR}/craft_slot
+                     EXCLUDE_FROM_ALL)
+    unset(THUMBYONE_SLOT_MODE)
+
+    set(CRAFT_TARGET thumbycraft)
+    set(CRAFT_UF2_NAME firmware_thumbycraft.uf2)
+    list(APPEND THUMBYONE_SLOT_UF2_INPUTS
+        ${CMAKE_BINARY_DIR}/craft_slot/${CRAFT_UF2_NAME})
+    math(EXPR CRAFT_REBASE_DST "0x10000000 + ${THUMBYONE_CRAFT_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
+    list(APPEND THUMBYONE_SLOT_UF2_REBASES
+        "${CRAFT_UF2_NAME}=0x10000000:${CRAFT_REBASE_DST}")
+    list(APPEND THUMBYONE_SLOT_DEPS ${CRAFT_TARGET})
 endif()
 
 

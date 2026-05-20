@@ -44,6 +44,9 @@
 #ifndef THUMBYONE_WITH_SCUMM
 #  define THUMBYONE_WITH_SCUMM 1
 #endif
+#ifndef THUMBYONE_WITH_CRAFT
+#  define THUMBYONE_WITH_CRAFT 1
+#endif
 /* THUMBYONE_WITH_MD: NES partition grows from 1 MB to 2 MB to fit
  * PicoDrive's flash tables.  Affects only the NES slot's size. */
 #ifndef THUMBYONE_WITH_MD
@@ -61,7 +64,8 @@ typedef enum {
     THUMBYONE_SLOT_DOOM  = 0x3,
     THUMBYONE_SLOT_MPY   = 0x4,
     THUMBYONE_SLOT_SCUMM = 0x5,
-    THUMBYONE_SLOT_COUNT = 0x6
+    THUMBYONE_SLOT_CRAFT = 0x6,
+    THUMBYONE_SLOT_COUNT = 0x7
 } thumbyone_slot_t;
 
 /* Map a slot enum to its partition INDEX in pt.json — i.e. the index
@@ -87,6 +91,8 @@ static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
     if (s == THUMBYONE_SLOT_MPY)   return THUMBYONE_WITH_MPY   ? idx : -1;
     if (THUMBYONE_WITH_MPY)   idx++;
     if (s == THUMBYONE_SLOT_SCUMM) return THUMBYONE_WITH_SCUMM ? idx : -1;
+    if (THUMBYONE_WITH_SCUMM) idx++;
+    if (s == THUMBYONE_SLOT_CRAFT) return THUMBYONE_WITH_CRAFT ? idx : -1;
     return -1;
 }
 
@@ -114,6 +120,7 @@ static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
 #define THUMBYONE_DOOM_SIZE           (2432u * 1024u)   /* binary ~2.27 MB + 110 KB headroom */
 #define THUMBYONE_MPY_SIZE            (1280u * 1024u)   /* binary ~0.93 MB + 320 KB headroom */
 #define THUMBYONE_SCUMM_SIZE          ( 640u * 1024u)   /* binary ~0.53 MB + 100 KB headroom (still growing) */
+#define THUMBYONE_CRAFT_SIZE          ( 768u * 1024u)   /* binary ~0.55 MB + ~220 KB headroom */
 
 /* P8's active-cart flash region — 256 KB total, with the last 4 KB
  * sector reserved as the cross-slot settings mirror.  NOT a
@@ -168,12 +175,19 @@ static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
 #  define THUMBYONE_SCUMM_END         THUMBYONE_MPY_END
 #endif
 
+#if THUMBYONE_WITH_CRAFT
+#  define THUMBYONE_CRAFT_OFFSET      THUMBYONE_SCUMM_END
+#  define THUMBYONE_CRAFT_END         (THUMBYONE_CRAFT_OFFSET + THUMBYONE_CRAFT_SIZE)
+#else
+#  define THUMBYONE_CRAFT_END         THUMBYONE_SCUMM_END
+#endif
+
 /* P8 owns the next 256 KB (active-cart scratch + settings mirror).
  * Always reserved even when WITH_P8=0 — keeps the FAT base
  * deterministic across slot-enable permutations.  When WITH_P8=0,
  * the scratch sits unused; the 4 KB settings mirror still works
  * because the lobby + slots reference it directly. */
-#define THUMBYONE_P8_SCRATCH_OFFSET   THUMBYONE_SCUMM_END
+#define THUMBYONE_P8_SCRATCH_OFFSET   THUMBYONE_CRAFT_END
 #define THUMBYONE_SETTINGS_MIRROR_OFFSET \
     (THUMBYONE_P8_SCRATCH_OFFSET + THUMBYONE_P8_SCRATCH_SIZE)
 

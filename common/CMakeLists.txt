@@ -122,6 +122,9 @@ endif()
 if (NOT THUMBYONE_WITH_SCUMM)
     list(APPEND GEN_PT_FLAGS --no-scumm)
 endif()
+if (NOT THUMBYONE_WITH_CRAFT)
+    list(APPEND GEN_PT_FLAGS --no-craft)
+endif()
 
 add_custom_command(
     OUTPUT  ${THUMBYONE_PT_JSON} ${THUMBYONE_PT_CMAKE}
