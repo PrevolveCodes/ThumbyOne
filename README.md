@@ -632,6 +632,23 @@ The pause menu also hosts inventory, crafting, recipes, save / load, game mode, 
 
 ## Changelog
 
+### 1.14.3
+
+> ℹ️ Drop-in on top of any 1.14.x — no FAT reformat, ThumbyCraft
+> saves still load.
+
+* **ThumbyScummby** — lobby brightness + volume now reach the slot
+  (a `thumbyone_settings` XIP-address bug was making SCUMM reads
+  default to full-brightness / mid-volume).  Picker brightness
+  slider also live-updates the indicator LED.
+* **ThumbyCraft** — Master volume slider in the pause menu wired to
+  the shared store; "Quit to lobby" entry at the bottom of the
+  menu; front LED glows blue at night to mark the moon rising.
+* **ThumbyCraft control schemes** — two new layouts added (now six
+  total in Menu → Controls): **Console + turn** and **Console +
+  strafe**.  D-pad walks, B-hold puts the D-pad into look mode,
+  A = jump, LB = place, RB = break/attack.
+
 ### 1.14.2
 
 > ℹ️  **No FAT reformat needed.** 1.14.2 ships only ThumbyCraft

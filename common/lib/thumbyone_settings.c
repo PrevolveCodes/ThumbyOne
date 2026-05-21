@@ -42,6 +42,25 @@
 #define TSM_MAGIC_3  '1'
 
 static const volatile uint8_t *sector_xip(void) {
+    /* Pick slot-relative vs absolute virtual address based on the
+     * live ATRANS layout. SCUMM reconfigures ATRANS[1..3] into a
+     * continuous slot-relative window so its raw-pointer game-data
+     * reads stay contiguous (see scumm_remap_atrans_continuous);
+     * under that layout the standard absolute virtual address lands
+     * on the wrong physical sector. Detection mirrors the runtime
+     * check in thumbyone_disk.c:thumbyone_fat_xip_addr — if ATRANS[1]
+     * BASE equals slot's BASE+0x400 we're in continuous mode. */
+    uint32_t atrans0 = qmi_hw->atrans[0];
+    uint32_t atrans1 = qmi_hw->atrans[1];
+    uint32_t slot_4kb       = atrans0 & 0xFFFu;
+    uint32_t slot_phys_base = slot_4kb * 4096u;
+    uint32_t a1_base        = atrans1 & 0xFFFu;
+    uint32_t expected_cont  = (slot_4kb + 0x400u) & 0xFFFu;
+    if (a1_base == expected_cont) {
+        return (const volatile uint8_t *)
+            (THUMBYONE_FLASH_BASE +
+             (THUMBYONE_SETTINGS_MIRROR_OFFSET - slot_phys_base));
+    }
     return (const volatile uint8_t *)
         (THUMBYONE_FLASH_BASE + THUMBYONE_SETTINGS_MIRROR_OFFSET);
 }
