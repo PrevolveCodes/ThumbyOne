@@ -536,6 +536,20 @@ ThumbyCraft is a Minecraft-style voxel game built from scratch for the 128×128 
 
 **Getting in:** select the grass-top-dirt tile in the lobby and the slot boots into ThumbyCraft's title screen. The title shows four save slots with 32×32 screenshot thumbnails and a "New world" tile underneath. Pick a saved slot to continue, or **New world** to spawn into a fresh procedural world.
 
+**Biomes & terrain (1.15):** the overworld is split into eight climate biomes from a temperature × humidity map — plains, forest, desert, taiga, swamp, mountains, jungle, savanna — each with tinted grass + leaves and its own flora (snowy conifers, giant vine-draped swamp trees, jungle mini-giants, acacias, cactus, lily pads). Mountains rise into bare rock and cap in snow above a temperature-driven snow line that blends into neighbouring tundra; tundra lakes freeze into a walkable ice sheet over the water. Deep caves pool **lava** — also sealed in mountain magma pockets — which glows like a torch, animates, and burns. Flow water onto lava to make obsidian, mine gravel for flint, and light a swirling portal on an obsidian frame.
+
+<p align="center">
+  <img src="docs/screenshots/craft-forest.jpg" width="190" alt="Forest biome">
+  <img src="docs/screenshots/craft-jungle.jpg" width="190" alt="Jungle biome with hanging vines">
+  <img src="docs/screenshots/craft-swamp.jpg" width="190" alt="Swamp — giant tree over open water">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/craft-desert.jpg" width="190" alt="Desert biome">
+  <img src="docs/screenshots/craft-tundra.jpg" width="190" alt="Tundra — snow and a frozen lake">
+  <img src="docs/screenshots/craft-lava.gif" width="190" alt="Animated cave lava">
+</p>
+
 <p align="center">
   <img src="docs/screenshots/craft-gameplay.jpg" width="240" alt="Surface gameplay — grass and dirt, HUD with hearts">
   <img src="docs/screenshots/craft-redstone.jpg" width="240" alt="Redstone circuit on a hillside — wire trace lit">
@@ -545,7 +559,7 @@ ThumbyCraft is a Minecraft-style voxel game built from scratch for the 128×128 
 **The world:**
 
 - Infinite in X / Z, 64 cells tall. A 64×64×64 window slides with you, regenerating new terrain at the edges from a deterministic seed. Walk back later and your edits are exactly where you left them.
-- Procedural biomes: grassland plains, mountain biomes (taller peaks, stone surfaces, denser ore), flatland rivers carving smoothly down to water level, three tree species (small oak, big oak with branches, mountain pines).
+- Procedural biomes (see **Biomes & terrain** above): eight climate types chosen by a temperature × humidity map, each with its own surface, foliage tint and flora; mountains run to bare rock + snow, deserts to sand + sandstone, taiga to snow + frozen lakes. Flatland rivers carve smoothly down to water level; ore density rises in the mountains.
 - **Eight building variants** scattered across the lowlands — every one with a structured roof, none of them plain plank boxes:
   - **A-Frame Lodge** (5×5) — steep plank gabled ridge, wood corner posts, single back window.
   - **Hipped Cottage** (5×5) — plank 4-sided pyramid roof, twin back windows.
@@ -644,6 +658,18 @@ plus the lava → obsidian → portal chain. (See the
 [ThumbyCraft README](https://github.com/austinio7116/ThumbyCraft#whats-new-in-115)
 for the full write-up.)
 
+<p align="center">
+  <img src="docs/screenshots/craft-forest.jpg" width="200" alt="Forest biome">
+  <img src="docs/screenshots/craft-jungle.jpg" width="200" alt="Jungle biome with hanging vines">
+  <img src="docs/screenshots/craft-swamp.jpg" width="200" alt="Swamp — giant tree over water">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/craft-desert.jpg" width="200" alt="Desert biome">
+  <img src="docs/screenshots/craft-tundra.jpg" width="200" alt="Tundra — snow and a frozen lake">
+  <img src="docs/screenshots/craft-lava.gif" width="200" alt="Animated cave lava">
+</p>
+
 * **Eight climate biomes** — plains, forest, desert, taiga, swamp,
   mountains, jungle, savanna — from a temperature × humidity map, with
   per-biome tinted grass/leaves and distinct flora (snowy conifers,
@@ -666,7 +692,7 @@ for the full write-up.)
 * **Redstone wave 2** — dispensers, targets, observers, note blocks,
   lamps, NOT-gates, repeaters, slime blocks, and a regular/sticky
   piston split; **mobs now trigger pressure pads**, and pads seed
-  wire. Idle dispensers no longer cost any framerate.
+  wire.
 
 ### 1.14.3
 
