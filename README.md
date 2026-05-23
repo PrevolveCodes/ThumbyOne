@@ -5,7 +5,7 @@
 > *One firmware to rule them all, one lobby to find them.*
 > *One file to bring them all, and in the Thumby bind them.*
 
-ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](https://thumby.us/) — the tiny colour handheld with a 128×128 screen, dual-core Arm Cortex-M33, 520 KB SRAM, and 16 MB of on-board flash. One flash gives you **NES**, **Master System**, **Game Gear**, **Game Boy**, **Mega Drive (Genesis)**, **PC Engine / TurboGrafx-16**, **PICO-8**, **DOOM**, **Monkey Island / Indiana Jones (SCUMM)**, and the full **MicroPython + Tiny Game Engine** experience, each optimized to run perfectly on the device.
+ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](https://thumby.us/) — the tiny colour handheld with a 128×128 screen, dual-core Arm Cortex-M33, 520 KB SRAM, and 16 MB of on-board flash. One flash gives you **NES**, **Master System**, **Game Gear**, **Game Boy**, **Mega Drive (Genesis)**, **PC Engine / TurboGrafx-16**, **PICO-8**, **DOOM**, **Monkey Island / Indiana Jones (SCUMM)**, **ThumbyCraft** (a bare-metal Minecraft-style voxel world with biomes, cave lava and redstone), and the full **MicroPython + Tiny Game Engine** experience, each optimized to run perfectly on the device.
 
 <p align="center">
   <img src="docs/screenshots/nes-game.jpg" width="240" alt="NES on Thumby Color">
@@ -16,7 +16,7 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
 <p align="center">
   <img src="docs/screenshots/scumm-mi1-bar.jpg" width="240" alt="Monkey Island — three pirates at the Scumm Bar">
   <img src="docs/screenshots/mpy-picker.jpg" width="240" alt="MicroPython picker — DeepThumb">
-  <img src="docs/screenshots/lobby.jpg" width="240" alt="ThumbyOne lobby — five-slot grid">
+  <img src="docs/screenshots/craft-jungle.jpg" width="240" alt="ThumbyCraft — jungle biome with hanging vines">
 </p>
 
 ---
@@ -51,7 +51,7 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
 | **ThumbyDOOM** | Shareware DOOM I — WAD baked into the firmware | *(none — embedded)* |
 | **MicroPython + Engine** | Python games written against the [Tiny Game Engine](https://github.com/austinio7116/TinyCircuits-Tiny-Game-Engine) | `/games/<name>/` |
 | **ThumbyScummby** | SCUMM v4 / v5 adventures — Monkey Island 1, Monkey Island 2, Indiana Jones 4 (Fate of Atlantis), and the original LucasArts `.img` install disks | `/scumm/<game>/` or drop `.img` files into `/scumm/` |
-| **ThumbyCraft** *(new in 1.14, refreshed in 1.14.1)* | Bare-metal Minecraft-style voxel game — infinite procedural world, mining, crafting, redstone, mobs, eight structured-roof building variants (cottages, longhouse, watchtower, church, castle), four picker-driven control schemes, four save slots with full chest + furnace persistence | `/thumbycraft/` (managed by the game; back up the whole tree) |
+| **ThumbyCraft** | Bare-metal Minecraft-style voxel game — an infinite procedural world with biomes, mining, crafting, redstone, mobs, and lava-filled caves; six control schemes and four save slots with full chest + furnace persistence | `/thumbycraft/` (managed by the game; back up the whole tree) |
 
 All six systems share one FAT drive, visible over USB when you're in the lobby. Size depends on the build:
 
@@ -631,6 +631,42 @@ The pause menu also hosts inventory, crafting, recipes, save / load, game mode, 
 ---
 
 ## Changelog
+
+### 1.15
+
+> ℹ️ Drop-in on top of any 1.14.x — no FAT reformat, no partition
+> change. Every other system's saves are untouched, and ThumbyCraft
+> worlds carry over (the save format dual-reads back to v5; new biome
+> terrain, lava and ores appear as you explore into fresh chunks).
+
+A big **ThumbyCraft** content release — a full climate-biome overworld
+plus the lava → obsidian → portal chain. (See the
+[ThumbyCraft README](https://github.com/austinio7116/ThumbyCraft#whats-new-in-115)
+for the full write-up.)
+
+* **Eight climate biomes** — plains, forest, desert, taiga, swamp,
+  mountains, jungle, savanna — from a temperature × humidity map, with
+  per-biome tinted grass/leaves and distinct flora (snowy conifers,
+  giant vine-draped swamp trees, jungle mini-giants, acacias, cactus,
+  lily pads). New blocks: snow, sandstone, cactus, vine, lily pad,
+  snowy rock.
+* **Mountains & tundra** — bare-rock peaks with a temperature-driven
+  snow line that blends into tundra snow; tundra lakes freeze into
+  walkable **ice** with water beneath and snowy shores.
+* **Desert temples** — sandstone stepped pyramids and walled ziggurats
+  (rare jungle pyramids too) with baked-in **redstone arrow traps**
+  (pressure pads + a door-watching observer) guarding high-tier loot.
+* **Cave lava** — pools in deep caverns and sealed mountain magma
+  pockets; animated cracked-basalt texture, casts light like a torch,
+  and burns you on contact.
+* **Obsidian / gravel / flint / portals** — flow water onto lava to
+  make **obsidian** (diamond-pick only); mine new **gravel** for
+  **flint**; strike flint on an obsidian frame to light a swirling
+  purple **portal** (teleport destination lands in a later release).
+* **Redstone wave 2** — dispensers, targets, observers, note blocks,
+  lamps, NOT-gates, repeaters, slime blocks, and a regular/sticky
+  piston split; **mobs now trigger pressure pads**, and pads seed
+  wire. Idle dispensers no longer cost any framerate.
 
 ### 1.14.3
 
