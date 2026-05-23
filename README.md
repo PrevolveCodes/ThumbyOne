@@ -16,7 +16,7 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
 <p align="center">
   <img src="docs/screenshots/scumm-mi1-bar.jpg" width="240" alt="Monkey Island — three pirates at the Scumm Bar">
   <img src="docs/screenshots/mpy-picker.jpg" width="240" alt="MicroPython picker — DeepThumb">
-  <img src="docs/screenshots/craft-jungle.jpg" width="240" alt="ThumbyCraft — jungle biome with hanging vines">
+  <img src="docs/screenshots/craft-title.jpg" width="240" alt="ThumbyCraft — title screen with save-slot world thumbnails">
 </p>
 
 ---
