@@ -646,6 +646,21 @@ The pause menu also hosts inventory, crafting, recipes, save / load, game mode, 
 
 ## Changelog
 
+### 1.15.1
+
+> ℹ️ Drop-in on 1.15 — no FAT reformat, all saves load.
+
+ThumbyCraft fixes:
+
+* **Big framerate drop fixed.** Redstone blocks (observers, dispensers, repeaters, lamps, note blocks) no longer make the sim scan the whole world every tick — it only walks the redstone you've placed.
+* **Redstone / torches / doors no longer vanish** in built-up or vine-heavy areas (raised the sprite-render limit; decorative vines now give way to functional blocks).
+* **Arrow traps actually hurt you now.** Dispenser-fired arrows damage the player — arrows hit any target, player or mob.
+* **Redstone lamps light up** (and cast light) when powered.
+* **Repeaters show a sliding marker** for their delay setting (1–4), Minecraft-style.
+* **Note blocks** play a cleaner, longer sine tone.
+* **Ice redrawn** — a cracked blue sheet instead of the old flat, repetitive pattern.
+* **Lily pads removed.**
+
 ### 1.15
 
 > ℹ️ Drop-in on top of any 1.14.x — no FAT reformat, no partition
