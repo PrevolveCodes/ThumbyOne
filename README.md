@@ -646,6 +646,36 @@ The pause menu also hosts inventory, crafting, recipes, save / load, game mode, 
 
 ## Changelog
 
+### 1.16
+
+> ℹ️ Drop-in on 1.15.x — no FAT reformat, all saves load.
+
+A **ThumbyCraft performance + polish** release. (See the
+[ThumbyCraft README](https://github.com/austinio7116/ThumbyCraft#whats-new-in-116)
+for the full write-up.)
+
+**Performance**
+
+* **Smooth chunk loading.** The world streams in column-by-column as you walk (small batched runs) instead of regenerating a whole chunk at once — the periodic hitch/stutter when crossing into new terrain is gone. Music no longer clicks on the transition (it's now clocked from the audio samples, not the frame timer). The trade-off: spreading the chunk work over many frames costs a little peak framerate while moving (it used to all hit in one stutter) — but the raycaster work below makes up for it.
+* **~30 % faster raycaster.** Empty-space skipping (a coarse terrain-height grid) lets rays jump over the empty air between you and the first solid instead of stepping cell-by-cell (≈95 % of steps were landing on empty air) — biggest win on open / long-distance views. Net across both changes: a steadier ~20 fps with no hitches, versus higher peaks but a stutter on every chunk boundary before.
+* **FPS counter toggle** in the pause menu.
+
+**Lava**
+
+* **Flowing lava.** Lava now spreads from a source (up to 3 blocks, Minecraft-accurate overworld reach) and oozes slowly; running it into water still hardens to obsidian.
+* **Lava settles.** A contained pour now comes to rest as a still pool instead of animating and re-lighting forever.
+* **Creative inventory** no longer lists the flowing-lava levels — only the lava source, like water.
+
+**Visuals**
+
+* **New ice texture** — a clean near-white cracked-plate sheet with both per-block and smooth large-scale (value-noise) variation, replacing the old speckly tile.
+* **Sticky pistons look distinct** from regular pistons — a green slime cap in-world and a green face in the inventory bar and held hand.
+
+**Other**
+
+* Creative mode can break any block (no tool gate); a held torch can act as a light source (toggle); optional 64×64 low-res perf mode.
+* "New world" moved to the bottom of the pause menu, away from the everyday items.
+
 ### 1.15.1
 
 > ℹ️ Drop-in on 1.15 — no FAT reformat, all saves load.
