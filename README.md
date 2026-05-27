@@ -646,6 +646,36 @@ The pause menu also hosts inventory, crafting, recipes, save / load, game mode, 
 
 ## Changelog
 
+### 1.17
+
+> ℹ️ Drop-in on 1.16 — no FAT reformat, no save-format change (the
+> loader still reads every version back to v5). Existing ThumbyCraft
+> worlds load with your edits intact and gain the new dungeons / forts /
+> foliage as the terrain regenerates.
+
+A **ThumbyCraft biome-detail, structures & dungeons** release. (See the
+[ThumbyCraft README](https://github.com/austinio7116/ThumbyCraft#whats-new-in-117)
+for the full write-up.)
+
+**Foliage & sprites**
+
+* **DDA cutout rendering.** Plants, vines, ladders, doors, trapdoors, pressure pads and redstone wire now draw as see-through cutout textures inside the raycaster instead of post-pass cuboids — crisper and cheaper, and a **closed door blocks the ray** (saving the work behind it). Tree canopies are see-through "fancy leaves" with airy gaps.
+* **Natural flowers** (tulip + daisy), retuned per-biome foliage greens, tinted grass sides, and **tall-grass tufts** in three biome-mixed styles (light-tips / seed-heads / half-height).
+
+**New growth**
+
+* **Flowering jungle vines** dangle as a curtain under jungle canopies with colourful blossoms; **blossom trees** bloom in warm climates (pink/white/yellow/magenta over tinted green); **palm trees** on warm beaches.
+
+**Forts & dungeons**
+
+* **Forest skeleton forts** — a rare stone keep + walled compound deep in the forest, with loot, that **skeletons swarm day and night**.
+* **Underground roguelike dungeons near the lava** — varied stone/cobble rooms linked by a mix of 1-wide and 2–3-wide corridors, with **treasure chests** (rare/legendary loot) and **trapdoor-hatch entrances** (a trapdoor in a stone surround over a well) so they're discoverable from the surface. Skeletons, spiders and slimes lair there and spawn more thickly underground.
+
+**Other**
+
+* New **ThumbyCraft lobby logo** — an isometric grass block with the title wordmark, replacing the plain block tile.
+* New player **spawn** at the world origin on the first solid ground (never a treetop or lake); raycaster moved into SRAM for a steadier framerate.
+
 ### 1.16
 
 > ℹ️ Drop-in on 1.15.x — no FAT reformat, all saves load.
