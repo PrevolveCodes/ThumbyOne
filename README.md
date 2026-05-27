@@ -660,7 +660,8 @@ for the full write-up.)
 **Foliage & sprites**
 
 * **DDA cutout rendering.** Plants, vines, ladders, doors, trapdoors, pressure pads and redstone wire now draw as see-through cutout textures inside the raycaster instead of post-pass cuboids — crisper and cheaper, and a **closed door blocks the ray** (saving the work behind it). Tree canopies are see-through "fancy leaves" with airy gaps.
-* **Natural flowers** (tulip + daisy), retuned per-biome foliage greens, tinted grass sides, and **tall-grass tufts** in three biome-mixed styles (light-tips / seed-heads / half-height).
+* **Natural flowers** (tulip + daisy), retuned per-biome foliage greens, tinted grass sides, and **tall-grass tufts** in three biome-mixed styles (light-tips / seed-heads / half-height). Flowers + tall grass are placeable, with a **ground-cover toggle** in the pause menu.
+* **Doors look like doors** — framed wooden doors with stiles, rails and a recessed panel; redstone-wire dust is thinner and cleaner.
 
 **New growth**
 
