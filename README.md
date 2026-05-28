@@ -646,6 +646,35 @@ The pause menu also hosts inventory, crafting, recipes, save / load, game mode, 
 
 ## Changelog
 
+### 1.17.1
+
+> ℹ️ Drop-in on 1.17 — no FAT reformat, no save-format change. Existing ThumbyCraft worlds keep your edits and pick up the rebalanced biomes as terrain regenerates around you.
+
+A **ThumbyCraft polish** release: two bugs fixed, biomes rebalanced, blossoms toned down. (See the [ThumbyCraft README](https://github.com/austinio7116/ThumbyCraft#whats-new-in-1171) for the full write-up.)
+
+**Bug fixes**
+
+* **Blossom trees now actually appear.** The leaves → blossom conversion was missing from the live world-fill path, so blossom-leaf blocks were never placed in-game. Fixed — warm broadleaf trees now bloom.
+* **Flowering jungle vines now flower.** The flower-vs-plain choice was a fixed function of (dx, dz), identical for every jungle tree, so no run ever flowered. Now seeded with the per-tree variant; runs vary tree-to-tree.
+
+**Biomes**
+
+* **Jungle and desert rebalanced** — jungle ~7 % (was ~0.9 %) and desert ~10 % (was ~1.9 %), so they're findable instead of vanishingly rare. Taiga ~20 % → ~15 %; plains/forest/mountains/swamp essentially unchanged.
+
+**Blossom tuning**
+
+* **Sparse blossom cells** — only ~1/6 of a blossom tree's canopy cells bloom now (was every cell), so a blossom tree is mostly green with a sprinkle of flowers rather than a wall of bloom.
+* **Acacia (savanna) blossoms are red**; **one bloom colour per tree** (pink/white/yellow/magenta) for the temperate broadleaf set.
+* **Bloom whitelist:** oak, large oak, acacia, jungle and swamp giants. **Pine no longer blossoms** (it kept slipping through because mountains are gated by elevation, not temperature). Palm stays exempt — it uses fronds.
+
+**Lobby**
+
+* **ThumbyCraft logo navy background** — matches the title / save-select screen instead of the old sky-blue.
+
+**Internal**
+
+* Removed a legacy per-cell generator path that had drifted from the live column-and-stamp path — eliminating the drift footgun that caused both bugs above. Single source of truth for worldgen now.
+
 ### 1.17
 
 > ℹ️ Drop-in on 1.16 — no FAT reformat, no save-format change (the
