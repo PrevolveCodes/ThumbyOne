@@ -32,6 +32,7 @@ DOOM_KB            = 2432
 MPY_KB             = 1280
 SCUMM_KB           = 640
 CRAFT_KB           = 512
+ROGUE_KB           = 512
 
 P8_SCRATCH_KB      = 252
 SETTINGS_MIRROR_KB = 4
@@ -63,6 +64,7 @@ def main():
     ap.add_argument("--no-mpy",     action="store_true")
     ap.add_argument("--no-scumm",   action="store_true")
     ap.add_argument("--no-craft",   action="store_true")
+    ap.add_argument("--no-rogue",   action="store_true")
     ap.add_argument("-o", "--output", required=True,
                     help="output partition-table JSON path")
     ap.add_argument("--cmake-out",
@@ -94,6 +96,9 @@ def main():
     if not args.no_craft:
         partitions.append(part("CRAFT", 5, cur_kb, CRAFT_KB))
         cur_kb += CRAFT_KB
+    if not args.no_rogue:
+        partitions.append(part("ROGUE", 6, cur_kb, ROGUE_KB))
+        cur_kb += ROGUE_KB
 
     pt = {
         "version": [1, 0],
@@ -129,6 +134,8 @@ def main():
             offsets["SCUMM"]=cur; sizes["SCUMM"]=SCUMM_KB; cur += SCUMM_KB
         if not args.no_craft:
             offsets["CRAFT"]=cur; sizes["CRAFT"]=CRAFT_KB; cur += CRAFT_KB
+        if not args.no_rogue:
+            offsets["ROGUE"]=cur; sizes["ROGUE"]=ROGUE_KB; cur += ROGUE_KB
         # P8 scratch + settings mirror reserved AFTER all slots, then
         # FAT consumes the rest of flash.
         fat_offset_kb = cur + P8_SCRATCH_KB + SETTINGS_MIRROR_KB

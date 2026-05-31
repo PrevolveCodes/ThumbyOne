@@ -451,10 +451,10 @@ static const thumbyone_slot_t g_grid_slot_order[8] = {
     THUMBYONE_SLOT_P8,
     THUMBYONE_SLOT_DOOM,
     THUMBYONE_SLOT_MPY,
-    /* Page 1: SCUMM, CRAFT, then 2 reserved future slots. */
+    /* Page 1: SCUMM, CRAFT, ROGUE, then 1 reserved future slot. */
     THUMBYONE_SLOT_SCUMM,
     THUMBYONE_SLOT_CRAFT,
-    THUMBYONE_SLOT_LOBBY,  /* placeholder — unused tile #6 */
+    THUMBYONE_SLOT_ROGUE,
     THUMBYONE_SLOT_LOBBY,  /* placeholder — unused tile #7 */
 };
 
@@ -481,6 +481,9 @@ static const thumbyone_slot_t g_grid_slot_order[8] = {
 #ifndef THUMBYONE_LOBBY_HAS_CRAFT
 #define THUMBYONE_LOBBY_HAS_CRAFT 1
 #endif
+#ifndef THUMBYONE_LOBBY_HAS_ROGUE
+#define THUMBYONE_LOBBY_HAS_ROGUE 1
+#endif
 
 /* Maximum addressable grid positions — kept at 8 (= 2 reservoir
  * pages of 4) so the static arrays sized from this stay
@@ -497,7 +500,8 @@ static const bool g_grid_slot_present[LOBBY_TOTAL_SLOTS] = {
     THUMBYONE_LOBBY_HAS_MPY,
     THUMBYONE_LOBBY_HAS_SCUMM,
     THUMBYONE_LOBBY_HAS_CRAFT,
-    0, 0,                               /* reserved future slots */
+    THUMBYONE_LOBBY_HAS_ROGUE,
+    0,                                  /* reserved future slot */
 };
 
 /* Compact-visible model: instead of leaving disabled-slot positions
@@ -621,7 +625,8 @@ static const char *const g_grid_labels[LOBBY_TOTAL_SLOTS] = {
     "MICROPYTHON",
     "SCUMM (MI / Indy)",
     "CRAFT",
-    "", "",                    /* reserved */
+    "ROGUE",
+    "",                        /* reserved */
 };
 
 /* ThumbyOne palette — dark navy header/footer bars with a cyan
