@@ -5,7 +5,7 @@
 > *One firmware to rule them all, one lobby to find them.*
 > *One file to bring them all, and in the Thumby bind them.*
 
-ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](https://thumby.us/) — the tiny colour handheld with a 128×128 screen, dual-core Arm Cortex-M33, 520 KB SRAM, and 16 MB of on-board flash. One flash gives you **NES**, **Master System**, **Game Gear**, **Game Boy**, **Mega Drive (Genesis)**, **PC Engine / TurboGrafx-16**, **PICO-8**, **DOOM**, **Monkey Island / Indiana Jones (SCUMM)**, **ThumbyCraft** (a bare-metal Minecraft-style voxel world with biomes, cave lava and redstone), and the full **MicroPython + Tiny Game Engine** experience, each optimized to run perfectly on the device.
+ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](https://thumby.us/) — the tiny colour handheld with a 128×128 screen, dual-core Arm Cortex-M33, 520 KB SRAM, and 16 MB of on-board flash. One flash gives you **NES**, **Master System**, **Game Gear**, **Game Boy**, **Mega Drive (Genesis)**, **PC Engine / TurboGrafx-16**, **PICO-8**, **DOOM**, **Monkey Island / Indiana Jones (SCUMM)**, **ThumbyCraft** (a bare-metal Minecraft-style voxel world with biomes, cave lava and redstone), **ThumbyRogue** (an endless isometric hack-n-slash roguelike built on the ThumbyCraft engine), and the full **MicroPython + Tiny Game Engine** experience, each optimized to run perfectly on the device.
 
 <p align="center">
   <img src="docs/screenshots/nes-game.jpg" width="240" alt="NES on Thumby Color">
@@ -36,6 +36,7 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
   - [MicroPython + Tiny Game Engine](#micropython--tiny-game-engine)
   - [ThumbyScummby](#thumbyscummby--scumm-adventures)
   - [ThumbyCraft](#thumbycraft--voxel-survival)
+  - [ThumbyRogue](#thumbyrogue--endless-iso-roguelike)
 - [Changelog](#changelog)
 - [Tips and troubleshooting](#tips-and-troubleshooting)
 - [Technical specifications](#technical-specifications)
@@ -52,18 +53,19 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
 | **MicroPython + Engine** | Python games written against the [Tiny Game Engine](https://github.com/austinio7116/TinyCircuits-Tiny-Game-Engine) | `/games/<name>/` |
 | **ThumbyScummby** | SCUMM v4 / v5 adventures — Monkey Island 1, Monkey Island 2, Indiana Jones 4 (Fate of Atlantis), and the original LucasArts `.img` install disks | `/scumm/<game>/` or drop `.img` files into `/scumm/` |
 | **ThumbyCraft** | Bare-metal Minecraft-style voxel game — an infinite procedural world with biomes, mining, crafting, redstone, mobs, and lava-filled caves; six control schemes and four save slots with full chest + furnace persistence | `/thumbycraft/` (managed by the game; back up the whole tree) |
+| **ThumbyRogue** | Endless isometric hack-n-slash roguelike on the ThumbyCraft voxel engine — procedural dungeons, real-time combat, Diablo-style loot + affixes, five depth bands; one suspended run auto-saves so you can resume | `/thumbyrogue/run.sav` (managed by the game) |
 
-All six systems share one FAT drive, visible over USB when you're in the lobby. Size depends on the build:
+All seven systems share one FAT drive, visible over USB when you're in the lobby. Size depends on the build:
 
-- **8.5 MB** in the default (MD-enabled) layout (`firmware_thumbyone.uf2`)
-- **9.5 MB** in the backward-compat `THUMBYONE_WITH_MD=OFF` build
+- **8.0 MB** in the default (MD-enabled) layout (`firmware_thumbyone.uf2`)
+- **9.0 MB** in the backward-compat `THUMBYONE_WITH_MD=OFF` build
 - Up to **15.0 MB** in the slimmer SCUMM-only / minimal presets — see [Build matrix](#build-matrix).
 
-**Note on the new ThumbyCraft slot:** it currently ships only in the
+**Note on the ThumbyCraft + ThumbyRogue slots:** they ship only in the
 default `firmware_thumbyone.uf2` (and its `_nomd` sibling). The
 slimmer preset images (`_nodoom`, `_scummonly`, `_retro` etc.) stay
-on the original five systems — flash the main image if you want
-ThumbyCraft.
+on the original systems — flash the main image if you want
+ThumbyCraft or ThumbyRogue.
 
 ---
 
@@ -86,7 +88,9 @@ ThumbyCraft.
 
 **Download** [`firmware_thumbyone.uf2`](https://github.com/austinio7116/ThumbyOne/blob/main/firmware_thumbyone.uf2) from the root of this repo (or the latest [release](https://github.com/austinio7116/ThumbyOne/releases)) — or [build from source](#build-matrix).
 
-> **Upgrading from any pre-1.14 build?** 1.14 adds the ThumbyCraft slot (512 KB) to the default firmware, which moves the shared FAT forward and shrinks it from 9.0 MB to **8.5 MB** (default MD-enabled build) / 10.0 MB to **9.5 MB** (`WITH_MD=OFF` build). The lobby shows an **`FS BAD / A=FORMAT  B=ABORT`** prompt on first boot at the new offset — **hold A for one second** to confirm the reformat; everything on the old volume is wiped. **Back up `/roms/`, `/carts/`, `/games/`, `/scumm/`, `/Saves/` first** (USB MSC works as usual under the old firmware), then flash, reformat, and copy back as much as fits in the new (slightly smaller) volume. *Slimmer preset images (`_nodoom`, `_scummonly`, `_retro`) don't include ThumbyCraft and keep the 1.13 FAT sizes — only the default `firmware_thumbyone.uf2` and its `_nomd` sibling shrink.*
+> **Upgrading from 1.14–1.17.x?** 1.18 adds the ThumbyRogue slot (512 KB) to the default firmware, which moves the shared FAT forward and shrinks it from 8.5 MB to **8.0 MB** (default MD-enabled build) / 9.5 MB to **9.0 MB** (`WITH_MD=OFF` build). The lobby shows an **`FS BAD / A=FORMAT  B=ABORT`** prompt on first boot at the new offset — **hold A for one second** to confirm the reformat; everything on the old volume is wiped. **Back up `/roms/`, `/carts/`, `/games/`, `/scumm/`, `/thumbycraft/`, `/Saves/` first** (USB MSC works as usual under the old firmware), then flash, reformat, and copy back as much as fits in the new (slightly smaller) volume.
+>
+> **Upgrading from any pre-1.14 build?** You cross two slot additions at once — 1.14's ThumbyCraft (512 KB) and 1.18's ThumbyRogue (512 KB) — so the default FAT shrinks from 9.0 MB straight to **8.0 MB** (`WITH_MD=OFF`: 10.0 MB → **9.0 MB**). Same reformat prompt and back-up advice as above. *Slimmer preset images (`_nodoom`, `_scummonly`, `_retro`) don't include ThumbyCraft or ThumbyRogue and keep the 1.13 FAT sizes — only the default `firmware_thumbyone.uf2` and its `_nomd` sibling shrink.*
 >
 > If you only want a subset of systems and don't need the migration prompt at all, flash one of the slimmer preset UF2s — see [Build matrix](#build-matrix). `firmware_thumbyone_scummonly.uf2` for example gives 15 MB FAT for SCUMM-only setups.
 
@@ -176,6 +180,8 @@ Inside the MENU overlay, **LEFT / RIGHT** adjusts the highlighted slider (bright
 | ThumbyDOOM | In-game Main Menu → **Quit Game** (no confirm dialog in slot mode) |
 | MicroPython + Engine | **MENU** held ~5 s in-game — direct reboot to the lobby (no on-screen prompt; game state is lost, so the hold is deliberately long to prevent accidents) |
 | ThumbyScummby (SCUMM adventures) | **MENU** (hold ~0.5 s in-game) → save menu → **LOBBY** |
+| ThumbyCraft | In-game **pause menu** → **Back to lobby** |
+| ThumbyRogue | **MENU** held ~1.2 s in-game — direct reboot to the lobby (short MENU taps open the inventory; the run auto-saves on descent so it resumes next launch) |
 
 A small **USB** label + LED dot in the top-right corner of the lobby — and the device's physical RGB LED — both show the USB state:
 
@@ -644,7 +650,57 @@ The pause menu also hosts inventory, crafting, recipes, save / load, game mode, 
 
 ---
 
+### ThumbyRogue — endless iso roguelike
+
+*Original game for the Thumby Color — [ThumbyRogue](https://github.com/austinio7116/ThumbyRogue) · [illustrated guide](https://austinio7116.github.io/ThumbyRogue/).*
+
+ThumbyRogue is an **endless, real-time, isometric hack-n-slash roguelike** built on a **vendored copy of the ThumbyCraft voxel engine** — the same per-pixel CPU raycaster and cuboid-model renderer, re-pointed at a fixed 3/4 isometric camera you can snap-rotate 90° with LB / RB to peek around walls. Each dungeon floor is generated into the engine's 64³ voxel buffer; you descend an endless staircase and **how deep you get is your score**.
+
+**Getting in:** pick the ThumbyRogue tile in the lobby. If a suspended run exists it resumes; otherwise a fresh descent begins at depth 1.
+
+**The run:**
+
+- **Pure permadeath, one life.** No meta-progression — the gear you find *this* run is your build. Death shows a run summary (depth, gold, kills) and your best depth persists as a high score.
+- **Procedural floors, always solvable.** A BSP rooms-and-corridors generator carves each floor; before any hazard or scenery is placed, the up→down route is computed and **reserved**, so lava chasms, set-pieces and clutter can never seal the path. Verified across tens of thousands of generated levels.
+- **Your weapon is your class.** Twelve weapon types (daggers through to staves) with distinct base damage, attack arcs and projectile/particle effects — a found bow makes you a ranger, a staff a caster, dual daggers a fast bruiser.
+- **Real-time combat** with a dodge/jump, telegraphed enemy wind-ups, knockback, hit-flash, screen shake and floating damage numbers (green dealt / red taken).
+- **Diablo-style loot.** Common / Magic / Rare / Legendary rarities with rolled affixes, legendary aspects, sockets + gems, and salvage; six equip slots on a paperdoll inventory screen with a detailed item page (B). Gold buys upgrades at a **merchant**. Rarer drops are deliberately scarce on early floors so progression feels earned. Potions are carried in the backpack and quaffed on demand.
+- **Light as a resource.** Your torch burns down in the dark; relight at braziers. Low light bites.
+- **Five depth bands**, each reskinning floor / wall / pillar blocks, surround terrain, enemy roster and music — **The Crypt → The Caverns → Fungal Deep → Frostvault → The Inferno** — then the sequence loops with escalating stats. Eleven enemy types across the bands, with champion floors.
+- **Furnished rooms.** Larger rooms get arranged set-pieces — bookcase libraries, sarcophagus tombs, barrel/crate stores, glowing crystal clusters, shrine altars — plus scattered 2D scenery sprites (bones, rubble, fungi, cobwebs). From the second band on, rare **lava chasms** you can fall into dot the deeper floors (crossed by a bridge or a moving platform). Invisible barriers cap the dungeon walls so the clutter can never be used to climb out of the level.
+
+**Controls in-game:**
+
+| Button | Action |
+|---|---|
+| D-pad | Move (screen-relative — "up" is always away from camera) |
+| A | Primary attack (swing / fire the equipped weapon) |
+| B | Secondary — dodge / jump (and interact: chests, merchant, stairs) |
+| LB / RB | Snap-rotate the isometric view ±90° |
+| MENU (tap) | Open the inventory / paperdoll (and the minimap) |
+| MENU (hold ~1.2 s) | Back to the lobby |
+| LB + RB (hold ~5 s) | Cheat: open the level-skip menu |
+
+**Saving:** one suspended run lives on the shared FAT at `/thumbyrogue/run.sav`, auto-saved each time you descend, so quitting to the lobby (or another slot) and coming back drops you right back in. The save is wiped on death — permadeath is permadeath. Your best-depth high score survives.
+
+---
+
 ## Changelog
+
+### 1.18
+
+> ⚠️ **Reformat on upgrade.** Adding the ThumbyRogue slot (512 KB) moves the shared FAT forward, shrinking the default volume from 8.5 MB to **8.0 MB** (`WITH_MD=OFF`: 9.5 MB → **9.0 MB**). First boot shows the **`FS BAD / A=FORMAT  B=ABORT`** prompt — hold **A** for one second to reformat. **Back up `/roms/`, `/carts/`, `/games/`, `/scumm/`, `/thumbycraft/`, `/Saves/` over USB MSC first.**
+
+Adds the seventh system: **[ThumbyRogue](https://github.com/austinio7116/ThumbyRogue)**, an endless isometric hack-n-slash roguelike built on the ThumbyCraft voxel engine.
+
+**New**
+
+* **ThumbyRogue slot** — procedural BSP dungeons with a guaranteed-solvable path, real-time combat (twelve weapon types, dodge, telegraphs, damage numbers), Diablo-style loot (rarities + affixes + legendary aspects + sockets/gems + salvage + merchant), a paperdoll inventory, light/torch tension, and five depth bands (Crypt → Caverns → Fungal Deep → Frostvault → Inferno) that loop with escalating depth. One suspended run auto-saves to `/thumbyrogue/run.sav` and resumes on relaunch; wiped on death. See the [systems section](#thumbyrogue--endless-iso-roguelike) and the [illustrated guide](https://austinio7116.github.io/ThumbyRogue/).
+* Lobby grid gains the ROGUE tile; MENU-hold (~1.2 s) returns from the slot to the lobby, and the shared brightness / LED settings apply as in every other slot.
+
+**Notes**
+
+* Ships in the default `firmware_thumbyone.uf2` and its `_nomd` sibling only; the slimmer presets are unchanged.
 
 ### 1.17.1
 
