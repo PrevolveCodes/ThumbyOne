@@ -654,6 +654,10 @@ The pause menu also hosts inventory, crafting, recipes, save / load, game mode, 
 
 *Original game for the Thumby Color — [ThumbyRogue](https://github.com/austinio7116/ThumbyRogue) · [illustrated guide](https://austinio7116.github.io/ThumbyRogue/).*
 
+<p align="center">
+  <img src="docs/screenshots/rogue-gameplay.jpg" width="380" alt="ThumbyRogue — descending a Crypt dungeon, isometric view with HUD">
+</p>
+
 ThumbyRogue is an **endless, real-time, isometric hack-n-slash roguelike** built on a **vendored copy of the ThumbyCraft voxel engine** — the same per-pixel CPU raycaster and cuboid-model renderer, re-pointed at a fixed 3/4 isometric camera you can snap-rotate 90° with LB / RB to peek around walls. Each dungeon floor is generated into the engine's 64³ voxel buffer; you descend an endless staircase and **how deep you get is your score**.
 
 **Getting in:** pick the ThumbyRogue tile in the lobby. If a suspended run exists it resumes; otherwise a fresh descent begins at depth 1.
@@ -668,6 +672,10 @@ ThumbyRogue is an **endless, real-time, isometric hack-n-slash roguelike** built
 - **Light as a resource.** Your torch burns down in the dark; relight at braziers. Low light bites.
 - **Five depth bands**, each reskinning floor / wall / pillar blocks, surround terrain, enemy roster and music — **The Crypt → The Caverns → Fungal Deep → Frostvault → The Inferno** — then the sequence loops with escalating stats. Eleven enemy types across the bands, with champion floors.
 - **Furnished rooms.** Larger rooms get arranged set-pieces — bookcase libraries, sarcophagus tombs, barrel/crate stores, glowing crystal clusters, shrine altars — plus scattered 2D scenery sprites (bones, rubble, fungi, cobwebs). From the second band on, rare **lava chasms** you can fall into dot the deeper floors (crossed by a bridge or a moving platform). Invisible barriers cap the dungeon walls so the clutter can never be used to climb out of the level.
+
+<p align="center">
+  <img src="docs/screenshots/rogue-inventory.jpg" width="380" alt="ThumbyRogue paperdoll inventory — equipped gear, stats, minimap, backpack, and the Scepter of Wrath item detail">
+</p>
 
 **Controls in-game:**
 
