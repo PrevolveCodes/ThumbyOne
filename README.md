@@ -90,7 +90,7 @@ ThumbyCraft or ThumbyRogue.
 
 > **Upgrading from 1.14–1.17.x?** 1.18 adds the ThumbyRogue slot (512 KB) to the default firmware, which moves the shared FAT forward and shrinks it from 8.5 MB to **8.0 MB** (default MD-enabled build) / 9.5 MB to **9.0 MB** (`WITH_MD=OFF` build). The lobby shows an **`FS BAD / A=FORMAT  B=ABORT`** prompt on first boot at the new offset — **hold A for one second** to confirm the reformat; everything on the old volume is wiped. **Back up `/roms/`, `/carts/`, `/games/`, `/scumm/`, `/thumbycraft/`, `/Saves/` first** (USB MSC works as usual under the old firmware), then flash, reformat, and copy back as much as fits in the new (slightly smaller) volume.
 >
-> **Upgrading from any pre-1.14 build?** You cross two slot additions at once — 1.14's ThumbyCraft (512 KB) and 1.18's ThumbyRogue (512 KB) — so the default FAT shrinks from 9.0 MB straight to **8.0 MB** (`WITH_MD=OFF`: 10.0 MB → **9.0 MB**). Same reformat prompt and back-up advice as above. *Slimmer preset images (`_nodoom`, `_scummonly`, `_retro`) don't include ThumbyCraft or ThumbyRogue and keep the 1.13 FAT sizes — only the default `firmware_thumbyone.uf2` and its `_nomd` sibling shrink.*
+> **Upgrading from any pre-1.14 build?** You cross two slot additions at once — 1.14's ThumbyCraft (512 KB) and 1.18's ThumbyRogue (512 KB) — so the default FAT shrinks from 9.0 MB straight to **8.0 MB** (`WITH_MD=OFF`: 10.0 MB → **9.0 MB**). Same reformat prompt and back-up advice as above. *The `_nodoom` preset is current as of 1.19 and includes everything except DOOM (its own FAT offset — same reformat prompt applies when upgrading it). The `_scummonly` / `_retro` presets remain older and keep the 1.13 FAT sizes.*
 >
 > If you only want a subset of systems and don't need the migration prompt at all, flash one of the slimmer preset UF2s — see [Build matrix](#build-matrix). `firmware_thumbyone_scummonly.uf2` for example gives 15 MB FAT for SCUMM-only setups.
 
@@ -694,6 +694,29 @@ ThumbyRogue is an **endless, real-time, isometric hack-n-slash roguelike** built
 ---
 
 ## Changelog
+
+### 1.19
+
+> ℹ️ Drop-in on 1.18 — no FAT reformat. ThumbyRogue suspend saves from 1.18
+> use an older layout and are ignored (the run restarts at the title).
+
+A **ThumbyRogue 1.1** release — the slot picks up the post-release playtest
+round plus three feature drops: a real **merchant stall** (and a shopkeeper
+who turns battle-wizard if you attack him), **explosive magic** with eight
+weapon **elements** + eight elemental gems, **real staircases**, lava that
+burns enemies, and a full combat-feel pass (visibility, locomotion patterns,
+slash crescents, fairness guarantees). See the
+[ThumbyRogue changelog](https://github.com/austinio7116/ThumbyRogue#changelog)
+and the [illustrated guide](https://austinio7116.github.io/ThumbyRogue/) for
+the details.
+
+**Notes**
+
+* The **`_nodoom` preset is rebuilt at current head** and now includes every
+  system except DOOM (previously it predated the ThumbyCraft/ThumbyRogue
+  slots). Its FAT moves accordingly — first boot shows the usual
+  `FS BAD / A=FORMAT` prompt; back up over USB MSC before flashing it.
+* `_scummonly` / `_retro` presets remain at their older versions.
 
 ### 1.18
 
