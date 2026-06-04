@@ -61,11 +61,12 @@ All seven systems share one FAT drive, visible over USB when you're in the lobby
 - **9.0 MB** in the backward-compat `THUMBYONE_WITH_MD=OFF` build
 - Up to **15.0 MB** in the slimmer SCUMM-only / minimal presets — see [Build matrix](#build-matrix).
 
-**Note on the ThumbyCraft + ThumbyRogue slots:** they ship only in the
-default `firmware_thumbyone.uf2` (and its `_nomd` sibling). The
-slimmer preset images (`_nodoom`, `_scummonly`, `_retro` etc.) stay
-on the original systems — flash the main image if you want
-ThumbyCraft or ThumbyRogue.
+**Note on the ThumbyCraft + ThumbyRogue slots:** they ship in the
+default `firmware_thumbyone.uf2`, its `_nomd` sibling, and (as of
+1.19) the `_nodoom` preset. The remaining slimmer presets
+(`_scummonly`, `_retro` etc.) are older builds on the original
+systems — flash one of the current three if you want ThumbyCraft or
+ThumbyRogue.
 
 ---
 
@@ -524,7 +525,7 @@ The 128×128 screen is square but a SCUMM scene is 320×200 — so dialog and ve
 
 **Notes:**
 
-- **Sizes (extracted):** MI1 ≈ 4.4 MB, MI2 ≈ 9.1 MB, Indy 4 ≈ 9.3 MB. The default 1.14 build with ThumbyCraft has only **8.5 MB** of shared FAT — large enough for MI1 but **not** MI2 or Indy 4. For the v5 games flash the `firmware_thumbyone_nodoom.uf2` / `firmware_thumbyone_scummonly.uf2` preset for more headroom (and note those presets don't include the ThumbyCraft slot).
+- **Sizes (extracted):** MI1 ≈ 4.4 MB, MI2 ≈ 9.1 MB, Indy 4 ≈ 9.3 MB. The default 1.19 build has **8.0 MB** of shared FAT — large enough for MI1 but **not** MI2 or Indy 4. For the v5 games flash `firmware_thumbyone_nodoom.uf2` (10.4 MB FAT, everything except DOOM — including ThumbyCraft/ThumbyRogue as of 1.19) or `firmware_thumbyone_scummonly.uf2` (15 MB, SCUMM only).
 - **Saves** under `/scumm/<game>/saves/slot<N>.sav`. Persistent across reboots; the SCUMM in-game save menu (MENU-long) handles slot selection.
 - **LOG viewer** inside the save menu is 21 columns wide — used for diagnostic output. Pre-engine failures (install errors etc.) write to `/scumm/_install.log` when the picker can't show them via the in-game viewer.
 
@@ -668,9 +669,9 @@ ThumbyRogue is an **endless, real-time, isometric hack-n-slash roguelike** built
 - **Procedural floors, always solvable.** A BSP rooms-and-corridors generator carves each floor; before any hazard or scenery is placed, the up→down route is computed and **reserved**, so lava chasms, set-pieces and clutter can never seal the path. Verified across tens of thousands of generated levels.
 - **Your weapon is your class.** Twelve weapon types (daggers through to staves) with distinct base damage, attack arcs and projectile/particle effects — a found bow makes you a ranger, a staff a caster, dual daggers a fast bruiser.
 - **Real-time combat** with a dodge/jump, telegraphed enemy wind-ups, knockback, hit-flash, screen shake and floating damage numbers (green dealt / red taken).
-- **Diablo-style loot.** Common / Magic / Rare / Legendary rarities with rolled affixes, legendary aspects, sockets + gems, and salvage; six equip slots on a paperdoll inventory screen with a detailed item page (B). Gold buys upgrades at a **merchant**. Rarer drops are deliberately scarce on early floors so progression feels earned. Potions are carried in the backpack and quaffed on demand.
+- **Diablo-style loot.** Common / Magic / Rare / Legendary rarities with rolled affixes (including **eight weapon elements** — fire, frost, poison, lightning, holy, shadow, void, arcane force), legendary aspects, sockets + gems, and salvage; six equip slots on a paperdoll inventory screen with a detailed item page (B). Gold buys upgrades at the **merchant's stall** — and the shopkeeper fights back if you attack him. Rarer drops are deliberately scarce on early floors so progression feels earned. Potions are carried in the backpack and quaffed on demand.
 - **Light as a resource.** Your torch burns down in the dark; relight at braziers. Low light bites.
-- **Five depth bands**, each reskinning floor / wall / pillar blocks, surround terrain, enemy roster and music — **The Crypt → The Caverns → Fungal Deep → Frostvault → The Inferno** — then the sequence loops with escalating stats. Eleven enemy types across the bands, with champion floors.
+- **Five depth bands**, each reskinning floor / wall / pillar blocks, surround terrain, enemy roster and music — **The Crypt → The Caverns → Fungal Deep → Frostvault → The Inferno** — then the sequence loops with escalating stats. Twelve enemy types across the bands (counting the shopkeeper you really shouldn't provoke), with champion floors.
 - **Furnished rooms.** Larger rooms get arranged set-pieces — bookcase libraries, sarcophagus tombs, barrel/crate stores, glowing crystal clusters, shrine altars — plus scattered 2D scenery sprites (bones, rubble, fungi, cobwebs). From the second band on, rare **lava chasms** you can fall into dot the deeper floors (crossed by a bridge or a moving platform). Invisible barriers cap the dungeon walls so the clutter can never be used to climb out of the level.
 
 <p align="center">
@@ -2391,10 +2392,10 @@ Prebuilt presets at the repo root (release builds):
 
 | Preset UF2 | Systems included | UF2 size | FAT size |
 |---|---|---:|---:|
-| `firmware_thumbyone.uf2`                | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM · CRAFT | 12.7 MB | **8.5 MB** |
-| `firmware_thumbyone_nocraft.uf2`        | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM         | 12.1 MB | **9.0 MB** |
-| `firmware_thumbyone_nomd.uf2`           | NES (no MD) · P8 · DOOM · MPY · SCUMM · CRAFT   | 10.3 MB | **9.5 MB** |
-| `firmware_thumbyone_nodoom.uf2`         | NES (+MD+PCE) · P8 · MPY · SCUMM                | 7.6 MB  | **11.4 MB** |
+| `firmware_thumbyone.uf2`                | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM · CRAFT · ROGUE | 13.7 MB | **8.0 MB** |
+| `firmware_thumbyone_nomd.uf2`           | NES (no MD) · P8 · DOOM · MPY · SCUMM · CRAFT · ROGUE   | 11.3 MB | **9.0 MB** |
+| `firmware_thumbyone_nodoom.uf2`         | NES (+MD+PCE) · P8 · MPY · SCUMM · CRAFT · ROGUE        | 9.1 MB  | **10.4 MB** |
+| `firmware_thumbyone_nocraft.uf2`        | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM *(older build)* | 12.1 MB | **9.0 MB** |
 | `firmware_thumbyone_nodoom_nomd.uf2`    | NES (no MD) · P8 · MPY · SCUMM                  | 5.2 MB  | **12.4 MB** |
 | `firmware_thumbyone_nompy.uf2`          | NES (+MD+PCE) · P8 · DOOM · SCUMM               | 10.4 MB | **10.25 MB** |
 | `firmware_thumbyone_nodoom_nompy.uf2`   | NES (+MD+PCE) · P8 · SCUMM                      | 5.8 MB  | **12.65 MB** |
@@ -2402,9 +2403,9 @@ Prebuilt presets at the repo root (release builds):
 | `firmware_thumbyone_retro.uf2`          | NES (+MD+PCE) · P8                              | 4.7 MB  | **13.1 MB** |
 | `firmware_thumbyone_scummonly.uf2`      | SCUMM only                                      | 1.3 MB  | **15.0 MB** |
 
-The prebuilt UF2s cover the most common feature/storage tradeoffs. Only the default `firmware_thumbyone.uf2` ships with the ThumbyCraft slot in 1.14 — every other preset omits it and keeps the 1.13 FAT sizes. Any other combination builds cleanly from the same flags — flipping any single slot to OFF moves the FAT base forward by that slot's allocation and grows the shared FAT correspondingly.
+The prebuilt UF2s cover the most common feature/storage tradeoffs. The first three rows (`main`, `_nomd`, `_nodoom`) are current as of **1.19** and include every slot listed; the remaining presets are older builds (pre-ThumbyCraft/ThumbyRogue) kept for storage-heavy setups. Any other combination builds cleanly from the same flags — flipping any single slot to OFF moves the FAT base forward by that slot's allocation and grows the shared FAT correspondingly.
 
-**SCUMM game sizes for reference:** MI1 ≈ 4.4 MB, MI2 ≈ 9.1 MB, Indy 4 ≈ 9.3 MB. The default 8.5 MB FAT comfortably holds MI1; MI2 or Indy 4 need at least the `_nomd` or `_nocraft` build, and no preset under 15 MB fits two of {MI2, Indy 4} together — they're each ~9 MB and the total shared FAT can't exceed 15 MB (16 MB flash minus the lobby + SCUMM slot + scratch / settings reserves).
+**SCUMM game sizes for reference:** MI1 ≈ 4.4 MB, MI2 ≈ 9.1 MB, Indy 4 ≈ 9.3 MB. The default 8.0 MB FAT comfortably holds MI1; MI2 or Indy 4 need at least the `_nodoom` build (10.4 MB), and no preset under 15 MB fits two of {MI2, Indy 4} together — they're each ~9 MB and the total shared FAT can't exceed 15 MB (16 MB flash minus the lobby + SCUMM slot + scratch / settings reserves).
 
 The MD build adds ~2 MB to the UF2 (the picodrive library + its precomputed YM2612 / FAME / cz80 flash tables) and loses 1 MB of shared FAT to the enlarged NES partition. PCE (added in 1.08) is HuCard-only and adds ~70 KB to the slot; it fits inside the existing partition and doesn't change the FAT layout.
 
