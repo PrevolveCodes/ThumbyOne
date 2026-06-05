@@ -37,6 +37,7 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
   - [ThumbyScummby](#thumbyscummby--scumm-adventures)
   - [ThumbyCraft](#thumbycraft--voxel-survival)
   - [ThumbyRogue](#thumbyrogue--endless-iso-roguelike)
+  - [ThumbyElite](#thumbyelite--bare-metal-space-sim)
 - [Changelog](#changelog)
 - [Tips and troubleshooting](#tips-and-troubleshooting)
 - [Technical specifications](#technical-specifications)
