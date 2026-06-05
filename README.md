@@ -697,6 +697,12 @@ ThumbyRogue is an **endless, real-time, isometric hack-n-slash roguelike** built
 
 ### ThumbyElite — bare-metal space sim
 
+<p align="center">
+  <img src="docs/screenshots/elite-planet.jpg" width="240" alt="ThumbyElite — approaching a planet, dock prompt up">
+  <img src="docs/screenshots/elite-chart.jpg" width="240" alt="ThumbyElite — the galaxy chart with jump-range ring">
+  <img src="docs/screenshots/elite-shipyard.jpg" width="240" alt="ThumbyElite — VIPER spec sheet in a dockyard">
+</p>
+
 An Elite-style open galaxy in 223 KB of bare-metal C: camera-relative
 flat-shaded 3D at a fluid uncapped frame rate, dual-core rasterized.
 Every NEW GAME seeds a unique infinite universe — stars, planets,
