@@ -742,7 +742,8 @@ Adds the eighth system: **[ThumbyElite](https://github.com/austinio7116/ThumbyEl
 
 **Notes**
 
-* The ELITE partition is 256 KB after ROGUE; the shared FAT shrinks by the same amount. Ships in the default `firmware_thumbyone.uf2` and `_nomd`/`_nodoom` builds.
+* **Back up the shared drive before flashing 1.20** — the ELITE partition (256 KB after ROGUE) moves the FAT's flash offset, so the first boot reformats the shared drive: ROMs, carts, SCUMM games and all slot saves are wiped. Copy them off over USB first and copy them back after.
+* Ships in the default `firmware_thumbyone.uf2` and the `_nomd`/`_nodoom` builds (all rebuilt for 1.20).
 
 ### 1.19
 
