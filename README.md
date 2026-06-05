@@ -733,6 +733,8 @@ style. MENU-hold returns to the lobby. Full manual: the
 
 ### 1.20
 
+> ⚠️ **Reformat on upgrade.** Adding the ThumbyElite slot (256 KB) moves the shared FAT forward, shrinking the default volume from 8.0 MB to **7.75 MB** (`_nomd`: 9.0 MB → **8.75 MB**, `_nodoom`: 10.4 MB → **10.1 MB**). First boot shows the **`FS BAD / A=FORMAT  B=ABORT`** prompt — hold **A** for one second to reformat. **Back up `/roms/`, `/carts/`, `/games/`, `/scumm/`, `/thumbycraft/`, `/thumbyrogue/`, `/Saves/` over USB MSC first.**
+
 Adds the eighth system: **[ThumbyElite](https://github.com/austinio7116/ThumbyElite)**, a bare-metal Elite/MechWarrior space sim.
 
 **New**
@@ -740,8 +742,6 @@ Adds the eighth system: **[ThumbyElite](https://github.com/austinio7116/ThumbyEl
 * **ThumbyElite slot** — an infinite, deterministic procedural galaxy (every NEW GAME rolls its own universe): real-time 3D dogfighting with 14 weapon families (charge railguns, ion shield-strippers, flak, mines, tractor grapples), weapon affixes and quality grades, shield/armor variants, utility gadgets (chaff, fuel scoop, targeting computer), auto-turrets on the big haulers, per-dockyard procedural ship catalogues, station survey sheets on the galaxy chart, trading, missions, tiered bounties and a salvage-refurbish economy. Dock-checkpoint save at `/thumbyelite/run.sav`; death = insurance recovery to your last dock. See the [Pilot's Handbook](https://austinio7116.github.io/ThumbyElite/).
 * Lobby grid gains the ELITE tile (fills page 2); MENU-hold (~1.2 s) returns to the lobby, shared brightness / LED settings apply.
 * Lobby About-row version string fixed — it had been stuck at 1.14.3 since the 1.15 release.
-
-> ⚠️ **Reformat on upgrade.** Adding the ThumbyElite slot (256 KB) moves the shared FAT forward, shrinking the default volume from 8.0 MB to **7.75 MB** (`_nomd`: 9.0 MB → **8.75 MB**, `_nodoom`: 10.4 MB → **10.1 MB**). First boot shows the **`FS BAD / A=FORMAT  B=ABORT`** prompt — hold **A** for one second to reformat. **Back up `/roms/`, `/carts/`, `/games/`, `/scumm/`, `/thumbycraft/`, `/thumbyrogue/`, `/Saves/` over USB MSC first.**
 
 **Notes**
 
