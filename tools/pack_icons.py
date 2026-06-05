@@ -45,7 +45,7 @@ ICONS = [
     ("scumm", "SCUMM"),
     ("craft", "CRAFT"),
     ("rogue", "ROGUE"),
-    ("blank", ""),
+    ("elite", "ELITE"),
 ]
 
 

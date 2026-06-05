@@ -64,6 +64,7 @@ option(THUMBYONE_WITH_MPY   "Include MicroPython firmware"   ON)
 option(THUMBYONE_WITH_SCUMM "Include ThumbyScummby firmware" ON)
 option(THUMBYONE_WITH_CRAFT "Include ThumbyCraft firmware"   ON)
 option(THUMBYONE_WITH_ROGUE "Include ThumbyRogue firmware"   ON)
+option(THUMBYONE_WITH_ELITE "Include ThumbyElite firmware"   ON)
 
 # Propagate the WITH_X flags as compile-time defines so slot_layout.h's
 # `#if THUMBYONE_WITH_<X>` conditionals see the *actual* enable state
@@ -73,7 +74,7 @@ option(THUMBYONE_WITH_ROGUE "Include ThumbyRogue firmware"   ON)
 # pt.json (correct) and slot_layout.h (always all-on), causing the
 # lobby to read/format the FAT at the wrong flash address and slot
 # launches to chain into wrong partitions.
-foreach(_flag NES P8 DOOM MPY SCUMM CRAFT ROGUE)
+foreach(_flag NES P8 DOOM MPY SCUMM CRAFT ROGUE ELITE)
     if (THUMBYONE_WITH_${_flag})
         add_compile_definitions(THUMBYONE_WITH_${_flag}=1)
     else()
@@ -215,6 +216,7 @@ target_compile_definitions(lobby PRIVATE
     THUMBYONE_LOBBY_HAS_SCUMM=$<IF:$<BOOL:${THUMBYONE_WITH_SCUMM}>,1,0>
     THUMBYONE_LOBBY_HAS_CRAFT=$<IF:$<BOOL:${THUMBYONE_WITH_CRAFT}>,1,0>
     THUMBYONE_LOBBY_HAS_ROGUE=$<IF:$<BOOL:${THUMBYONE_WITH_ROGUE}>,1,0>
+    THUMBYONE_LOBBY_HAS_ELITE=$<IF:$<BOOL:${THUMBYONE_WITH_ELITE}>,1,0>
 )
 pico_embed_pt_in_binary(lobby ${THUMBYONE_PT_JSON})
 add_dependencies(lobby thumbyone_pt_json)
@@ -442,6 +444,27 @@ if (THUMBYONE_WITH_ROGUE)
     list(APPEND THUMBYONE_SLOT_UF2_REBASES
         "${ROGUE_UF2_NAME}=0x10000000:${ROGUE_REBASE_DST}")
     list(APPEND THUMBYONE_SLOT_DEPS ${ROGUE_TARGET})
+endif()
+
+
+# ----- ThumbyElite slot ------------------------------------------------
+# Bare-metal Elite/MechWarrior space sim. Save data (the dock
+# checkpoint) lives in the shared FAT under /thumbyelite/.
+if (THUMBYONE_WITH_ELITE)
+    set(THUMBYONE_SLOT_MODE "elite")
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../ThumbyElite/device
+                     ${CMAKE_BINARY_DIR}/elite_slot
+                     EXCLUDE_FROM_ALL)
+    unset(THUMBYONE_SLOT_MODE)
+
+    set(ELITE_TARGET thumbyelite)
+    set(ELITE_UF2_NAME firmware_thumbyelite.uf2)
+    list(APPEND THUMBYONE_SLOT_UF2_INPUTS
+        ${CMAKE_BINARY_DIR}/elite_slot/${ELITE_UF2_NAME})
+    math(EXPR ELITE_REBASE_DST "0x10000000 + ${THUMBYONE_ELITE_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
+    list(APPEND THUMBYONE_SLOT_UF2_REBASES
+        "${ELITE_UF2_NAME}=0x10000000:${ELITE_REBASE_DST}")
+    list(APPEND THUMBYONE_SLOT_DEPS ${ELITE_TARGET})
 endif()
 
 

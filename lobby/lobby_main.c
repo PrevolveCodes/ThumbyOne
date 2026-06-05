@@ -455,7 +455,7 @@ static const thumbyone_slot_t g_grid_slot_order[8] = {
     THUMBYONE_SLOT_SCUMM,
     THUMBYONE_SLOT_CRAFT,
     THUMBYONE_SLOT_ROGUE,
-    THUMBYONE_SLOT_LOBBY,  /* placeholder — unused tile #7 */
+    THUMBYONE_SLOT_ELITE,
 };
 
 /* Per-slot "is this slot actually compiled into this build" flags,
@@ -484,6 +484,9 @@ static const thumbyone_slot_t g_grid_slot_order[8] = {
 #ifndef THUMBYONE_LOBBY_HAS_ROGUE
 #define THUMBYONE_LOBBY_HAS_ROGUE 1
 #endif
+#ifndef THUMBYONE_LOBBY_HAS_ELITE
+#define THUMBYONE_LOBBY_HAS_ELITE 1
+#endif
 
 /* Maximum addressable grid positions — kept at 8 (= 2 reservoir
  * pages of 4) so the static arrays sized from this stay
@@ -501,7 +504,7 @@ static const bool g_grid_slot_present[LOBBY_TOTAL_SLOTS] = {
     THUMBYONE_LOBBY_HAS_SCUMM,
     THUMBYONE_LOBBY_HAS_CRAFT,
     THUMBYONE_LOBBY_HAS_ROGUE,
-    0,                                  /* reserved future slot */
+    THUMBYONE_LOBBY_HAS_ELITE,
 };
 
 /* Compact-visible model: instead of leaving disabled-slot positions
@@ -626,7 +629,7 @@ static const char *const g_grid_labels[LOBBY_TOTAL_SLOTS] = {
     "SCUMM (MI / Indy)",
     "CRAFT",
     "ROGUE",
-    "",                        /* reserved */
+    "ELITE",
 };
 
 /* ThumbyOne palette — dark navy header/footer bars with a cyan
