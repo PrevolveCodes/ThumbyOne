@@ -5,7 +5,7 @@
 > *One firmware to rule them all, one lobby to find them.*
 > *One file to bring them all, and in the Thumby bind them.*
 
-ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](https://thumby.us/) — the tiny colour handheld with a 128×128 screen, dual-core Arm Cortex-M33, 520 KB SRAM, and 16 MB of on-board flash. One flash gives you **NES**, **Master System**, **Game Gear**, **Game Boy**, **Mega Drive (Genesis)**, **PC Engine / TurboGrafx-16**, **PICO-8**, **DOOM**, **Monkey Island / Indiana Jones (SCUMM)**, **ThumbyCraft** (a bare-metal Minecraft-style voxel world with biomes, cave lava and redstone), **ThumbyRogue** (an endless isometric hack-n-slash roguelike built on the ThumbyCraft engine), and the full **MicroPython + Tiny Game Engine** experience, each optimized to run perfectly on the device.
+ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](https://thumby.us/) — the tiny colour handheld with a 128×128 screen, dual-core Arm Cortex-M33, 520 KB SRAM, and 16 MB of on-board flash. One flash gives you **NES**, **Master System**, **Game Gear**, **Game Boy**, **Mega Drive (Genesis)**, **PC Engine / TurboGrafx-16**, **PICO-8**, **DOOM**, **Monkey Island / Indiana Jones (SCUMM)**, **ThumbyCraft** (a bare-metal Minecraft-style voxel world with biomes, cave lava and redstone), **ThumbyRogue** (an endless isometric hack-n-slash roguelike built on the ThumbyCraft engine), **ThumbyElite** (a bare-metal Elite-style space sim — an infinite procedural galaxy with real-time 3D dogfighting, trading, missions, salvage and a MechWarrior-grade outfitting game), and the full **MicroPython + Tiny Game Engine** experience, each optimized to run perfectly on the device.
 
 <p align="center">
   <img src="docs/screenshots/nes-game.jpg" width="240" alt="NES on Thumby Color">
@@ -54,8 +54,9 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
 | **ThumbyScummby** | SCUMM v4 / v5 adventures — Monkey Island 1, Monkey Island 2, Indiana Jones 4 (Fate of Atlantis), and the original LucasArts `.img` install disks | `/scumm/<game>/` or drop `.img` files into `/scumm/` |
 | **ThumbyCraft** | Bare-metal Minecraft-style voxel game — an infinite procedural world with biomes, mining, crafting, redstone, mobs, and lava-filled caves; six control schemes and four save slots with full chest + furnace persistence | `/thumbycraft/` (managed by the game; back up the whole tree) |
 | **ThumbyRogue** | Endless isometric hack-n-slash roguelike on the ThumbyCraft voxel engine — procedural dungeons, real-time combat, Diablo-style loot + affixes, five depth bands; one suspended run auto-saves so you can resume | `/thumbyrogue/run.sav` (managed by the game) |
+| **ThumbyElite** | Bare-metal Elite-style space sim — an infinite procedural galaxy (every playthrough unique), real-time 3D dogfighting with 14 weapon families, trading, missions, bounties, salvage, per-dockyard procedural ships and MechWarrior-grade outfitting | `/thumbyelite/run.sav` (managed by the game) |
 
-All seven systems share one FAT drive, visible over USB when you're in the lobby. Size depends on the build:
+All eight systems share one FAT drive, visible over USB when you're in the lobby. Size depends on the build:
 
 - **8.0 MB** in the default (MD-enabled) layout (`firmware_thumbyone.uf2`)
 - **9.0 MB** in the backward-compat `THUMBYONE_WITH_MD=OFF` build
@@ -694,7 +695,48 @@ ThumbyRogue is an **endless, real-time, isometric hack-n-slash roguelike** built
 
 ---
 
+### ThumbyElite — bare-metal space sim
+
+An Elite-style open galaxy in 223 KB of bare-metal C: camera-relative
+flat-shaded 3D at a fluid uncapped frame rate, dual-core rasterized.
+Every NEW GAME seeds a unique infinite universe — stars, planets,
+economies, pirate fleets and even the ships in each dockyard's
+showroom are procedurally generated (no two yards stock the same
+hulls).
+
+* **Fly** — Newtonian-lite flight with assist-off drifting, boost,
+  supercruise between planets and fuel-limited hyperspace jumps whose
+  range grows with your ship.
+* **Fight** — 14 weapon families with quality grades and factory
+  affixes, shield/armor variants, ion strips that scramble systems,
+  chaff vs seekers, auto-turrets on heavy hulls, five AI skill tiers.
+* **Earn** — trading across 20 commodities and 8 economy types,
+  delivery/cull/bounty missions with faction reputation, instant kill
+  bounties, and a salvage-scoop-refurbish-resell economy.
+* **Build** — MechWarrior-style outfitting: weapon mounts, shield and
+  armor slots, utility gadget bays and turret hardpoints, with live
+  comparison deltas against your fitted gear on every shop sheet.
+
+One dock-checkpoint save at `/thumbyelite/run.sav` (CONTINUE restores
+your exact universe); dying recovers you to your last dock, insurance
+style. MENU-hold returns to the lobby. Full manual: the
+[Pilot's Handbook](https://austinio7116.github.io/ThumbyElite/).
+
 ## Changelog
+
+### 1.20
+
+Adds the eighth system: **[ThumbyElite](https://github.com/austinio7116/ThumbyElite)**, a bare-metal Elite/MechWarrior space sim.
+
+**New**
+
+* **ThumbyElite slot** — an infinite, deterministic procedural galaxy (every NEW GAME rolls its own universe): real-time 3D dogfighting with 14 weapon families (charge railguns, ion shield-strippers, flak, mines, tractor grapples), weapon affixes and quality grades, shield/armor variants, utility gadgets (chaff, fuel scoop, targeting computer), auto-turrets on the big haulers, per-dockyard procedural ship catalogues, station survey sheets on the galaxy chart, trading, missions, tiered bounties and a salvage-refurbish economy. Dock-checkpoint save at `/thumbyelite/run.sav`; death = insurance recovery to your last dock. See the [Pilot's Handbook](https://austinio7116.github.io/ThumbyElite/).
+* Lobby grid gains the ELITE tile (fills page 2); MENU-hold (~1.2 s) returns to the lobby, shared brightness / LED settings apply.
+* Lobby About-row version string fixed — it had been stuck at 1.14.3 since the 1.15 release.
+
+**Notes**
+
+* The ELITE partition is 256 KB after ROGUE; the shared FAT shrinks by the same amount. Ships in the default `firmware_thumbyone.uf2` and `_nomd`/`_nodoom` builds.
 
 ### 1.19
 
@@ -2392,7 +2434,7 @@ Prebuilt presets at the repo root (release builds):
 
 | Preset UF2 | Systems included | UF2 size | FAT size |
 |---|---|---:|---:|
-| `firmware_thumbyone.uf2`                | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM · CRAFT · ROGUE | 13.7 MB | **8.0 MB** |
+| `firmware_thumbyone.uf2`                | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM · CRAFT · ROGUE · ELITE | 14.1 MB | **7.75 MB** |
 | `firmware_thumbyone_nomd.uf2`           | NES (no MD) · P8 · DOOM · MPY · SCUMM · CRAFT · ROGUE   | 11.3 MB | **9.0 MB** |
 | `firmware_thumbyone_nodoom.uf2`         | NES (+MD+PCE) · P8 · MPY · SCUMM · CRAFT · ROGUE        | 9.1 MB  | **10.4 MB** |
 | `firmware_thumbyone_nocraft.uf2`        | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM *(older build)* | 12.1 MB | **9.0 MB** |
