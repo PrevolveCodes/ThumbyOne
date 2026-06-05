@@ -733,6 +733,19 @@ style. MENU-hold returns to the lobby. Full manual: the
 
 ## Changelog
 
+### 1.21
+
+ThumbyElite content update — the slot grows the law, an economy in the rocks, and the classic rank ladder. **No FAT layout change: safe upgrade from 1.20, nothing is reformatted.**
+
+**New in ThumbyElite** (full detail in the [ThumbyElite changelog](https://github.com/austinio7116/ThumbyElite#changelog)):
+
+* **The Law** — police Vipers patrol lawful station space: contraband cargo scans (`FLAGGED: SMUGGLER`), OFFENDER/FUGITIVE status, fines payable at any dock. Smuggle through Anarchy instead
+* **Mining** — persistent asteroid belts (visible boulder clumps, deterministic per system), a MINING laser, ore with an 8% rare-gem jackpot, pirate ambush clocks over working fields, a prospector lock, and an LB double-tap target-class filter
+* **Combat rank** — the nine-rank ladder, HARMLESS → ELITE at 400 kills, promotion fanfares
+* **System-map scan strip** — per-POI intel before you fly: belt certainty, police, live pirate/salvage odds
+* **AI overhaul** — enemies joust in passes instead of flying through you, actually aim (per-tier accuracy, dodging by lateral speed works), and follow a smooth siege-tested difficulty curve; star proximity heat is real (you can die in the corona)
+* **QoL** — SETTINGS menu (invert-Y + FPS readout), dock-screen layout fix, [69-second gameplay video](https://www.youtube.com/shorts/eKxIvU9h2tM)
+
 ### 1.20
 
 > ⚠️ **Reformat on upgrade.** Adding the ThumbyElite slot (256 KB) moves the shared FAT forward, shrinking the default volume from 8.0 MB to **7.75 MB** (`_nomd`: 9.0 MB → **8.75 MB**, `_nodoom`: 10.4 MB → **10.1 MB**). First boot shows the **`FS BAD / A=FORMAT  B=ABORT`** prompt — hold **A** for one second to reformat. **Back up `/roms/`, `/carts/`, `/games/`, `/scumm/`, `/thumbycraft/`, `/thumbyrogue/`, `/Saves/` over USB MSC first.**
