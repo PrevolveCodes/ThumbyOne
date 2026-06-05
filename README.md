@@ -2441,8 +2441,8 @@ Prebuilt presets at the repo root (release builds):
 | Preset UF2 | Systems included | UF2 size | FAT size |
 |---|---|---:|---:|
 | `firmware_thumbyone.uf2`                | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM · CRAFT · ROGUE · ELITE | 14.1 MB | **7.75 MB** |
-| `firmware_thumbyone_nomd.uf2`           | NES (no MD) · P8 · DOOM · MPY · SCUMM · CRAFT · ROGUE   | 11.3 MB | **9.0 MB** |
-| `firmware_thumbyone_nodoom.uf2`         | NES (+MD+PCE) · P8 · MPY · SCUMM · CRAFT · ROGUE        | 9.1 MB  | **10.4 MB** |
+| `firmware_thumbyone_nomd.uf2`           | NES (no MD) · P8 · DOOM · MPY · SCUMM · CRAFT · ROGUE · ELITE | 11.7 MB | **8.75 MB** |
+| `firmware_thumbyone_nodoom.uf2`         | NES (+MD+PCE) · P8 · MPY · SCUMM · CRAFT · ROGUE · ELITE      | 9.6 MB  | **10.1 MB** |
 | `firmware_thumbyone_nocraft.uf2`        | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM *(older build)* | 12.1 MB | **9.0 MB** |
 | `firmware_thumbyone_nodoom_nomd.uf2`    | NES (no MD) · P8 · MPY · SCUMM                  | 5.2 MB  | **12.4 MB** |
 | `firmware_thumbyone_nompy.uf2`          | NES (+MD+PCE) · P8 · DOOM · SCUMM               | 10.4 MB | **10.25 MB** |
