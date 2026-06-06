@@ -722,6 +722,14 @@ hulls).
 * **Earn** — trading across 20 commodities and 8 economy types,
   delivery/cull/bounty missions with faction reputation, instant kill
   bounties, and a salvage-scoop-refurbish-resell economy.
+* **Mine** — permanent asteroid belts (the system map's scan strip
+  shows exactly where), a mining laser that pays for itself in a belt,
+  ore with a rare-gem jackpot — and pirates who jump working miners.
+* **Mind the law** — police patrol lawful stations and scan for
+  contraband: get flagged and they hunt you until the fine is paid.
+  Smugglers work the Anarchy systems, where the black markets live.
+* **Climb** — the classic nine-rank combat ladder, HARMLESS to ELITE,
+  earned one kill at a time.
 * **Build** — MechWarrior-style outfitting: weapon mounts, shield and
   armor slots, utility gadget bays and turret hardpoints, with live
   comparison deltas against your fitted gear on every shop sheet.
