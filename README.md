@@ -741,6 +741,16 @@ style. MENU-hold returns to the lobby. Full manual: the
 
 ## Changelog
 
+### 1.22.1
+
+ThumbyElite patch + content drop. **No FAT layout change — safe upgrade; v3 saves migrate automatically.**
+
+* **Critical fix**: the Elite slot had outgrown its flash partition (blank boot on 1.22.1-dev builds; released 1.22 unaffected) — now size-optimised with 95 KB headroom and a build-time overflow gate
+* **Every hull is an individual** — stats, weapon-slot layouts and utility bays (1/2–4/3–4 by class) roll per ship; used ships arrive with rolled part-worn kit. Shopping is a treasure hunt
+* **SERVICE** (was REARM) also patches hull damage; new **REPAIR DRONE** gadget slowly fixes hull and damaged systems in flight — critted mounts can come back online mid-fight
+* **Friend-or-foe lock colours** (green civilians / blue police / red hostiles) and PIRATE/POLICE/CIVILIAN contact ID with pilot tier
+* Cargo and component-rack pools separated; insurance can no longer resurrect you into a previous campaign
+
 ### 1.22
 
 ThumbyElite: the living-galaxy update. **No FAT layout change — safe upgrade, saves keep working.**
