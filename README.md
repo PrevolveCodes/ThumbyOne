@@ -741,6 +741,20 @@ style. MENU-hold returns to the lobby. Full manual: the
 
 ## Changelog
 
+### 1.22
+
+ThumbyElite: the living-galaxy update. **No FAT layout change — safe upgrade, saves keep working.**
+
+**New in ThumbyElite** (full detail in the [ThumbyElite changelog](https://github.com/austinio7116/ThumbyElite#changelog)):
+
+* **The flight dashboard** — MENU slides the real console up over the *still-running* game: live mini galaxy chart + system schematic MFDs, settings, status. Picking an escape mid-dogfight is a race now, not a pause
+* **Critical hits** — MechWarrior-style system damage once shields drop: dead mounts, smashed shield generators, crippled engines — for you *and* them; fully disarmed pirates turn and flee
+* **A living galaxy** — green-blip civilian miners and haulers (attack them and the law responds; their cargo spills as stolen contraband), distress calls on the system map with rescue rewards
+* **Chart data layers** — RB cycles THREAT / FACTION / ECONOMY views over the galaxy chart: route planning without opening a survey
+* **Trade, visible** — market prices colour-coded against galactic base, staples re-based, shipyard spec sheets colour every stat against your current ship
+* **Settings that stick** — volume + brightness sliders in-game, shared with the lobby
+* **More planet colourways**, smarter mining economics, dozens of fixes
+
 ### 1.21
 
 ThumbyElite content update — the slot grows the law, an economy in the rocks, and the classic rank ladder. **No FAT layout change: safe upgrade from 1.20, nothing is reformatted.**
