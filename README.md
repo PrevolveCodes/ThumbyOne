@@ -704,7 +704,7 @@ ThumbyRogue is an **endless, real-time, isometric hack-n-slash roguelike** built
   <img src="docs/screenshots/elite-shipyard.jpg" width="240" alt="ThumbyElite — VIPER spec sheet in a dockyard">
 </p>
 
-▶ **[Watch a full gameplay run](https://www.youtube.com/shorts/eKxIvU9h2tM)** — dogfight, salvage, supercruise, docking, trading, outfitting and a hyperjump in 69 seconds.
+▶ **[Watch a full gameplay run](https://youtube.com/shorts/S4aRhf_KVUk)** — dogfight, salvage, supercruise, docking, trading, outfitting and a hyperjump in 60 seconds.
 
 An Elite-style open galaxy in 223 KB of bare-metal C: camera-relative
 flat-shaded 3D at a fluid uncapped frame rate, dual-core rasterized.
