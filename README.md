@@ -741,6 +741,12 @@ style. MENU-hold returns to the lobby. Full manual: the
 
 ## Changelog
 
+### 1.23
+
+ThumbyElite: the combat update. **No save change — existing saves load.**
+
+The whole dogfighting AI was rebuilt: pirates make real attack runs and break off cleanly instead of ramming, fire each weapon at its true rate with per-shot spread, dodge only some of the time by skill (so weaker enemies are hittable and fights don't drag), and pick the gun that suits the range. New weapons (PLASMA cannon, PHOTON BLASTER, PLASMA LANCE) and the CLOAK and MANIFEST gadgets; pirates now field the full arsenal by rank. A kill report names who got you; collision kills count; civilians actually fly their traffic; closer galaxy and faster supercruise; richer weapon audio. Full detail in the [ThumbyElite changelog](https://github.com/austinio7116/ThumbyElite#changelog).
+
 ### 1.22.1
 
 ThumbyElite patch + content drop. **No FAT layout change — safe upgrade; v3 saves migrate automatically.**
