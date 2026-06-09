@@ -741,6 +741,10 @@ style. MENU-hold returns to the lobby. Full manual: the
 
 ## Changelog
 
+### 1.23.2
+
+ThumbyElite balance, content & fixes patch (from playtesting). **No save change.** Auto-turrets now actually hit (a bug made them fire into space); new games always start in a safe pirate-free system; enemy aim eased and BLASTER pulled from pirates, while defensive add-ons pay off much harder so you can build a real tank. Pirate ranks renamed (VOIDRAT/ROGUE/MARAUDER/REAVER/ELITE) and weave less; civilians fly rolled armour/shields and drop their real kit; distress victims survive long enough to rescue. New ASSASSINATE mission; shipyard ship-kit preview (press DOWN); loot from the actual loadout; cleaner sectioned status screen with HP/shield bars. Detail in the [ThumbyElite changelog](https://github.com/austinio7116/ThumbyElite#changelog).
+
 ### 1.23.1
 
 ThumbyElite balance-and-feel patch (from playtesting). **No save change.** Enemy aim rebalanced by rank — weaker pilots spray and waste shots so a lone low-tier pirate isn't an urgent threat, while aces keep their precision; bigger, distance-readable hit feedback (blue shield envelope, scaled hull fireballs); damage messages name the actual weapon/system hit; the constant engine drone is gone; and LB hides the ship-status text so you can admire your hull. Detail in the [ThumbyElite changelog](https://github.com/austinio7116/ThumbyElite#changelog).
