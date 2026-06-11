@@ -130,7 +130,22 @@ static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
 
 #define THUMBYONE_P8_SIZE             ( 384u * 1024u)   /* binary ~0.30 MB +  75 KB headroom */
 #define THUMBYONE_DOOM_SIZE           (2432u * 1024u)   /* binary ~2.27 MB + 110 KB headroom */
-#define THUMBYONE_MPY_SIZE            (1280u * 1024u)   /* binary ~0.93 MB + 320 KB headroom */
+#define THUMBYONE_MPY_SIZE            (1280u * 1024u)   /* binary ~0.93 MB + 320 KB engine scratch (see below) */
+
+/* Tiny Game Engine flash resource scratch (non-in_ram TextureResource
+ * etc.).  Lives in the TOP of the MPY partition, above the firmware
+ * image; the engine bump-allocates upward from SCRATCH_OFFSET to
+ * MPY_END.  This MUST stay inside the MPY partition — it is erased on
+ * every engine init.  Historically this was a hardcoded 0x660000/768KB
+ * constant in mp-thumby's port CMake that assumed the old 2 MB MPY
+ * slot; after MPY was rightsized to 1280 KB the constant fell OUTSIDE
+ * the partition and silently corrupted SCUMM/CRAFT.  Deriving it here
+ * (engine_resource_manager.c reads THUMBYONE_MPY_SCRATCH_*) makes it
+ * impossible to drift from the partition bounds again.
+ *
+ * 256 KB leaves ~67 KB of firmware headroom above the current ~957 KB
+ * binary.  Games needing more rely on the FAT-backed overflow scratch. */
+#define THUMBYONE_MPY_SCRATCH_SIZE    ( 256u * 1024u)
 #define THUMBYONE_SCUMM_SIZE          ( 640u * 1024u)   /* binary ~0.53 MB + 100 KB headroom (still growing) */
 #define THUMBYONE_CRAFT_SIZE          ( 512u * 1024u)   /* binary ~0.37 MB + ~140 KB headroom (~38% margin) */
 #define THUMBYONE_ROGUE_SIZE          ( 512u * 1024u)   /* binary ~0.40 MB + ~110 KB headroom */
@@ -178,6 +193,11 @@ static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
 #if THUMBYONE_WITH_MPY
 #  define THUMBYONE_MPY_OFFSET        THUMBYONE_DOOM_END
 #  define THUMBYONE_MPY_END           (THUMBYONE_MPY_OFFSET + THUMBYONE_MPY_SIZE)
+/* Engine scratch occupies the top THUMBYONE_MPY_SCRATCH_SIZE bytes of
+ * the MPY partition; firmware lives below it.  Flash offset (not XIP)
+ * — engine_resource_manager.c uses it for both flash_range_erase and,
+ * after adding XIP_BASE, for pointer reads. */
+#  define THUMBYONE_MPY_SCRATCH_OFFSET (THUMBYONE_MPY_END - THUMBYONE_MPY_SCRATCH_SIZE)
 #else
 #  define THUMBYONE_MPY_END           THUMBYONE_DOOM_END
 #endif
