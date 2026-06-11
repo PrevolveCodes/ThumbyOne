@@ -629,7 +629,7 @@ static const char *const g_grid_labels[LOBBY_TOTAL_SLOTS] = {
     "SCUMM (MI / Indy)",
     "CRAFT",
     "ROGUE",
-    "ELITE",
+    "INDEMNITY RUN",
 };
 
 /* ThumbyOne palette — dark navy header/footer bars with a cyan
