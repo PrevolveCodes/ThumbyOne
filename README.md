@@ -5,7 +5,7 @@
 > *One firmware to rule them all, one lobby to find them.*
 > *One file to bring them all, and in the Thumby bind them.*
 
-ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](https://thumby.us/) — the tiny colour handheld with a 128×128 screen, dual-core Arm Cortex-M33, 520 KB SRAM, and 16 MB of on-board flash. One flash gives you **NES**, **Master System**, **Game Gear**, **Game Boy**, **Mega Drive (Genesis)**, **PC Engine / TurboGrafx-16**, **PICO-8**, **DOOM**, **Monkey Island / Indiana Jones (SCUMM)**, **ThumbyCraft** (a bare-metal Minecraft-style voxel world with biomes, cave lava and redstone), **ThumbyRogue** (an endless isometric hack-n-slash roguelike built on the ThumbyCraft engine), **ThumbyElite** (a bare-metal Elite-style space sim — an infinite procedural galaxy with real-time 3D dogfighting, trading, missions, salvage and a MechWarrior-grade outfitting game), and the full **MicroPython + Tiny Game Engine** experience, each optimized to run perfectly on the device.
+ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](https://thumby.us/) — the tiny colour handheld with a 128×128 screen, dual-core Arm Cortex-M33, 520 KB SRAM, and 16 MB of on-board flash. One flash gives you **NES**, **Master System**, **Game Gear**, **Game Boy**, **Mega Drive (Genesis)**, **PC Engine / TurboGrafx-16**, **PICO-8**, **DOOM**, **Monkey Island / Indiana Jones (SCUMM)**, **ThumbyCraft** (a bare-metal Minecraft-style voxel world with biomes, cave lava and redstone), **ThumbyRogue** (an endless isometric hack-n-slash roguelike built on the ThumbyCraft engine), **Indemnity Run** (a bare-metal Elite-style space sim — an infinite procedural galaxy with real-time 3D dogfighting, trading, missions, salvage and a MechWarrior-grade outfitting game), and the full **MicroPython + Tiny Game Engine** experience, each optimized to run perfectly on the device.
 
 <p align="center">
   <img src="docs/screenshots/nes-game.jpg" width="240" alt="NES on Thumby Color">
@@ -37,7 +37,7 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
   - [ThumbyScummby](#thumbyscummby--scumm-adventures)
   - [ThumbyCraft](#thumbycraft--voxel-survival)
   - [ThumbyRogue](#thumbyrogue--endless-iso-roguelike)
-  - [ThumbyElite](#thumbyelite--bare-metal-space-sim)
+  - [Indemnity Run](#indemnity-run--bare-metal-space-sim)
 - [Changelog](#changelog)
 - [Tips and troubleshooting](#tips-and-troubleshooting)
 - [Technical specifications](#technical-specifications)
@@ -55,7 +55,7 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
 | **ThumbyScummby** | SCUMM v4 / v5 adventures — Monkey Island 1, Monkey Island 2, Indiana Jones 4 (Fate of Atlantis), and the original LucasArts `.img` install disks | `/scumm/<game>/` or drop `.img` files into `/scumm/` |
 | **ThumbyCraft** | Bare-metal Minecraft-style voxel game — an infinite procedural world with biomes, mining, crafting, redstone, mobs, and lava-filled caves; six control schemes and four save slots with full chest + furnace persistence | `/thumbycraft/` (managed by the game; back up the whole tree) |
 | **ThumbyRogue** | Endless isometric hack-n-slash roguelike on the ThumbyCraft voxel engine — procedural dungeons, real-time combat, Diablo-style loot + affixes, five depth bands; one suspended run auto-saves so you can resume | `/thumbyrogue/run.sav` (managed by the game) |
-| **ThumbyElite** | Bare-metal Elite-style space sim — an infinite procedural galaxy (every playthrough unique), real-time 3D dogfighting with 14 weapon families, trading, missions, bounties, salvage, per-dockyard procedural ships and MechWarrior-grade outfitting | `/thumbyelite/run.sav` (managed by the game) |
+| **Indemnity Run** | Bare-metal Elite-style space sim — an infinite procedural galaxy (every playthrough unique), real-time 3D dogfighting with 14 weapon families, trading, missions, bounties, salvage, per-dockyard procedural ships and MechWarrior-grade outfitting | `/thumbyelite/run.sav` (managed by the game) |
 
 All eight systems share one FAT drive, visible over USB when you're in the lobby. Size depends on the build:
 
@@ -696,12 +696,12 @@ ThumbyRogue is an **endless, real-time, isometric hack-n-slash roguelike** built
 
 ---
 
-### ThumbyElite — bare-metal space sim
+### Indemnity Run — bare-metal space sim
 
 <p align="center">
-  <img src="docs/screenshots/elite-planet.jpg" width="240" alt="ThumbyElite — approaching a planet, dock prompt up">
-  <img src="docs/screenshots/elite-chart.jpg" width="240" alt="ThumbyElite — the galaxy chart with jump-range ring">
-  <img src="docs/screenshots/elite-shipyard.jpg" width="240" alt="ThumbyElite — VIPER spec sheet in a dockyard">
+  <img src="docs/screenshots/elite-planet.jpg" width="240" alt="Indemnity Run — approaching a planet, dock prompt up">
+  <img src="docs/screenshots/elite-chart.jpg" width="240" alt="Indemnity Run — the galaxy chart with jump-range ring">
+  <img src="docs/screenshots/elite-shipyard.jpg" width="240" alt="Indemnity Run — VIPER spec sheet in a dockyard">
 </p>
 
 ▶ **[Watch the full field guide](https://youtu.be/zBRmtte1u3Y)** — combat, mining, missions, a distress rescue, the galaxy chart, trading, outfitting and an elite bounty hunt.
@@ -2516,14 +2516,14 @@ Prebuilt presets at the repo root (release builds):
 
 | Preset UF2 | Systems included | UF2 size | FAT size |
 |---|---|---:|---:|
-| `firmware_thumbyone.uf2`                | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM · CRAFT · ROGUE · ELITE | 14.1 MB | **7.75 MB** |
-| `firmware_thumbyone_nomd.uf2`           | NES (no MD) · P8 · DOOM · MPY · SCUMM · CRAFT · ROGUE · ELITE | 11.7 MB | **8.75 MB** |
-| `firmware_thumbyone_nodoom.uf2`         | NES (+MD+PCE) · P8 · MPY · SCUMM · CRAFT · ROGUE · ELITE      | 9.6 MB  | **10.1 MB** |
-| `firmware_thumbyone_nocraft.uf2`        | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM *(older build)* | 12.1 MB | **9.0 MB** |
-| `firmware_thumbyone_nodoom_nomd.uf2`    | NES (no MD) · P8 · MPY · SCUMM                  | 5.2 MB  | **12.4 MB** |
+| `firmware_thumbyone.uf2`                | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM · CRAFT · ROGUE · ELITE | 14.0 MB | **7.75 MB** |
+| `firmware_thumbyone_nomd.uf2`           | NES (no MD) · P8 · DOOM · MPY · SCUMM · CRAFT · ROGUE · ELITE | 11.6 MB | **8.75 MB** |
+| `firmware_thumbyone_nodoom.uf2`         | NES (+MD+PCE) · P8 · MPY · SCUMM · CRAFT · ROGUE · ELITE      | 9.5 MB  | **10.1 MB** |
+| `firmware_thumbyone_nocraft.uf2`        | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM         | 13.2 MB | **8.5 MB** |
+| `firmware_thumbyone_nodoom_nomd.uf2`    | NES (no MD) · P8 · MPY · SCUMM                  | 7.1 MB  | **11.4 MB** |
 | `firmware_thumbyone_nompy.uf2`          | NES (+MD+PCE) · P8 · DOOM · SCUMM               | 10.4 MB | **10.25 MB** |
 | `firmware_thumbyone_nodoom_nompy.uf2`   | NES (+MD+PCE) · P8 · SCUMM                      | 5.8 MB  | **12.65 MB** |
-| `firmware_thumbyone_mpyonly.uf2`        | MPY only                                        | 2.1 MB  | **13.75 MB** |
+| `firmware_thumbyone_mpyonly.uf2`        | MPY only                                        | 4.1 MB  | **13.4 MB** |
 | `firmware_thumbyone_retro.uf2`          | NES (+MD+PCE) · P8                              | 4.7 MB  | **13.1 MB** |
 | `firmware_thumbyone_scummonly.uf2`      | SCUMM only                                      | 1.3 MB  | **15.0 MB** |
 
