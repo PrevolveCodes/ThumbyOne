@@ -741,6 +741,18 @@ style. MENU-hold returns to the lobby. Full manual: the
 
 ## Changelog
 
+### 1.25
+
+**Indemnity Run visual & content refresh.** **No FAT layout change — safe drop-in upgrade, nothing is reformatted; existing saves load.**
+
+This release is all in the **Indemnity Run** slot:
+
+* **New station designs.** The boxy drydock is retired; orbital stations now come in six families — ring wheels, spindle towers, cross-trusses, and three new ones: **stack disc-towers**, mined **asteroid ports**, and open **gyroscopic ring frames** — each rolling its own size, lights and add-ons, so no two look alike.
+* **Better-looking ships and people.** The gunship hulls were rebuilt into four clean, distinct silhouettes (gone are the over-long, floating cannons), and NPC faces now vary far more in features, clothing and bodies.
+* **A night sky worth flying under.** A subtler, more distant **galactic band** that shifts by system (bright core to one side, a faint ring opposite) instead of the same ring everywhere, plus **distant spiral galaxies** scattered across the black — and the sky renders ~20× cheaper, so the framerate holds. New **purple title wordmark**.
+* **The debt arc ends.** THE POLICY storyline gains its acts 4–5 (insolvency, the Collection, the *lapse*).
+* **New app/lobby icon** — a fighter facing the camera over a world — and an expanded pilot guide (Encounters, Lore and Faction Wars sections, a station showcase, and a new field-guide video). Full detail in the [Indemnity Run changelog](https://github.com/austinio7116/ThumbyElite#changelog).
+
 ### 1.24
 
 **Indemnity Run rebrand + MicroPython slot fixes (flash-scratch corruption + large-game support).** **No FAT layout change — safe drop-in upgrade, nothing is reformatted.**
