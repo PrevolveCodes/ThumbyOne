@@ -741,6 +741,16 @@ style. MENU-hold returns to the lobby. Full manual: the
 
 ## Changelog
 
+### 1.26
+
+**Indemnity Run — multiple saves, difficulty, and more to do.** A content + quality-of-life update for the slot. **No FAT layout change — safe drop-in upgrade, nothing is reformatted; your existing pilot loads as your first save.**
+
+* **Multiple save games.** CONTINUE now opens a scrollable list of saved pilots — each shown as your actual ship with its credits, kills and rank. NEW GAME always starts a fresh save (written on your first dock), and you can delete old ones (behind an "are you sure"). Unlimited saves, storage permitting.
+* **Combat difficulty.** A new EASY / MEDIUM / HARD setting (EASY is the default for new pilots). Easier modes raise the damage you deal and soften the hits you take; HARD is the original balance. Switch any time.
+* **More to do at port and in the black.** A back-alley weapon **tuner** (gamble an overclock onto your gun), sealed **salvage crates**, a free **yard favour** for loyal pilots, stripping a live module off a **derelict**, a war-front **quartermaster** (clean kit or cheap risky kit), and a fight-pit **arena** duel.
+* **Your contracts on the map.** The galaxy-chart system panel now lists which missions are flagged in that system, so a full log tells you exactly which objective is where.
+* **Writing & presentation polish**, plus planets reworked — cleaner looks, in-palette gas-giant storms (no more white blobs), and some worlds now wear varied, subtly-tinted rings, with a ring marker on the system map. Full detail in the [Indemnity Run changelog](https://github.com/austinio7116/ThumbyElite#changelog).
+
 ### 1.25
 
 **Indemnity Run is now a living galaxy.** A major content update for the slot — people, choices and a story, not just flying and fighting. **No FAT layout change — safe drop-in upgrade, nothing is reformatted; existing saves load.**
