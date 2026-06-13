@@ -195,11 +195,22 @@ static int commit_block(uint32_t block_idx, const uint8_t *buf) {
 int thumbyone_disk_write(const uint8_t *src, uint32_t sector, uint32_t count) {
     if (sector + count > thumbyone_disk_sector_count()) return -1;
 
-    /* Walk the write range one 4 KB erase block at a time. For
-     * each block, assemble the merged contents (existing XIP
-     * outside the write range + incoming bytes inside) in a
-     * stack buffer, then commit. */
+    /* Walk the write range one 4 KB erase block at a time. For each
+     * block, assemble the merged contents (existing XIP outside the
+     * write range + incoming bytes inside) in a buffer, then commit.
+     *
+     * Slots with a small stack (ELITE runs a 4 KB SCRATCH_X stack) blow
+     * it when a save's call chain reaches here with this 4 KB local on
+     * top — that was the "save-write hang". Those slots define
+     * THUMBYONE_DISK_STATIC_MERGE_BUF to move it to .bss instead (they
+     * have the spare RAM; RAM-tight slots like CRAFT keep it on the
+     * stack). Flash writes are serialised on one core, so a single
+     * shared static buffer is safe. */
+#ifdef THUMBYONE_DISK_STATIC_MERGE_BUF
+    static uint8_t buf[THUMBYONE_DISK_ERASE_SIZE];
+#else
     uint8_t buf[THUMBYONE_DISK_ERASE_SIZE];
+#endif
 
     uint32_t remaining = count;
     uint32_t cur_sector = sector;
