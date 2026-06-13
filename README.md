@@ -704,7 +704,7 @@ ThumbyRogue is an **endless, real-time, isometric hack-n-slash roguelike** built
   <img src="docs/screenshots/elite-shipyard.jpg" width="240" alt="Indemnity Run — VIPER spec sheet in a dockyard">
 </p>
 
-▶ **[Watch the full field guide](https://youtu.be/zBRmtte1u3Y)** — combat, mining, missions, a distress rescue, the galaxy chart, trading, outfitting and an elite bounty hunt.
+▶ **[Watch the full field guide](https://youtu.be/GSXINpbToLM)** — combat, mining, missions, a distress rescue, the galaxy chart, trading, outfitting and an elite bounty hunt.
 
 An Elite-style open galaxy in 223 KB of bare-metal C: camera-relative
 flat-shaded 3D at a fluid uncapped frame rate, dual-core rasterized.
