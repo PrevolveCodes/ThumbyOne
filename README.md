@@ -5,7 +5,7 @@
 > *One firmware to rule them all, one lobby to find them.*
 > *One file to bring them all, and in the Thumby bind them.*
 
-ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](https://thumby.us/) — the tiny colour handheld with a 128×128 screen, dual-core Arm Cortex-M33, 520 KB SRAM, and 16 MB of on-board flash. One flash gives you **NES**, **Master System**, **Game Gear**, **Game Boy**, **Mega Drive (Genesis)**, **PC Engine / TurboGrafx-16**, **PICO-8**, **DOOM**, **Monkey Island / Indiana Jones (SCUMM)**, **ThumbyCraft** (a bare-metal Minecraft-style voxel world with biomes, cave lava and redstone), **ThumbyRogue** (an endless isometric hack-n-slash roguelike built on the ThumbyCraft engine), **Indemnity Run** (a bare-metal Elite-style space sim — an infinite procedural galaxy with real-time 3D dogfighting, trading, missions, salvage and a MechWarrior-grade outfitting game), and the full **MicroPython + Tiny Game Engine** experience, each optimized to run perfectly on the device.
+ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](https://thumby.us/) — the tiny colour handheld with a 128×128 screen, dual-core Arm Cortex-M33, 520 KB SRAM, and 16 MB of on-board flash. One flash gives you **NES**, **Master System**, **Game Gear**, **Game Boy**, **Mega Drive (Genesis)**, **PC Engine / TurboGrafx-16**, **PICO-8**, **DOOM**, **Monkey Island / Indiana Jones (SCUMM)**, **ThumbyCraft** (a bare-metal Minecraft-style voxel world with biomes, cave lava and redstone), **ThumbyCue** (accurate 3-D snooker & pool — UK/US 8-ball, 9-ball and 6/10/15-red snooker, with real spin/swerve physics and an eight-persona AI opponent), **Indemnity Run** (a bare-metal Elite-style space sim — an infinite procedural galaxy with real-time 3D dogfighting, trading, missions, salvage and a MechWarrior-grade outfitting game), and the full **MicroPython + Tiny Game Engine** experience, each optimized to run perfectly on the device. (**ThumbyRogue**, an endless isometric roguelike, is available as an optional 9th-slot build — see the changelog.)
 
 <p align="center">
   <img src="docs/screenshots/nes-game.jpg" width="240" alt="NES on Thumby Color">
@@ -36,8 +36,9 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
   - [MicroPython + Tiny Game Engine](#micropython--tiny-game-engine)
   - [ThumbyScummby](#thumbyscummby--scumm-adventures)
   - [ThumbyCraft](#thumbycraft--voxel-survival)
-  - [ThumbyRogue](#thumbyrogue--endless-iso-roguelike)
+  - [ThumbyCue](#thumbycue--snooker--pool)
   - [Indemnity Run](#indemnity-run--bare-metal-space-sim)
+  - [ThumbyRogue](#thumbyrogue--endless-iso-roguelike) *(optional 9th slot)*
 - [Changelog](#changelog)
 - [Tips and troubleshooting](#tips-and-troubleshooting)
 - [Technical specifications](#technical-specifications)
@@ -54,8 +55,9 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
 | **MicroPython + Engine** | Python games written against the [Tiny Game Engine](https://github.com/austinio7116/TinyCircuits-Tiny-Game-Engine) | `/games/<name>/` |
 | **ThumbyScummby** | SCUMM v4 / v5 adventures — Monkey Island 1, Monkey Island 2, Indiana Jones 4 (Fate of Atlantis), and the original LucasArts `.img` install disks | `/scumm/<game>/` or drop `.img` files into `/scumm/` |
 | **ThumbyCraft** | Bare-metal Minecraft-style voxel game — an infinite procedural world with biomes, mining, crafting, redstone, mobs, and lava-filled caves; six control schemes and four save slots with full chest + furnace persistence | `/thumbycraft/` (managed by the game; back up the whole tree) |
-| **ThumbyRogue** | Endless isometric hack-n-slash roguelike on the ThumbyCraft voxel engine — procedural dungeons, real-time combat, Diablo-style loot + affixes, five depth bands; one suspended run auto-saves so you can resume | `/thumbyrogue/run.sav` (managed by the game) |
+| **ThumbyCue** | Accurate 3D snooker & pool — UK / US 8-ball, 9-ball, snooker (15 / 10 / 6-red); real impulse ball physics with spin, swerve & masse, an 8-persona simulation-driven opponent, best-of match play and a broadcast scoreboard | *(none — no save)* |
 | **Indemnity Run** | Bare-metal Elite-style space sim — an infinite procedural galaxy (every playthrough unique), real-time 3D dogfighting with 14 weapon families, trading, missions, bounties, salvage, per-dockyard procedural ships and MechWarrior-grade outfitting | `/thumbyelite/run.sav` (managed by the game) |
+| **ThumbyRogue** *(optional)* | Endless isometric hack-n-slash roguelike on the ThumbyCraft voxel engine — procedural dungeons, real-time combat, Diablo-style loot + affixes, five depth bands. **Not in the default build** — flash `firmware_thumbyone_rogue.uf2` to add it as a 9th slot | `/thumbyrogue/run.sav` (managed by the game) |
 
 All eight systems share one FAT drive, visible over USB when you're in the lobby. Size depends on the build:
 
@@ -63,12 +65,16 @@ All eight systems share one FAT drive, visible over USB when you're in the lobby
 - **9.0 MB** in the backward-compat `THUMBYONE_WITH_MD=OFF` build
 - Up to **15.0 MB** in the slimmer SCUMM-only / minimal presets — see [Build matrix](#build-matrix).
 
-**Note on the ThumbyCraft + ThumbyRogue slots:** they ship in the
-default `firmware_thumbyone.uf2`, its `_nomd` sibling, and (as of
-1.19) the `_nodoom` preset. The remaining slimmer presets
-(`_scummonly`, `_retro` etc.) are older builds on the original
-systems — flash one of the current three if you want ThumbyCraft or
-ThumbyRogue.
+**Note on the ThumbyCraft + ThumbyCue slots:** they ship in the
+default `firmware_thumbyone.uf2`, its `_nomd` sibling, and the
+`_nodoom` preset. The remaining slimmer presets (`_scummonly`,
+`_retro` etc.) are older builds on the original systems.
+
+**Note on ThumbyRogue:** as of 1.27 it is **no longer in the default
+build** — ThumbyCue (POOL / SNOOKER) took its partition. To keep
+ThumbyRogue, flash **`firmware_thumbyone_rogue.uf2`**, which adds it
+back as a **9th slot** after Indemnity Run (this moves the FAT and
+prompts a one-time reformat; the default build does not).
 
 ---
 
@@ -184,7 +190,8 @@ Inside the MENU overlay, **LEFT / RIGHT** adjusts the highlighted slider (bright
 | MicroPython + Engine | **MENU** held ~5 s in-game — direct reboot to the lobby (no on-screen prompt; game state is lost, so the hold is deliberately long to prevent accidents) |
 | ThumbyScummby (SCUMM adventures) | **MENU** (hold ~0.5 s in-game) → save menu → **LOBBY** |
 | ThumbyCraft | In-game **pause menu** → **Back to lobby** |
-| ThumbyRogue | **MENU** held ~1.2 s in-game — direct reboot to the lobby (short MENU taps open the inventory; the run auto-saves on descent so it resumes next launch) |
+| ThumbyCue (POOL / SNOOKER) | **MENU** → pause menu → **LOBBY** |
+| ThumbyRogue *(optional 9th slot)* | **MENU** held ~1.2 s in-game — direct reboot to the lobby (short MENU taps open the inventory; the run auto-saves on descent so it resumes next launch) |
 
 A small **USB** label + LED dot in the top-right corner of the lobby — and the device's physical RGB LED — both show the USB state:
 
@@ -653,9 +660,23 @@ The pause menu also hosts inventory, crafting, recipes, save / load, game mode, 
 
 ---
 
+### ThumbyCue — snooker & pool
+
+*Original game for the Thumby Color — [ThumbyCue](https://github.com/austinio7116/ThumbyCue) (full feature list, screenshots and controls).*
+
+ThumbyCue is accurate 3-D cue sports: **UK 8-ball**, **US 8-ball**, **US 9-ball**, and **snooker** in 15-red, 10-red and a fast **6-red** game on the 7 ft table. One physics/render model feeds every table.
+
+- **Real ball physics** — a fixed-substep (~2 kHz) impulse engine with the three cloth-contact regimes (sliding develops the correct draw/follow/stun roll, rolling, side-english spinning), Coulomb-friction ball-ball throw, english off the cushion, and **swerve / masse** when you raise the cue butt. The cue is auto-elevated when its shaft would otherwise pass through a cushion or ball.
+- **A real opponent** — a simulation-driven AI that builds ghost-ball geometry, sweeps power & spin, scores each shot by potting difficulty *and* the resulting leave, and runs the actual physics headless on its best candidates. **Eight personas** span ELO ~1278 → 1715, each with its own aim accuracy, spin ability, safety bias and shot selection; it plays safeties, lays snookers, and escapes them off a cushion.
+- **Match play & broadcast scoreboard** — single frame or best-of 3 / 5 / 7 with alternating breaks; frame score + match frames on one line, the current break below, points remaining, and per-game on-ball indicators (group balls, the 9-ball run, a red / colour / multicolour snooker ball).
+
+**Getting in:** pick the **POOL / SNOOKER** tile. **MENU** opens the pause menu (RESUME / re-rack / **LOBBY**). No save — every visit starts fresh.
+
+---
+
 ### ThumbyRogue — endless iso roguelike
 
-*Original game for the Thumby Color — [ThumbyRogue](https://github.com/austinio7116/ThumbyRogue) · [illustrated guide](https://austinio7116.github.io/ThumbyRogue/).*
+*Not in the default build as of 1.27 — flash `firmware_thumbyone_rogue.uf2` to add it as a 9th slot. Original game for the Thumby Color — [ThumbyRogue](https://github.com/austinio7116/ThumbyRogue) · [illustrated guide](https://austinio7116.github.io/ThumbyRogue/).*
 
 <p align="center">
   <img src="docs/screenshots/rogue-gameplay.jpg" width="380" alt="ThumbyRogue — descending a Crypt dungeon, isometric view with HUD">
@@ -740,6 +761,14 @@ style. MENU-hold returns to the lobby. Full manual: the
 [Pilot's Handbook](https://austinio7116.github.io/ThumbyElite/).
 
 ## Changelog
+
+### 1.27
+
+**ThumbyCue replaces ThumbyRogue in the default build — accurate 3D snooker & pool.** The **POOL / SNOOKER** slot occupies the *same* 512 KB partition ThumbyRogue used, so **the FAT layout is unchanged — safe drop-in upgrade, nothing is reformatted, all your files are kept.**
+
+* **New slot: [ThumbyCue](https://github.com/austinio7116/ThumbyCue)** — full cue sports on the device: UK & US 8-ball, 9-ball, and snooker (15 / 10 / 6-red). A real impulse-based ball-physics engine (sliding/rolling/spinning cloth phases, throw, english off the cushion, swerve and masse from an elevated cue), a 3-D flat-shaded table with sphere-impostor balls, a computer opponent across **eight personas** — heuristic shot scoring with a jaw-aware potting line (threads the pocket knuckles) and physics-simulated cue-ball position, safeties, snooker-laying and cushion escapes — Chinese 8-ball, best-of match play, and a broadcast-style scoreboard.
+* **ThumbyRogue moved out of the default firmware** but is **not gone** — flash **`firmware_thumbyone_rogue.uf2`** to get it back as a **9th slot** (appended after Indemnity Run). That custom build adds 512 KB, so it moves the FAT forward and prompts a one-time reformat on first boot (back up `/roms/`, `/carts/`, `/games/`, `/scumm/`, `/thumbycraft/`, `/Saves/` first). The default build needs no such migration.
+* In the lobby the slot returns to the lobby via the pause menu's **LOBBY** item.
 
 ### 1.26
 

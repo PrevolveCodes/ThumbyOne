@@ -44,8 +44,9 @@ ICONS = [
     ("mpy",   "MPY"),
     ("scumm", "SCUMM"),
     ("craft", "CRAFT"),
-    ("rogue", "ROGUE"),
+    ("rogue", "POOL"),
     ("elite", "ELITE"),
+    ("rogue9", "ROGUE"),
 ]
 
 

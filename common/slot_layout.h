@@ -53,6 +53,12 @@
 #ifndef THUMBYONE_WITH_ELITE
 #  define THUMBYONE_WITH_ELITE 1
 #endif
+/* Optional 9th slot: ThumbyRogue, appended AFTER Elite. Default OFF so the
+ * standard build (Cue/Pool occupies the former rogue partition) is unchanged.
+ * Enabling it shifts only the P8 scratch + FAT (a custom firmware variant). */
+#ifndef THUMBYONE_WITH_ROGUE9
+#  define THUMBYONE_WITH_ROGUE9 0
+#endif
 /* THUMBYONE_WITH_MD: NES partition grows from 1 MB to 2 MB to fit
  * PicoDrive's flash tables.  Affects only the NES slot's size. */
 #ifndef THUMBYONE_WITH_MD
@@ -73,7 +79,8 @@ typedef enum {
     THUMBYONE_SLOT_CRAFT = 0x6,
     THUMBYONE_SLOT_ROGUE = 0x7,
     THUMBYONE_SLOT_ELITE = 0x8,
-    THUMBYONE_SLOT_COUNT = 0x9
+    THUMBYONE_SLOT_ROGUE9 = 0x9,  /* optional 9th slot (custom build) */
+    THUMBYONE_SLOT_COUNT = 0xA
 } thumbyone_slot_t;
 
 /* Map a slot enum to its partition INDEX in pt.json — i.e. the index
@@ -105,6 +112,8 @@ static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
     if (s == THUMBYONE_SLOT_ROGUE) return THUMBYONE_WITH_ROGUE ? idx : -1;
     if (THUMBYONE_WITH_ROGUE) idx++;
     if (s == THUMBYONE_SLOT_ELITE) return THUMBYONE_WITH_ELITE ? idx : -1;
+    if (THUMBYONE_WITH_ELITE) idx++;
+    if (s == THUMBYONE_SLOT_ROGUE9) return THUMBYONE_WITH_ROGUE9 ? idx : -1;
     return -1;
 }
 
@@ -150,6 +159,7 @@ static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
 #define THUMBYONE_CRAFT_SIZE          ( 512u * 1024u)   /* binary ~0.37 MB + ~140 KB headroom (~38% margin) */
 #define THUMBYONE_ROGUE_SIZE          ( 512u * 1024u)   /* binary ~0.40 MB + ~110 KB headroom */
 #define THUMBYONE_ELITE_SIZE          ( 256u * 1024u)   /* binary ~218 KB + ~38 KB headroom */
+#define THUMBYONE_ROGUE9_SIZE         ( 512u * 1024u)   /* optional 9th slot — same size as ROGUE */
 
 /* P8's active-cart flash region — 256 KB total, with the last 4 KB
  * sector reserved as the cross-slot settings mirror.  NOT a
@@ -230,12 +240,19 @@ static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
 #  define THUMBYONE_ELITE_END         THUMBYONE_ROGUE_END
 #endif
 
+#if THUMBYONE_WITH_ROGUE9
+#  define THUMBYONE_ROGUE9_OFFSET     THUMBYONE_ELITE_END
+#  define THUMBYONE_ROGUE9_END        (THUMBYONE_ROGUE9_OFFSET + THUMBYONE_ROGUE9_SIZE)
+#else
+#  define THUMBYONE_ROGUE9_END        THUMBYONE_ELITE_END
+#endif
+
 /* P8 owns the next 256 KB (active-cart scratch + settings mirror).
  * Always reserved even when WITH_P8=0 — keeps the FAT base
  * deterministic across slot-enable permutations.  When WITH_P8=0,
  * the scratch sits unused; the 4 KB settings mirror still works
  * because the lobby + slots reference it directly. */
-#define THUMBYONE_P8_SCRATCH_OFFSET   THUMBYONE_ELITE_END
+#define THUMBYONE_P8_SCRATCH_OFFSET   THUMBYONE_ROGUE9_END
 #define THUMBYONE_SETTINGS_MIRROR_OFFSET \
     (THUMBYONE_P8_SCRATCH_OFFSET + THUMBYONE_P8_SCRATCH_SIZE)
 

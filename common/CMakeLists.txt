@@ -131,6 +131,9 @@ endif()
 if (NOT THUMBYONE_WITH_ELITE)
     list(APPEND GEN_PT_FLAGS --no-elite)
 endif()
+if (THUMBYONE_WITH_ROGUE9)
+    list(APPEND GEN_PT_FLAGS --rogue9)
+endif()
 
 add_custom_command(
     OUTPUT  ${THUMBYONE_PT_JSON} ${THUMBYONE_PT_CMAKE}

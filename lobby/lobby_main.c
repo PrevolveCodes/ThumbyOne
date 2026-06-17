@@ -446,16 +446,18 @@ static void draw_usb_row(usb_row_state_t st) {
 /* Slot order in the grid must match the lobby_icons[] indexing
  * emitted by pack_icons.py (NES, P8, DOOM, MPY, then page-1 tiles
  * starting at index 4: SCUMM, CRAFT + 2 reserved). */
-static const thumbyone_slot_t g_grid_slot_order[8] = {
+static const thumbyone_slot_t g_grid_slot_order[9] = {
     THUMBYONE_SLOT_NES,
     THUMBYONE_SLOT_P8,
     THUMBYONE_SLOT_DOOM,
     THUMBYONE_SLOT_MPY,
-    /* Page 1: SCUMM, CRAFT, ROGUE, then 1 reserved future slot. */
+    /* Page 1: SCUMM, CRAFT, POOL (former rogue partition), ELITE. */
     THUMBYONE_SLOT_SCUMM,
     THUMBYONE_SLOT_CRAFT,
     THUMBYONE_SLOT_ROGUE,
     THUMBYONE_SLOT_ELITE,
+    /* Page 2: optional ThumbyRogue 9th slot (custom build only). */
+    THUMBYONE_SLOT_ROGUE9,
 };
 
 /* Per-slot "is this slot actually compiled into this build" flags,
@@ -487,6 +489,9 @@ static const thumbyone_slot_t g_grid_slot_order[8] = {
 #ifndef THUMBYONE_LOBBY_HAS_ELITE
 #define THUMBYONE_LOBBY_HAS_ELITE 1
 #endif
+#ifndef THUMBYONE_LOBBY_HAS_ROGUE9
+#define THUMBYONE_LOBBY_HAS_ROGUE9 0
+#endif
 
 /* Maximum addressable grid positions — kept at 8 (= 2 reservoir
  * pages of 4) so the static arrays sized from this stay
@@ -494,7 +499,7 @@ static const thumbyone_slot_t g_grid_slot_order[8] = {
  * spots.  The *visible* page count is computed at boot from the
  * actual enabled-slot count below. */
 #define LOBBY_TILES_PER_PAGE 4
-#define LOBBY_TOTAL_SLOTS    8
+#define LOBBY_TOTAL_SLOTS    9
 
 static const bool g_grid_slot_present[LOBBY_TOTAL_SLOTS] = {
     THUMBYONE_LOBBY_HAS_NES,
@@ -505,6 +510,7 @@ static const bool g_grid_slot_present[LOBBY_TOTAL_SLOTS] = {
     THUMBYONE_LOBBY_HAS_CRAFT,
     THUMBYONE_LOBBY_HAS_ROGUE,
     THUMBYONE_LOBBY_HAS_ELITE,
+    THUMBYONE_LOBBY_HAS_ROGUE9,
 };
 
 /* Compact-visible model: instead of leaving disabled-slot positions
@@ -628,8 +634,9 @@ static const char *const g_grid_labels[LOBBY_TOTAL_SLOTS] = {
     "MICROPYTHON",
     "SCUMM (MI / Indy)",
     "CRAFT",
-    "ROGUE",
+    "POOL / SNOOKER",
     "INDEMNITY RUN",
+    "ROGUE",
 };
 
 /* ThumbyOne palette — dark navy header/footer bars with a cyan

@@ -51,7 +51,7 @@ set(THUMBYONE_UNIFIED_BUILD ON)
 # DOOM is deliberately excluded — it tracks the ThumbyDOOM port's
 # own versioning ("ThumbyDOOM v1.2"), not ThumbyOne's release
 # cadence.
-set(THUMBYONE_FW_VERSION "1.26")
+set(THUMBYONE_FW_VERSION "1.27")
 add_compile_definitions(THUMBYONE_FW_VERSION="${THUMBYONE_FW_VERSION}")
 
 # ----- Slot selection --------------------------------------------------
@@ -65,6 +65,9 @@ option(THUMBYONE_WITH_SCUMM "Include ThumbyScummby firmware" ON)
 option(THUMBYONE_WITH_CRAFT "Include ThumbyCraft firmware"   ON)
 option(THUMBYONE_WITH_ROGUE "Include ThumbyRogue firmware"   ON)
 option(THUMBYONE_WITH_ELITE "Include ThumbyElite firmware"   ON)
+# Optional 9th slot: ThumbyRogue appended after Elite (custom variant).
+# OFF by default — the standard build runs Cue/Pool in the rogue partition.
+option(THUMBYONE_WITH_ROGUE9 "Add ThumbyRogue as a 9th slot" OFF)
 
 # Propagate the WITH_X flags as compile-time defines so slot_layout.h's
 # `#if THUMBYONE_WITH_<X>` conditionals see the *actual* enable state
@@ -74,7 +77,7 @@ option(THUMBYONE_WITH_ELITE "Include ThumbyElite firmware"   ON)
 # pt.json (correct) and slot_layout.h (always all-on), causing the
 # lobby to read/format the FAT at the wrong flash address and slot
 # launches to chain into wrong partitions.
-foreach(_flag NES P8 DOOM MPY SCUMM CRAFT ROGUE ELITE)
+foreach(_flag NES P8 DOOM MPY SCUMM CRAFT ROGUE ELITE ROGUE9)
     if (THUMBYONE_WITH_${_flag})
         add_compile_definitions(THUMBYONE_WITH_${_flag}=1)
     else()
@@ -217,6 +220,7 @@ target_compile_definitions(lobby PRIVATE
     THUMBYONE_LOBBY_HAS_CRAFT=$<IF:$<BOOL:${THUMBYONE_WITH_CRAFT}>,1,0>
     THUMBYONE_LOBBY_HAS_ROGUE=$<IF:$<BOOL:${THUMBYONE_WITH_ROGUE}>,1,0>
     THUMBYONE_LOBBY_HAS_ELITE=$<IF:$<BOOL:${THUMBYONE_WITH_ELITE}>,1,0>
+    THUMBYONE_LOBBY_HAS_ROGUE9=$<IF:$<BOOL:${THUMBYONE_WITH_ROGUE9}>,1,0>
 )
 pico_embed_pt_in_binary(lobby ${THUMBYONE_PT_JSON})
 add_dependencies(lobby thumbyone_pt_json)
@@ -426,18 +430,20 @@ if (THUMBYONE_WITH_CRAFT)
 endif()
 
 
-# ----- ThumbyRogue slot ----------------------------------------------
-# Endless iso roguelike on a vendored ThumbyCraft engine. Save data
-# (the in-progress run) lives in the shared FAT under /thumbyrogue/.
+# ----- ThumbyCue slot (occupies the former ThumbyRogue partition) ----
+# Accurate 3D snooker & pool on the vendored ThumbyElite renderer. No
+# persistent save — only the lobby's volume/brightness are honoured.
+# Kept at the ROGUE offset/size so the FAT position is unchanged (installs
+# over an existing flash without disturbing the user's files).
 if (THUMBYONE_WITH_ROGUE)
-    set(THUMBYONE_SLOT_MODE "rogue")
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../ThumbyRogue/device
+    set(THUMBYONE_SLOT_MODE "cue")
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../ThumbyCue/device
                      ${CMAKE_BINARY_DIR}/rogue_slot
                      EXCLUDE_FROM_ALL)
     unset(THUMBYONE_SLOT_MODE)
 
-    set(ROGUE_TARGET thumbyrogue)
-    set(ROGUE_UF2_NAME firmware_thumbyrogue.uf2)
+    set(ROGUE_TARGET thumbycue)
+    set(ROGUE_UF2_NAME firmware_thumbycue.uf2)
     list(APPEND THUMBYONE_SLOT_UF2_INPUTS
         ${CMAKE_BINARY_DIR}/rogue_slot/${ROGUE_UF2_NAME})
     math(EXPR ROGUE_REBASE_DST "0x10000000 + ${THUMBYONE_ROGUE_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
@@ -465,6 +471,28 @@ if (THUMBYONE_WITH_ELITE)
     list(APPEND THUMBYONE_SLOT_UF2_REBASES
         "${ELITE_UF2_NAME}=0x10000000:${ELITE_REBASE_DST}")
     list(APPEND THUMBYONE_SLOT_DEPS ${ELITE_TARGET})
+endif()
+
+
+# ----- ThumbyRogue 9th slot (optional, custom build only) ------------
+# Cue/Pool occupies the original rogue partition in the standard build;
+# enabling THUMBYONE_WITH_ROGUE9 appends ThumbyRogue after Elite so both
+# ship. Off by default — shifts the P8 scratch + FAT for that variant.
+if (THUMBYONE_WITH_ROGUE9)
+    set(THUMBYONE_SLOT_MODE "rogue")
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../ThumbyRogue/device
+                     ${CMAKE_BINARY_DIR}/rogue9_slot
+                     EXCLUDE_FROM_ALL)
+    unset(THUMBYONE_SLOT_MODE)
+
+    set(ROGUE9_TARGET thumbyrogue)
+    set(ROGUE9_UF2_NAME firmware_thumbyrogue.uf2)
+    list(APPEND THUMBYONE_SLOT_UF2_INPUTS
+        ${CMAKE_BINARY_DIR}/rogue9_slot/${ROGUE9_UF2_NAME})
+    math(EXPR ROGUE9_REBASE_DST "0x10000000 + ${THUMBYONE_ROGUE9_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
+    list(APPEND THUMBYONE_SLOT_UF2_REBASES
+        "${ROGUE9_UF2_NAME}=0x10000000:${ROGUE9_REBASE_DST}")
+    list(APPEND THUMBYONE_SLOT_DEPS ${ROGUE9_TARGET})
 endif()
 
 

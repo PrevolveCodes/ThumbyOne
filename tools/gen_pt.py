@@ -34,6 +34,7 @@ SCUMM_KB           = 640
 CRAFT_KB           = 512
 ROGUE_KB           = 512
 ELITE_KB           = 256
+ROGUE9_KB          = 512    # optional 9th slot
 
 P8_SCRATCH_KB      = 252
 SETTINGS_MIRROR_KB = 4
@@ -67,6 +68,8 @@ def main():
     ap.add_argument("--no-craft",   action="store_true")
     ap.add_argument("--no-rogue",   action="store_true")
     ap.add_argument("--no-elite",   action="store_true")
+    ap.add_argument("--rogue9",     action="store_true",
+                    help="append ThumbyRogue as a 9th slot after Elite")
     ap.add_argument("-o", "--output", required=True,
                     help="output partition-table JSON path")
     ap.add_argument("--cmake-out",
@@ -104,6 +107,9 @@ def main():
     if not args.no_elite:
         partitions.append(part("ELITE", 7, cur_kb, ELITE_KB))
         cur_kb += ELITE_KB
+    if args.rogue9:
+        partitions.append(part("ROGUE9", 8, cur_kb, ROGUE9_KB))
+        cur_kb += ROGUE9_KB
 
     pt = {
         "version": [1, 0],
@@ -143,6 +149,8 @@ def main():
             offsets["ROGUE"]=cur; sizes["ROGUE"]=ROGUE_KB; cur += ROGUE_KB
         if not args.no_elite:
             offsets["ELITE"]=cur; sizes["ELITE"]=ELITE_KB; cur += ELITE_KB
+        if args.rogue9:
+            offsets["ROGUE9"]=cur; sizes["ROGUE9"]=ROGUE9_KB; cur += ROGUE9_KB
         # P8 scratch + settings mirror reserved AFTER all slots, then
         # FAT consumes the rest of flash.
         fat_offset_kb = cur + P8_SCRATCH_KB + SETTINGS_MIRROR_KB
