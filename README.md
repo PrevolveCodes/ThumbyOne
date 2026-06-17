@@ -767,6 +767,20 @@ style. MENU-hold returns to the lobby. Full manual: the
 
 ## Changelog
 
+### 1.27.1
+
+**ThumbyCue update — sound, table customisation, more balls, and a black-ball fix.** Quality and content improvements to the **POOL / SNOOKER** slot. **No FAT layout change — safe drop-in upgrade, nothing is reformatted.**
+
+* **Real sound.** Cue strike, ball-on-ball, cushion and pocket sounds are now proper samples — including a distinct **loud "hard pot"** on snooker for firm pots. Cushion volume scales with the actual rail-impact speed, so a gentle kiss off the cushion stays quiet.
+* **Table customisation (new TABLE screen in PLAY).** Pick the **felt colour** (10 cloths) and the **frame / rail wood** (7 finishes — walnut, oak, mahogany, wenge, ebony, charcoal, silver) and see them live on the table for the game you've chosen. Tournament green is now a true championship green, and **snooker can be played on any cloth**.
+* **More ball sets.** Added **Hot Pink, Space and Vintage** (eight sets in total); the menu shows a larger preview rack of the chosen set.
+* **Aiming difficulty (OPTIONS).** None, aim line, aim line **+ ghost ball**, or full aiming lines.
+* **Finer cueing.** A new power curve gives delicate control for soft roll-ups and safeties while a full draw still reaches a break.
+* **Opponent portraits.** Each computer persona shows its face in the menu when selected and while it is at the table.
+* **Smarter AI.** Draw (screw-back) shots are no longer under-hit, so the computer plays position more accurately.
+* **Fix — the disappearing black.** Potting the 8-ball on the break could leave it stuck out of sight in a pocket with the frame never ending; it is now correctly re-spotted.
+* Snooker variants are listed **15 → 10 → 6** in the menu.
+
 ### 1.27
 
 **ThumbyCue replaces ThumbyRogue in the default build — accurate 3D snooker & pool.** The **POOL / SNOOKER** slot occupies the *same* 512 KB partition ThumbyRogue used, so **the FAT layout is unchanged — safe drop-in upgrade, nothing is reformatted, all your files are kept.**
