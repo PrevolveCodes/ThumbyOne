@@ -4,6 +4,7 @@ build_*/
 # The repo-root prebuilt firmware images are the exception — they're
 # the one-click-download artifacts referenced from the README.
 !firmware_thumbyone.uf2
+!firmware_thumbyone_rogue.uf2
 !firmware_thumbyone_nomd.uf2
 !firmware_thumbyone_nodoom.uf2
 !firmware_thumbyone_nodoom_nomd.uf2
