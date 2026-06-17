@@ -664,6 +664,11 @@ The pause menu also hosts inventory, crafting, recipes, save / load, game mode, 
 
 *Original game for the Thumby Color — [ThumbyCue](https://github.com/austinio7116/ThumbyCue) (full feature list, screenshots and controls).*
 
+<p align="center">
+  <img src="docs/screenshots/thumbycue-device.jpg"   width="380" alt="ThumbyCue on a Thumby Color — 3-D snooker table">
+  <img src="docs/screenshots/thumbycue-device-2.jpg" width="380" alt="ThumbyCue on a Thumby Color — balls on the table">
+</p>
+
 ThumbyCue is accurate 3-D cue sports: **UK 8-ball**, **US 8-ball**, **US 9-ball**, and **snooker** in 15-red, 10-red and a fast **6-red** game on the 7 ft table. One physics/render model feeds every table.
 
 - **Real ball physics** — a fixed-substep (~2 kHz) impulse engine with the three cloth-contact regimes (sliding develops the correct draw/follow/stun roll, rolling, side-english spinning), Coulomb-friction ball-ball throw, english off the cushion, and **swerve / masse** when you raise the cue butt. The cue is auto-elevated when its shaft would otherwise pass through a cushion or ball.
