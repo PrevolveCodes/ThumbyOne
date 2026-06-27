@@ -62,9 +62,13 @@ option(THUMBYONE_WITH_P8    "Include ThumbyP8 firmware"      ON)
 option(THUMBYONE_WITH_DOOM  "Include ThumbyDOOM firmware"    ON)
 option(THUMBYONE_WITH_MPY   "Include MicroPython firmware"   ON)
 option(THUMBYONE_WITH_SCUMM "Include ThumbyScummby firmware" ON)
-option(THUMBYONE_WITH_CRAFT "Include ThumbyCraft firmware"   ON)
-option(THUMBYONE_WITH_ROGUE "Include ThumbyRogue firmware"   ON)
-option(THUMBYONE_WITH_ELITE "Include ThumbyElite firmware"   ON)
+# The Mote OS slot replaces the three standalone game slots (Craft, Cue in the
+# old ROGUE partition, Indemnity/Elite) with one tile hosting the whole Mote
+# library off the shared FAT. Default build: MOTE on, the three off.
+option(THUMBYONE_WITH_MOTE  "Include the Mote OS slot"       ON)
+option(THUMBYONE_WITH_CRAFT "Include ThumbyCraft firmware"   OFF)
+option(THUMBYONE_WITH_ROGUE "Include ThumbyRogue firmware"   OFF)
+option(THUMBYONE_WITH_ELITE "Include ThumbyElite firmware"   OFF)
 # Optional 9th slot: ThumbyRogue appended after Elite (custom variant).
 # OFF by default — the standard build runs Cue/Pool in the rogue partition.
 option(THUMBYONE_WITH_ROGUE9 "Add ThumbyRogue as a 9th slot" OFF)
@@ -77,7 +81,7 @@ option(THUMBYONE_WITH_ROGUE9 "Add ThumbyRogue as a 9th slot" OFF)
 # pt.json (correct) and slot_layout.h (always all-on), causing the
 # lobby to read/format the FAT at the wrong flash address and slot
 # launches to chain into wrong partitions.
-foreach(_flag NES P8 DOOM MPY SCUMM CRAFT ROGUE ELITE ROGUE9)
+foreach(_flag NES P8 DOOM MPY SCUMM CRAFT ROGUE ELITE ROGUE9 MOTE)
     if (THUMBYONE_WITH_${_flag})
         add_compile_definitions(THUMBYONE_WITH_${_flag}=1)
     else()
@@ -221,6 +225,7 @@ target_compile_definitions(lobby PRIVATE
     THUMBYONE_LOBBY_HAS_ROGUE=$<IF:$<BOOL:${THUMBYONE_WITH_ROGUE}>,1,0>
     THUMBYONE_LOBBY_HAS_ELITE=$<IF:$<BOOL:${THUMBYONE_WITH_ELITE}>,1,0>
     THUMBYONE_LOBBY_HAS_ROGUE9=$<IF:$<BOOL:${THUMBYONE_WITH_ROGUE9}>,1,0>
+    THUMBYONE_LOBBY_HAS_MOTE=$<IF:$<BOOL:${THUMBYONE_WITH_MOTE}>,1,0>
 )
 pico_embed_pt_in_binary(lobby ${THUMBYONE_PT_JSON})
 add_dependencies(lobby thumbyone_pt_json)
@@ -406,6 +411,40 @@ if (THUMBYONE_WITH_SCUMM)
     list(APPEND THUMBYONE_SLOT_UF2_REBASES
         "${SCUMM_UF2_NAME}=0x10000000:${SCUMM_REBASE_DST}")
     list(APPEND THUMBYONE_SLOT_DEPS ${SCUMM_TARGET})
+endif()
+
+
+# ----- Mote OS slot (TWO partitions: runner + lobby) -------------------
+# Replaces Craft + Cue + Indemnity. The LOBBY (the selectable tile) lists .mote
+# games from /.mote/ on the shared FAT and chains the picked game's flash offset
+# to the RUNNER, which is the engine with NO USB so the game gets maximum SRAM.
+# Both are standalone-shaped images the combiner rebases to their offsets.
+if (THUMBYONE_WITH_MOTE)
+    # RUNNER — the engine, no USB.
+    set(THUMBYONE_SLOT_MODE "mote")
+    set(MOTE_SLOT_ROLE "runner")
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../mote/os/device
+                     ${CMAKE_BINARY_DIR}/mote_runner_slot EXCLUDE_FROM_ALL)
+    unset(MOTE_SLOT_ROLE)
+    list(APPEND THUMBYONE_SLOT_UF2_INPUTS
+        ${CMAKE_BINARY_DIR}/mote_runner_slot/firmware_mote_runner.uf2)
+    math(EXPR MOTE_RUN_DST "0x10000000 + ${THUMBYONE_MOTE_RUNNER_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
+    list(APPEND THUMBYONE_SLOT_UF2_REBASES
+        "firmware_mote_runner.uf2=0x10000000:${MOTE_RUN_DST}")
+    list(APPEND THUMBYONE_SLOT_DEPS mote_runner)
+
+    # LOBBY — small launcher + FatFs (USB is Phase 2).
+    set(MOTE_SLOT_ROLE "lobby")
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../mote/os/device
+                     ${CMAKE_BINARY_DIR}/mote_lobby_slot EXCLUDE_FROM_ALL)
+    unset(MOTE_SLOT_ROLE)
+    unset(THUMBYONE_SLOT_MODE)
+    list(APPEND THUMBYONE_SLOT_UF2_INPUTS
+        ${CMAKE_BINARY_DIR}/mote_lobby_slot/firmware_mote_lobby.uf2)
+    math(EXPR MOTE_LOB_DST "0x10000000 + ${THUMBYONE_MOTE_LOBBY_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
+    list(APPEND THUMBYONE_SLOT_UF2_REBASES
+        "firmware_mote_lobby.uf2=0x10000000:${MOTE_LOB_DST}")
+    list(APPEND THUMBYONE_SLOT_DEPS mote_lobby)
 endif()
 
 

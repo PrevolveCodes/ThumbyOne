@@ -31,6 +31,8 @@ P8_KB              = 384
 DOOM_KB            = 2432
 MPY_KB             = 1280
 SCUMM_KB           = 640
+MOTE_RUNNER_KB     = 320    # Mote engine OS (no USB); games live on the FAT, not here
+MOTE_LOBBY_KB      = 128    # Mote launcher + USB + FatFs (small; no 3D engine)
 CRAFT_KB           = 512
 ROGUE_KB           = 512
 ELITE_KB           = 256
@@ -65,6 +67,7 @@ def main():
     ap.add_argument("--no-doom",    action="store_true")
     ap.add_argument("--no-mpy",     action="store_true")
     ap.add_argument("--no-scumm",   action="store_true")
+    ap.add_argument("--no-mote",    action="store_true")
     ap.add_argument("--no-craft",   action="store_true")
     ap.add_argument("--no-rogue",   action="store_true")
     ap.add_argument("--no-elite",   action="store_true")
@@ -98,6 +101,14 @@ def main():
     if not args.no_scumm:
         partitions.append(part("SCUMM", 4, cur_kb, SCUMM_KB))
         cur_kb += SCUMM_KB
+    # Mote = two partitions after SCUMM: RUNNER then LOBBY (order must match the
+    # C-side thumbyone_slot_partition_id). Bootrom partition INDEX is the position
+    # in this list; the "id" labels below are just unique.
+    if not args.no_mote:
+        partitions.append(part("MOTERUN", 9, cur_kb, MOTE_RUNNER_KB))
+        cur_kb += MOTE_RUNNER_KB
+        partitions.append(part("MOTELOB", 10, cur_kb, MOTE_LOBBY_KB))
+        cur_kb += MOTE_LOBBY_KB
     if not args.no_craft:
         partitions.append(part("CRAFT", 5, cur_kb, CRAFT_KB))
         cur_kb += CRAFT_KB
@@ -143,6 +154,9 @@ def main():
             offsets["MPY"] = cur; sizes["MPY"] = MPY_KB;   cur += MPY_KB
         if not args.no_scumm:
             offsets["SCUMM"]=cur; sizes["SCUMM"]=SCUMM_KB; cur += SCUMM_KB
+        if not args.no_mote:
+            offsets["MOTE_RUNNER"]=cur; sizes["MOTE_RUNNER"]=MOTE_RUNNER_KB; cur += MOTE_RUNNER_KB
+            offsets["MOTE_LOBBY"] =cur; sizes["MOTE_LOBBY"] =MOTE_LOBBY_KB;  cur += MOTE_LOBBY_KB
         if not args.no_craft:
             offsets["CRAFT"]=cur; sizes["CRAFT"]=CRAFT_KB; cur += CRAFT_KB
         if not args.no_rogue:

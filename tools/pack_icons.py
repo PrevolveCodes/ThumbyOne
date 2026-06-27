@@ -43,7 +43,7 @@ ICONS = [
     ("doom",  "DOOM"),
     ("mpy",   "MPY"),
     ("scumm", "SCUMM"),
-    ("craft", "CRAFT"),
+    ("mote",  "MOTE"),    # replaces the CRAFT tile — one slot, whole Mote library
     ("rogue", "POOL"),
     ("elite", "ELITE"),
     ("rogue9", "ROGUE"),

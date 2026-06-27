@@ -44,14 +44,22 @@
 #ifndef THUMBYONE_WITH_SCUMM
 #  define THUMBYONE_WITH_SCUMM 1
 #endif
+/* The Mote slot replaces the three standalone game slots (ThumbyCraft, Cue —
+ * which occupies the old ROGUE partition — and Indemnity/Elite) with one tile
+ * that hosts the whole Mote game library off the shared FAT. Default build:
+ * MOTE on, the three off. (Set THUMBYONE_WITH_MOTE=0 + the others =1 to get the
+ * old standalone-per-game layout back.) */
+#ifndef THUMBYONE_WITH_MOTE
+#  define THUMBYONE_WITH_MOTE 1
+#endif
 #ifndef THUMBYONE_WITH_CRAFT
-#  define THUMBYONE_WITH_CRAFT 1
+#  define THUMBYONE_WITH_CRAFT 0
 #endif
 #ifndef THUMBYONE_WITH_ROGUE
-#  define THUMBYONE_WITH_ROGUE 1
+#  define THUMBYONE_WITH_ROGUE 0
 #endif
 #ifndef THUMBYONE_WITH_ELITE
-#  define THUMBYONE_WITH_ELITE 1
+#  define THUMBYONE_WITH_ELITE 0
 #endif
 /* Optional 9th slot: ThumbyRogue, appended AFTER Elite. Default OFF so the
  * standard build (Cue/Pool occupies the former rogue partition) is unchanged.
@@ -80,7 +88,12 @@ typedef enum {
     THUMBYONE_SLOT_ROGUE = 0x7,
     THUMBYONE_SLOT_ELITE = 0x8,
     THUMBYONE_SLOT_ROGUE9 = 0x9,  /* optional 9th slot (custom build) */
-    THUMBYONE_SLOT_COUNT = 0xA
+    /* The Mote OS ships as TWO partitions (replaces CRAFT+ROGUE+ELITE): a small
+     * LOBBY (launcher + USB + FatFs, the selectable tile) that hands off to the
+     * RUNNER (the engine, no USB) to run a game with maximum SRAM. */
+    THUMBYONE_SLOT_MOTE_LOBBY  = 0xA,
+    THUMBYONE_SLOT_MOTE_RUNNER = 0xB,
+    THUMBYONE_SLOT_COUNT = 0xC
 } thumbyone_slot_t;
 
 /* Map a slot enum to its partition INDEX in pt.json — i.e. the index
@@ -107,6 +120,10 @@ static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
     if (THUMBYONE_WITH_MPY)   idx++;
     if (s == THUMBYONE_SLOT_SCUMM) return THUMBYONE_WITH_SCUMM ? idx : -1;
     if (THUMBYONE_WITH_SCUMM) idx++;
+    if (s == THUMBYONE_SLOT_MOTE_RUNNER) return THUMBYONE_WITH_MOTE ? idx : -1;
+    if (THUMBYONE_WITH_MOTE)  idx++;
+    if (s == THUMBYONE_SLOT_MOTE_LOBBY)  return THUMBYONE_WITH_MOTE ? idx : -1;
+    if (THUMBYONE_WITH_MOTE)  idx++;
     if (s == THUMBYONE_SLOT_CRAFT) return THUMBYONE_WITH_CRAFT ? idx : -1;
     if (THUMBYONE_WITH_CRAFT) idx++;
     if (s == THUMBYONE_SLOT_ROGUE) return THUMBYONE_WITH_ROGUE ? idx : -1;
@@ -156,6 +173,16 @@ static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
  * binary.  Games needing more rely on the FAT-backed overflow scratch. */
 #define THUMBYONE_MPY_SCRATCH_SIZE    ( 256u * 1024u)
 #define THUMBYONE_SCUMM_SIZE          ( 640u * 1024u)   /* binary ~0.53 MB + 100 KB headroom (still growing) */
+/* Mote ships as two partitions (replaces CRAFT+ROGUE+ELITE = 1280 KB):
+ *  - RUNNER: the engine OS, NO USB. Games are NOT here (they're on the FAT,
+ *    ATRANS-mapped from their clusters); this holds only the OS image (~270 KB
+ *    without USB) + margin. Gives a game the full SRAM with no FatFs/USB resident.
+ *  - LOBBY: small — launcher UI (font/2D only, no 3D engine) + FatFs + (Phase 2)
+ *    composite USB. Lists /.mote/, hands the picked game's flash offset to RUNNER.
+ * Provisional sizes — tighten to the measured binaries once they build. Together
+ * (~320 + ~128 = 448 KB) they still free ~832 KB to the FAT vs the old 1280 KB. */
+#define THUMBYONE_MOTE_RUNNER_SIZE    ( 320u * 1024u)
+#define THUMBYONE_MOTE_LOBBY_SIZE     ( 128u * 1024u)
 #define THUMBYONE_CRAFT_SIZE          ( 512u * 1024u)   /* binary ~0.37 MB + ~140 KB headroom (~38% margin) */
 #define THUMBYONE_ROGUE_SIZE          ( 512u * 1024u)   /* binary ~0.40 MB + ~110 KB headroom */
 #define THUMBYONE_ELITE_SIZE          ( 256u * 1024u)   /* binary ~218 KB + ~38 KB headroom */
@@ -219,11 +246,21 @@ static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
 #  define THUMBYONE_SCUMM_END         THUMBYONE_MPY_END
 #endif
 
+#if THUMBYONE_WITH_MOTE
+#  define THUMBYONE_MOTE_RUNNER_OFFSET THUMBYONE_SCUMM_END
+#  define THUMBYONE_MOTE_RUNNER_END   (THUMBYONE_MOTE_RUNNER_OFFSET + THUMBYONE_MOTE_RUNNER_SIZE)
+#  define THUMBYONE_MOTE_LOBBY_OFFSET  THUMBYONE_MOTE_RUNNER_END
+#  define THUMBYONE_MOTE_LOBBY_END    (THUMBYONE_MOTE_LOBBY_OFFSET + THUMBYONE_MOTE_LOBBY_SIZE)
+#  define THUMBYONE_MOTE_END           THUMBYONE_MOTE_LOBBY_END
+#else
+#  define THUMBYONE_MOTE_END          THUMBYONE_SCUMM_END
+#endif
+
 #if THUMBYONE_WITH_CRAFT
-#  define THUMBYONE_CRAFT_OFFSET      THUMBYONE_SCUMM_END
+#  define THUMBYONE_CRAFT_OFFSET      THUMBYONE_MOTE_END
 #  define THUMBYONE_CRAFT_END         (THUMBYONE_CRAFT_OFFSET + THUMBYONE_CRAFT_SIZE)
 #else
-#  define THUMBYONE_CRAFT_END         THUMBYONE_SCUMM_END
+#  define THUMBYONE_CRAFT_END         THUMBYONE_MOTE_END
 #endif
 
 #if THUMBYONE_WITH_ROGUE

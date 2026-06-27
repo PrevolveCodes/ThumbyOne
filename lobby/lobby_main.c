@@ -451,9 +451,9 @@ static const thumbyone_slot_t g_grid_slot_order[9] = {
     THUMBYONE_SLOT_P8,
     THUMBYONE_SLOT_DOOM,
     THUMBYONE_SLOT_MPY,
-    /* Page 1: SCUMM, CRAFT, POOL (former rogue partition), ELITE. */
+    /* Page 1: SCUMM, MOTE (replaces CRAFT), POOL (rogue partition), ELITE. */
     THUMBYONE_SLOT_SCUMM,
-    THUMBYONE_SLOT_CRAFT,
+    THUMBYONE_SLOT_MOTE_LOBBY,   /* the tile hands off to the Mote LOBBY partition */
     THUMBYONE_SLOT_ROGUE,
     THUMBYONE_SLOT_ELITE,
     /* Page 2: optional ThumbyRogue 9th slot (custom build only). */
@@ -479,6 +479,9 @@ static const thumbyone_slot_t g_grid_slot_order[9] = {
 #endif
 #ifndef THUMBYONE_LOBBY_HAS_SCUMM
 #define THUMBYONE_LOBBY_HAS_SCUMM 1
+#endif
+#ifndef THUMBYONE_LOBBY_HAS_MOTE
+#define THUMBYONE_LOBBY_HAS_MOTE 1
 #endif
 #ifndef THUMBYONE_LOBBY_HAS_CRAFT
 #define THUMBYONE_LOBBY_HAS_CRAFT 1
@@ -507,7 +510,7 @@ static const bool g_grid_slot_present[LOBBY_TOTAL_SLOTS] = {
     THUMBYONE_LOBBY_HAS_DOOM,
     THUMBYONE_LOBBY_HAS_MPY,
     THUMBYONE_LOBBY_HAS_SCUMM,
-    THUMBYONE_LOBBY_HAS_CRAFT,
+    THUMBYONE_LOBBY_HAS_MOTE,
     THUMBYONE_LOBBY_HAS_ROGUE,
     THUMBYONE_LOBBY_HAS_ELITE,
     THUMBYONE_LOBBY_HAS_ROGUE9,
