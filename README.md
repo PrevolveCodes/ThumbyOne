@@ -767,6 +767,15 @@ style. MENU-hold returns to the lobby. Full manual: the
 
 ## Changelog
 
+### 1.28
+
+**The Mote slot — one tile that runs a whole game library.** A single **Mote** slot replaces the standalone ThumbyCraft, ThumbyCue and Indemnity Run slots and runs all of them — plus every other Mote game — as small `.mote` files in a visible **`/mote/`** folder on the shared drive. Drag games onto the drive over USB and they appear in the Mote launcher; pick one and it runs with the full SRAM, then returns to the launcher. **⚠️ This reformats the shared drive on first boot — back up your files first** (see below).
+
+* **One slot, many games.** Instead of spending a whole 512 KB slot per game, the Mote slot hosts the entire Mote library over one resident engine — more content behind less flash. Games are just files in `/mote/`; add or remove them by drag-and-drop.
+* **⚠️ FAT reformat on upgrade — back up first.** The shared drive moves from 1 KB to **4 KB clusters** (so it's now FAT12). This is required: the Mote slot runs a `.mote` **in place** straight from the drive (no copy), which needs the file laid out on a 4 KB boundary, and 4 KB clusters give that for free. The drive is reformatted on first boot — copy `/roms/`, `/carts/`, `/games/`, `/scumm/`, `/Saves/` and any `/mote/` games to your computer first, then drop them back. The read-only emulator slots (NES, P8, DOOM, ScummVM) are otherwise unaffected.
+* **Tiny game sound.** Mote games now stream their sound effects from compact recipes instead of baking them to raw audio — e.g. Indemnity Run dropped from 958 KB to 328 KB with no audible change.
+* **IDE integration in the slot.** In the Mote launcher you can `mote push` a game straight into `/mote/` over USB; and in a running game's engine menu, turn on **USB LOGS** to stream the game's logs to the IDE (off by default, so normal play has no overhead).
+
 ### 1.27.1
 
 **ThumbyCue update — sound, table customisation, more balls, and a black-ball fix.** Quality and content improvements to the **POOL / SNOOKER** slot. **No FAT layout change — safe drop-in upgrade, nothing is reformatted.**
