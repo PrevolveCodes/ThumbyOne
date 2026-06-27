@@ -70,6 +70,7 @@ FRESULT thumbyone_fs_format(FATFS *out_fs, uint8_t *work, size_t worklen) {
     (void)f_mkdir("/carts");
     (void)f_mkdir("/games");
     (void)f_mkdir("/scumm");
+    (void)f_mkdir("/mote");      /* Mote slot's .mote game library */
 
     return FR_OK;
 }
