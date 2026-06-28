@@ -35,9 +35,10 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
   - [ThumbyDOOM](#thumbydoom--shareware-doom)
   - [MicroPython + Tiny Game Engine](#micropython--tiny-game-engine)
   - [ThumbyScummby](#thumbyscummby--scumm-adventures)
-  - [ThumbyCraft](#thumbycraft--voxel-survival)
-  - [ThumbyCue](#thumbycue--snooker--pool)
-  - [Indemnity Run](#indemnity-run--bare-metal-space-sim)
+  - [**Mote** — native game platform](#mote--a-whole-game-platform-in-one-slot)
+  - [ThumbyCraft](#thumbycraft--voxel-survival) *(Mote game)*
+  - [ThumbyCue](#thumbycue--snooker--pool) *(Mote game)*
+  - [Indemnity Run](#indemnity-run--bare-metal-space-sim) *(Mote game)*
   - [ThumbyRogue](#thumbyrogue--endless-iso-roguelike) *(optional 9th slot)*
 - [Changelog](#changelog)
 - [Tips and troubleshooting](#tips-and-troubleshooting)
@@ -540,9 +541,52 @@ The 128×128 screen is square but a SCUMM scene is 320×200 — so dialog and ve
 
 ---
 
+### Mote — a whole game platform in one slot
+
+**What it is.** Most slots in this firmware are *emulators* — they run other consoles' ROMs. **Mote is different: it's a native game platform built for the Thumby Color itself.** One small game engine lives resident in the **MOTE** slot, and the games are tiny native programs — `.mote` files — that it loads and runs one at a time from a **`/mote/`** folder on the drive. Each game gets the full SRAM and runs at native speed (3D, physics, audio, the lot), then hands control back to the Mote launcher. So instead of one 512 KB slot per game, a whole library of games lives behind a single engine — and you can keep adding to it just by dropping files in `/mote/`.
+
+The headline games each have their own section below — **ThumbyCraft** (voxel survival), **ThumbyCue** (snooker & pool) and **Indemnity Run** (space sim) — and there's a growing set of arcade games: MotoKart, Wolfmote, Nightmote, Tetris 3D, Golf, Chess, Pong 3D, Tanks, Arkanoid 3D, Fling and PaperMote.
+
+<p align="center">
+<img src="docs/screenshots/mote-craft.png"     width="180" alt="ThumbyCraft">
+<img src="docs/screenshots/mote-cue.png"        width="180" alt="ThumbyCue">
+<img src="docs/screenshots/mote-indemnity.png"  width="180" alt="Indemnity Run">
+<img src="docs/screenshots/mote-motokart.png"   width="180" alt="MotoKart">
+<br>
+<img src="docs/screenshots/mote-wolfmote.png"   width="180" alt="Wolfmote">
+<img src="docs/screenshots/mote-nightmote.png"  width="180" alt="Nightmote">
+<img src="docs/screenshots/mote-tetris.png"     width="180" alt="Tetris 3D">
+<img src="docs/screenshots/mote-golf.png"        width="180" alt="Golf">
+</p>
+
+#### Getting games onto the Mote slot
+
+There are two ways, and the first needs no tools at all:
+
+1. **Download the games and copy them across.** Grab **`mote-games-1.28.zip`** from this release, unzip it, and copy the `.mote` files into the **`/mote/`** folder on the Thumby Color's USB drive (plug in over USB — the device appears as a drive). Eject, reboot, open the **MOTE** tile, and they're listed. That's it — no IDE, no building.
+2. **Make your own with Mote Studio (the IDE).** Mote is an open platform with a full SDK and a desktop IDE — write a game in C, and the Studio builds, runs it in an on-screen emulator, and **pushes it straight into `/mote/` over USB** (or you build a `.mote` and copy it like above).
+
+<p align="center">
+<img src="docs/screenshots/mote-ide.png" width="640" alt="Mote Studio — the IDE: file tree, on-screen emulator, build/push toolbar">
+</p>
+
+#### A note on versions (ABI)
+
+A `.mote` game is built against a Mote **ABI version** — the engine interface it expects. The engine in the firmware runs any game built against **its ABI or older**. **ThumbyOne 1.28 ships Mote engine ABI v39.** Games in the download above are built for it; a game built against a *newer* ABI than the firmware won't load until you update the firmware. (If a game doesn't appear after copying it, that's usually why.)
+
+#### Learn more / build games
+
+Mote is its own project — the engine, the SDK, the IDE and the full API reference all live there:
+
+- **[Mote repository](https://github.com/austinio7116/mote)** — source, the SDK, and **Mote Studio** for Windows & Linux.
+- **README** in that repo — quick start, the asset pipeline, and how to write a game.
+- **API & ABI reference** (`docs/index.html` in that repo) — every engine call, with the ABI version each was added in.
+
+---
+
 ### ThumbyCraft — voxel survival
 
-*Original bare-metal voxel game for the Thumby Color — [ThumbyCraft](https://github.com/austinio7116/ThumbyCraft).*
+*Original bare-metal voxel game for the Thumby Color — [ThumbyCraft](https://github.com/austinio7116/ThumbyCraft).* **Runs as a Mote game** (see [Mote](#mote--a-whole-game-platform-in-one-slot) above).
 
 <p align="center">
   <img src="docs/screenshots/craft-title.jpg" width="380" alt="ThumbyCraft title screen — four save-slot thumbnails plus New World tile">
@@ -778,6 +822,7 @@ style. MENU-hold returns to the lobby. Full manual: the
 * **The whole drive works everywhere it's read.** The game picker, the defragmenter and the SCUMM `.img` floppy installer all handle the 4 KB-cluster drive — ROMs load straight from `/roms/`, and dropping LucasArts `.img` floppies into `/scumm/` installs them in place (the install logs its progress to `/scumm/_boot.log` if you need to troubleshoot one).
 * **Tiny game sound.** Mote games stream their sound effects from compact recipes instead of baking them to raw audio — a big flash saving with no audible change. **Indemnity Run** goes one better with its own original fixed-point sound synth: its authentic sounds at almost no flash cost. The synth also runs lighter on the device now, so games with lots of simultaneous sounds hold full speed.
 * **IDE integration in the slot.** In the Mote launcher you can `mote push` a game straight into `/mote/` over USB (with a live progress readout on a big push); and in a running game's engine menu, turn on **USB LOGS** to stream the game's logs to the IDE (off by default, so normal play has no overhead).
+* **Designed text in Mote games.** The bundled Mote engine can now draw crisp anti-aliased proportional fonts (TrueType-baked or hand-drawn in the Studio), so new Mote games can use real typefaces instead of only the tiny built-in font. Existing games are unaffected.
 
 ### 1.27.1
 
