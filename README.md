@@ -55,27 +55,21 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
 | **ThumbyDOOM** | Shareware DOOM I — WAD baked into the firmware | *(none — embedded)* |
 | **MicroPython + Engine** | Python games written against the [Tiny Game Engine](https://github.com/austinio7116/TinyCircuits-Tiny-Game-Engine) | `/games/<name>/` |
 | **ThumbyScummby** | SCUMM v4 / v5 adventures — Monkey Island 1, Monkey Island 2, Indiana Jones 4 (Fate of Atlantis), and the original LucasArts `.img` install disks | `/scumm/<game>/` or drop `.img` files into `/scumm/` |
-| **ThumbyCraft** | Bare-metal Minecraft-style voxel game — an infinite procedural world with biomes, mining, crafting, redstone, mobs, and lava-filled caves; six control schemes and four save slots with full chest + furnace persistence | `/thumbycraft/` (managed by the game; back up the whole tree) |
-| **ThumbyCue** | Accurate 3D snooker & pool — UK / US / Chinese 8-ball, 9-ball, snooker (15 / 10 / 6-red); real impulse ball physics with spin, swerve & masse, an 8-persona simulation-driven opponent, best-of match play and a broadcast scoreboard | *(none — no save)* |
-| **Indemnity Run** | Bare-metal Elite-style space sim — an infinite procedural galaxy (every playthrough unique), real-time 3D dogfighting with 14 weapon families, trading, missions, bounties, salvage, per-dockyard procedural ships and MechWarrior-grade outfitting | `/thumbyelite/run.sav` (managed by the game) |
-| **ThumbyRogue** *(optional)* | Endless isometric hack-n-slash roguelike on the ThumbyCraft voxel engine — procedural dungeons, real-time combat, Diablo-style loot + affixes, five depth bands. **Not in the default build** — flash `firmware_thumbyone_rogue.uf2` to add it as a 9th slot | `/thumbyrogue/run.sav` (managed by the game) |
+| **Mote** | A **native game platform** (not an emulator): one resident engine runs a whole library of small `.mote` games — **ThumbyCraft**, **ThumbyCue** and **Indemnity Run** plus arcade games (MotoKart, Wolfmote, Nightmote, Tetris 3D, Golf, Chess, Pong 3D, Tanks, Arkanoid 3D, Fling, PaperMote). Download more games or build your own with the Mote Studio IDE. → [What is Mote?](#mote--a-whole-game-platform-in-one-slot) | `.mote` files in `/mote/` |
+| **ThumbyCraft** *(a Mote game)* | Bare-metal Minecraft-style voxel game — an infinite procedural world with biomes, mining, crafting, redstone, mobs, and lava-filled caves; six control schemes and four save slots with full chest + furnace persistence | runs on **Mote** — in `/mote/`, saves in `/mote/saves/thumbycraft/` |
+| **ThumbyCue** *(a Mote game)* | Accurate 3D snooker & pool — UK / US / Chinese 8-ball, 9-ball, snooker (15 / 10 / 6-red); real impulse ball physics with spin, swerve & masse, an 8-persona simulation-driven opponent, best-of match play and a broadcast scoreboard | runs on **Mote** — in `/mote/` |
+| **Indemnity Run** *(a Mote game)* | Bare-metal Elite-style space sim — an infinite procedural galaxy (every playthrough unique), real-time 3D dogfighting with 14 weapon families, trading, missions, bounties, salvage, per-dockyard procedural ships and MechWarrior-grade outfitting | runs on **Mote** — in `/mote/`, saves in `/mote/saves/<game>/` |
+| **ThumbyRogue** *(optional)* | Endless isometric hack-n-slash roguelike on the ThumbyCraft voxel engine — procedural dungeons, real-time combat, Diablo-style loot + affixes, five depth bands. **Not in the default build** — flash `firmware_thumbyone_rogue.uf2` to add it as a standalone 9th slot | `/thumbyrogue/run.sav` (managed by the game) |
 
-All eight systems share one FAT drive, visible over USB when you're in the lobby. Size depends on the build:
+All the systems share one FAT drive, visible over USB when you're in the lobby. Size depends on the build:
 
 - **8.0 MB** in the default (MD-enabled) layout (`firmware_thumbyone.uf2`)
-- **9.0 MB** in the backward-compat `THUMBYONE_WITH_MD=OFF` build
+- **~10.6 MB firmware / larger FAT** in the `THUMBYONE_WITH_MD=OFF` build (`firmware_thumbyone_nomd.uf2`) — same as the default but without the Mega Drive core, freeing space for the shared drive
 - Up to **15.0 MB** in the slimmer SCUMM-only / minimal presets — see [Build matrix](#build-matrix).
 
-**Note on the ThumbyCraft + ThumbyCue slots:** they ship in the
-default `firmware_thumbyone.uf2`, its `_nomd` sibling, and the
-`_nodoom` preset. The remaining slimmer presets (`_scummonly`,
-`_retro` etc.) are older builds on the original systems.
+**The big change in 1.28: ThumbyCraft, ThumbyCue and Indemnity Run are now Mote games**, not standalone slots — they live in `/mote/` and run on the one resident Mote engine (so the firmware holds a whole library, not one game per slot). The default `firmware_thumbyone.uf2` (and its `_nomd` sibling) ship the **Mote** slot with all of them included. See the [Mote section](#mote--a-whole-game-platform-in-one-slot) for what Mote is and how to add games.
 
-**Note on ThumbyRogue:** as of 1.27 it is **no longer in the default
-build** — ThumbyCue (POOL / SNOOKER) took its partition. To keep
-ThumbyRogue, flash **`firmware_thumbyone_rogue.uf2`**, which adds it
-back as a **9th slot** after Indemnity Run (this moves the FAT and
-prompts a one-time reformat; the default build does not).
+**Note on ThumbyRogue:** it is **not in the default build**. To get it as a standalone **9th slot** (after Indemnity Run), flash **`firmware_thumbyone_rogue.uf2`** — this moves the FAT and prompts a one-time reformat; the default build does not. (ThumbyRogue also runs as a Mote game.)
 
 ---
 
@@ -543,7 +537,7 @@ The 128×128 screen is square but a SCUMM scene is 320×200 — so dialog and ve
 
 ### Mote — a whole game platform in one slot
 
-**What it is.** Most slots in this firmware are *emulators* — they run other consoles' ROMs. **Mote is different: it's a native game platform built for the Thumby Color itself.** One small game engine lives resident in the **MOTE** slot, and the games are tiny native programs — `.mote` files — that it loads and runs one at a time from a **`/mote/`** folder on the drive. Each game gets the full SRAM and runs at native speed (3D, physics, audio, the lot), then hands control back to the Mote launcher. So instead of one 512 KB slot per game, a whole library of games lives behind a single engine — and you can keep adding to it just by dropping files in `/mote/`.
+**What it is.** Mote is a **native C game engine built for the Thumby Color** — focused on high-performance 3D rendering, physics and audio, with both CPU cores put to work and careful management of the device's 520 KB of RAM. It comes with a selection of ready-to-play games and examples, and a powerful desktop **IDE (Mote Studio)** for building your own. On the firmware, Mote is **one resident engine in the MOTE slot** that loads and runs games as tiny native `.mote` files from a **`/mote/`** folder on the drive — each game gets the full SRAM and native speed (3D, physics, audio, the lot), then hands control back to the Mote launcher. So instead of one 512 KB slot per game, a whole library lives behind a single engine, and you add to it just by dropping files in `/mote/`.
 
 The headline games each have their own section below — **ThumbyCraft** (voxel survival), **ThumbyCue** (snooker & pool) and **Indemnity Run** (space sim) — and there's a growing set of arcade games: MotoKart, Wolfmote, Nightmote, Tetris 3D, Golf, Chess, Pong 3D, Tanks, Arkanoid 3D, Fling and PaperMote.
 
@@ -563,11 +557,11 @@ The headline games each have their own section below — **ThumbyCraft** (voxel 
 
 There are two ways, and the first needs no tools at all:
 
-1. **Download the games and copy them across.** Grab **`mote-games-1.28.zip`** from this release, unzip it, and copy the `.mote` files into the **`/mote/`** folder on the Thumby Color's USB drive (plug in over USB — the device appears as a drive). Eject, reboot, open the **MOTE** tile, and they're listed. That's it — no IDE, no building.
-2. **Make your own with Mote Studio (the IDE).** Mote is an open platform with a full SDK and a desktop IDE — write a game in C, and the Studio builds, runs it in an on-screen emulator, and **pushes it straight into `/mote/` over USB** (or you build a `.mote` and copy it like above).
+1. **Download the games and copy them across.** Grab **`mote-games-1.28.zip`** from the [**ThumbyOne releases**](https://github.com/austinio7116/ThumbyOne/releases) page (attached to this release), unzip it, and copy the `.mote` files into the **`/mote/`** folder on the Thumby Color's USB drive (plug in over USB — the device appears as a drive). Eject, reboot, open the **MOTE** tile, and they're listed. That's it — no IDE, no building.
+2. **Make your own with Mote Studio (the IDE).** Download **Mote Studio** from the [**Mote releases**](https://github.com/austinio7116/mote/releases) page (Windows bundle — self-contained, or build it on Linux). Write a game in C; the Studio builds it, runs it in an on-screen emulator, and **pushes it straight into `/mote/` over USB** (or you build a `.mote` and copy it like above).
 
 <p align="center">
-<img src="docs/screenshots/mote-ide.png" width="640" alt="Mote Studio — the IDE: file tree, on-screen emulator, build/push toolbar">
+<img src="docs/screenshots/mote-ide.png" width="680" alt="Mote Studio — the IDE: file tree, on-screen emulator, and the 3D mesh-bake view">
 </p>
 
 #### A note on versions (ABI)
@@ -578,9 +572,10 @@ A `.mote` game is built against a Mote **ABI version** — the engine interface 
 
 Mote is its own project — the engine, the SDK, the IDE and the full API reference all live there:
 
-- **[Mote repository](https://github.com/austinio7116/mote)** — source, the SDK, and **Mote Studio** for Windows & Linux.
-- **README** in that repo — quick start, the asset pipeline, and how to write a game.
-- **API & ABI reference** (`docs/index.html` in that repo) — every engine call, with the ABI version each was added in.
+- **[Mote repository](https://github.com/austinio7116/mote)** — source + the SDK.
+- **[Mote Studio (downloads)](https://github.com/austinio7116/mote/releases)** — the IDE, Windows & Linux.
+- **[Mote games bundle](https://github.com/austinio7116/ThumbyOne/releases)** — `mote-games-1.28.zip`, attached to the ThumbyOne release.
+- **[API & ABI reference](https://austinio7116.github.io/mote/)** — every engine call, with the ABI version each was added in.
 
 ---
 
@@ -706,7 +701,7 @@ The pause menu also hosts inventory, crafting, recipes, save / load, game mode, 
 
 ### ThumbyCue — snooker & pool
 
-*Original game for the Thumby Color — [ThumbyCue](https://github.com/austinio7116/ThumbyCue) (full feature list, screenshots and controls).*
+*Original game for the Thumby Color — [ThumbyCue](https://github.com/austinio7116/ThumbyCue) (full feature list, screenshots and controls).* **Runs as a Mote game** in the default build (in `/mote/`) — see [Mote](#mote--a-whole-game-platform-in-one-slot).
 
 <p align="center">
   <img src="docs/screenshots/thumbycue-device.jpg"   width="380" alt="ThumbyCue on a Thumby Color — 3-D snooker table">
@@ -782,6 +777,8 @@ Every NEW GAME seeds a unique infinite universe — stars, planets,
 economies, pirate fleets and even the ships in each dockyard's
 showroom are procedurally generated (no two yards stock the same
 hulls).
+
+> **Runs as a Mote game** in the default build (in `/mote/`, saves under `/mote/saves/`) — see [Mote](#mote--a-whole-game-platform-in-one-slot). The standalone-slot save path mentioned below (`/thumbyelite/run.sav`) applies only to the older standalone build.
 
 * **Fly** — Newtonian-lite flight with assist-off drifting, boost,
   supercruise between planets and fuel-limited hyperspace jumps whose
