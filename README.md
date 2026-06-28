@@ -65,9 +65,9 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
 | **MicroPython + Engine** | Python games written against the [Tiny Game Engine](https://github.com/austinio7116/TinyCircuits-Tiny-Game-Engine) | `/games/<name>/` |
 | **ThumbyScummby** | SCUMM v4 / v5 adventures — Monkey Island 1, Monkey Island 2, Indiana Jones 4 (Fate of Atlantis), and the original LucasArts `.img` install disks | `/scumm/<game>/` or drop `.img` files into `/scumm/` |
 | **Mote** | A **native game platform** (not an emulator): one resident engine runs a whole library of small `.mote` games — **ThumbyCraft**, **ThumbyCue** and **Indemnity Run** plus arcade games (MotoKart, Wolfmote, Nightmote, Tetris 3D, Golf, Chess, Pong 3D, Tanks, Arkanoid 3D, Fling, PaperMote). Download more games or build your own with the Mote Studio IDE. → [What is Mote?](#mote--a-whole-game-platform-in-one-slot) | `.mote` files in `/mote/` |
-| **ThumbyCraft** *(a Mote game)* | Bare-metal Minecraft-style voxel game — an infinite procedural world with biomes, mining, crafting, redstone, mobs, and lava-filled caves; six control schemes and four save slots with full chest + furnace persistence | runs on **Mote** — in `/mote/`, saves in `/mote/saves/thumbycraft/` |
+| **ThumbyCraft** *(a Mote game)* | Minecraft-style voxel game — an infinite procedural world with biomes, mining, crafting, redstone, mobs, and lava-filled caves; six control schemes and four save slots with full chest + furnace persistence | runs on **Mote** — in `/mote/`, saves in `/mote/saves/thumbycraft/` |
 | **ThumbyCue** *(a Mote game)* | Accurate 3D snooker & pool — UK / US / Chinese 8-ball, 9-ball, snooker (15 / 10 / 6-red); real impulse ball physics with spin, swerve & masse, an 8-persona simulation-driven opponent, best-of match play and a broadcast scoreboard | runs on **Mote** — in `/mote/` |
-| **Indemnity Run** *(a Mote game)* | Bare-metal Elite-style space sim — an infinite procedural galaxy (every playthrough unique), real-time 3D dogfighting with 14 weapon families, trading, missions, bounties, salvage, per-dockyard procedural ships and MechWarrior-grade outfitting | runs on **Mote** — in `/mote/`, saves in `/mote/saves/<game>/` |
+| **Indemnity Run** *(a Mote game)* | Elite-style space sim — an infinite procedural galaxy (every playthrough unique), real-time 3D dogfighting with 14 weapon families, trading, missions, bounties, salvage, per-dockyard procedural ships and MechWarrior-grade outfitting | runs on **Mote** — in `/mote/`, saves in `/mote/saves/<game>/` |
 | **ThumbyRogue** *(optional)* | Endless isometric hack-n-slash roguelike on the ThumbyCraft voxel engine — procedural dungeons, real-time combat, Diablo-style loot + affixes, five depth bands. **Not in the default build** — flash `firmware_thumbyone_rogue.uf2` to add it as a standalone 9th slot | `/thumbyrogue/run.sav` (managed by the game) |
 
 All the systems share one FAT drive, visible over USB when you're in the lobby. Size depends on the build:
@@ -122,6 +122,7 @@ With ThumbyOne running, plug the device in (while sitting in the **lobby**). It 
 | NES / SMS / GG / GB / MD / PCE ROMs | `/roms/` | `.nes`, `.sms`, `.gg`, `.gb`, `.gbc`, `.md`, `.gen`, `.bin`, `.pce` |
 | PICO-8 carts | `/carts/` | `.p8.png` |
 | MicroPython games | `/games/<Name>/` | Folder per game with `main.py`, `icon.bmp`, `arcade_description.txt`, assets |
+| Mote games | `/mote/` | `.mote` — grab [`mote-games-1.28.zip`](https://github.com/austinio7116/ThumbyOne/releases) from the releases page, unzip, and drop the `.mote` files straight into `/mote/`. They appear in the **MOTE** tile's launcher. See [Mote](#mote--a-whole-game-platform-in-one-slot). |
 | SCUMM adventures (pre-extracted data) | `/scumm/<game>/` | `DISK*.LEC` + `*.LFL` (MI1), `monkey2.000/001` (MI2), `atlantis.000/001` (Indy 4), or `NN.LFL` (Indy 3) |
 | SCUMM adventures (original install floppies) | `/scumm/` | `.img` — the device walks each `.img`, extracts the PCV/LFG! archive inside, and writes the result into `/scumm/<game>/` automatically.  Slow (10–30 min for v5 games) and needs a post-install `defrag fat` from the lobby; pre-extracted is faster.  See [ThumbyScummby section](#thumbyscummby--scumm-adventures) for the full how-to. |
 
@@ -140,6 +141,12 @@ With ThumbyOne running, plug the device in (while sitting in the **lobby**). It 
         icon.bmp
         arcade_description.txt
         assets/
+/mote/
+    thumbycraft.mote        (unzip mote-games-1.28.zip and drop the .mote files in here)
+    thumbycue.mote
+    indemnity.mote
+    motokart.mote
+    ...
 /scumm/
     monkey1-disk1.img       (drop .img files at the root for on-device install)
     monkey1-disk2.img
@@ -193,8 +200,9 @@ Inside the MENU overlay, **LEFT / RIGHT** adjusts the highlighted slider (bright
 | ThumbyDOOM | In-game Main Menu → **Quit Game** (no confirm dialog in slot mode) |
 | MicroPython + Engine | **MENU** held ~5 s in-game — direct reboot to the lobby (no on-screen prompt; game state is lost, so the hold is deliberately long to prevent accidents) |
 | ThumbyScummby (SCUMM adventures) | **MENU** (hold ~0.5 s in-game) → save menu → **LOBBY** |
-| ThumbyCraft | In-game **pause menu** → **Back to lobby** |
-| ThumbyCue (POOL / SNOOKER) | **MENU** → pause menu → **LOBBY** |
+| **Mote** (ThumbyCraft, ThumbyCue, Indemnity Run + every `.mote` game) | **Two steps.** In a game: **MENU** held ~3 s → the engine menu → **RETURN TO LOBBY** → back to the **Mote launcher**. Then from the Mote launcher: **MENU** held (~0.6 s) → back to the **ThumbyOne lobby**. |
+| ThumbyCraft *(standalone slot builds only — runs inside Mote in the default build)* | In-game **pause menu** → **Back to lobby** |
+| ThumbyCue *(standalone slot builds only — runs inside Mote in the default build)* | **MENU** → pause menu → **LOBBY** |
 | ThumbyRogue *(optional 9th slot)* | **MENU** held ~1.2 s in-game — direct reboot to the lobby (short MENU taps open the inventory; the run auto-saves on descent so it resumes next launch) |
 
 A small **USB** label + LED dot in the top-right corner of the lobby — and the device's physical RGB LED — both show the USB state:
@@ -227,6 +235,7 @@ ThumbyOne exposes a **single** USB drive, and only while you're **in the lobby**
    - ROMs into `/roms/` (any of `.nes`, `.sms`, `.gg`, `.gb`, `.gbc`, `.md`, `.gen`, `.bin`, `.pce`)
    - PICO-8 carts into `/carts/` (`.p8.png`)
    - MicroPython games into `/games/<GameName>/` (a folder per game with `main.py` + assets)
+   - Mote games (`.mote`) into `/mote/` (from `mote-games-1.28.zip`, or built with Mote Studio)
    - SCUMM adventures: either pre-extracted data into `/scumm/<game>/` (`.LEC` + `.LFL` for MI1, `.000` / `.001` for MI2 / Indy 4, `NN.LFL` for Indy 3 — fast, recommended), or original `.img` install floppies dropped at `/scumm/` for the device to extract on first boot (slow — 10–30 min for v5 games, plus a `defrag fat` pass afterwards)
 4. Eject the drive (Windows: right-click → Eject; macOS: drag to Trash; Linux: `sync && umount`).
 5. Pick a system with the d-pad, press A.
