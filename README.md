@@ -817,9 +817,10 @@ style. MENU-hold returns to the lobby. Full manual: the
 * **⚠️ FAT reformat on upgrade — back up first.** The shared drive moves from 1 KB to **4 KB clusters** (so it's now FAT12). This is required: the Mote slot runs a `.mote` **in place** straight from the drive (no copy), which needs the file laid out on a 4 KB boundary, and 4 KB clusters give that for free. The drive is reformatted on first boot — copy `/roms/`, `/carts/`, `/games/`, `/scumm/`, `/Saves/` and any `/mote/` games to your computer first, then drop them back. The read-only emulator slots (NES, P8, DOOM, ScummVM) are otherwise unaffected.
 * **ThumbyCraft worlds and Indemnity Run pilots don't carry over from 1.27.1.** In 1.27.1 those were standalone slots that saved to `/thumbycraft/` (worlds) and `/thumbyelite/run.sav` (pilot). In 1.28 they run as Mote games, which keep their saves in a new place (`/mote/saves/thumbycraft/…` and `/mote/saves/<game>/…`) in a different format — so the Mote versions **start fresh** and can't load your old saves, and the first-boot reformat clears the old folders in any case. Back up `/thumbycraft/` and `/thumbyelite/` first if you want to keep the files, but be aware they can't be loaded back into the Mote versions — you'll be starting a new world / new pilot.
 * **The whole drive works everywhere it's read.** The game picker, the defragmenter and the SCUMM `.img` floppy installer all handle the 4 KB-cluster drive — ROMs load straight from `/roms/`, and dropping LucasArts `.img` floppies into `/scumm/` installs them in place (the install logs its progress to `/scumm/_boot.log` if you need to troubleshoot one).
-* **Tiny game sound.** Mote games stream their sound effects from compact recipes instead of baking them to raw audio — a big flash saving with no audible change. **Indemnity Run** goes one better with its own original fixed-point sound synth: its authentic sounds at almost no flash cost. The synth also runs lighter on the device now, so games with lots of simultaneous sounds hold full speed.
-* **IDE integration in the slot.** In the Mote launcher you can `mote push` a game straight into `/mote/` over USB (with a live progress readout on a big push); and in a running game's engine menu, turn on **USB LOGS** to stream the game's logs to the IDE (off by default, so normal play has no overhead).
-* **Designed text in Mote games.** The bundled Mote engine can now draw crisp anti-aliased proportional fonts (TrueType-baked or hand-drawn in the Studio), so new Mote games can use real typefaces instead of only the tiny built-in font. Existing games are unaffected.
+* **Mote is a complete native game platform, not just a slot.** Everything ThumbyCraft, ThumbyCue and Indemnity Run are built on is here for any game to use:
+  * **Engine — native C, both cores, careful use of the 520 KB SRAM (hot code can run from RAM).** A flat-shaded **3D** triangle pipeline — meshes from OBJ/STL (auto-decimated and split into chunks), textured meshes, a free camera, plus **Gaussian-splat** and **voxel** renderers. **2D** sprites, **tilemaps with autotiling**, immediate-mode drawing, and **anti-aliased proportional fonts**. A **rigid-body physics** solver (boxes/circles, stacking). A **4-voice audio mixer** with a procedural note synth, streamed SFX recipes and baked PCM samples. **Hierarchical 3D rig animation** and sprite animation. Per-game **save + key/value storage**.
+  * **Mote Studio — the IDE (Windows & Linux, self-contained).** Write a game in C and watch it run live in an on-screen Thumby Color with **hot-reload**. Built-in editors for **pixel-art sprites, procedural textures, tilesets/autotiles, sprite animation, 3D mesh import + bake + texturing, rigs + keyframe animation, the SFX synth, and fonts** (bake a TrueType or draw your own glyph by glyph). One-click **Build / Run / Push over USB**, a live **Console** with on-device logs, and a code editor (or jump to VS Code).
+* **Getting & building games.** Drop the prebuilt **`mote-games-1.28.zip`** into `/mote/` (no tools), or `mote push` your own straight into `/mote/` over USB; turn on **USB LOGS** in a running game's engine menu to stream its logs to the IDE. Full detail + downloads in the [Mote section](#mote--a-whole-game-platform-in-one-slot).
 
 ### 1.27.1
 
@@ -1914,6 +1915,12 @@ See the [MENU overlay](#the-lobby) and per-slot menus for the slider rows; the [
 ---
 
 ## Tips and troubleshooting
+
+### A Mote game won't launch (or its icon is noise) — defragment
+
+Mote runs and reads `.mote` files **in place from flash**, which means each file must be **physically contiguous** on the shared drive. When you copy a game in over USB it can land **fragmented** (its clusters scattered), and then it can't execute — the symptom is the game failing to launch, and/or its launcher tile showing a **noise / garbage icon** (the Mote launcher flags fragmented games with a red **DEFRAG** marker and won't launch them).
+
+**Fix: run the defragmenter** — in the lobby press **MENU** and choose the defragmenter ([FAT defragmenter](#fat-defragmenter)). It rewrites every file as a contiguous run, after which the icon and the game both work. It's worth defragmenting after dropping in a batch of new `.mote` games.
 
 ### Returning to stock
 
