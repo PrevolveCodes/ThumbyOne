@@ -152,6 +152,39 @@ static void fb_rect(uint16_t *fb, int x, int y, int w, int h, uint16_t c) {
 #define COL_TITLE  0xFD20   /* orange */
 #define COL_ERR    0xF800   /* red */
 
+/* ---- FAT12/16 entry access ------------------------------------- *
+ * The shared ThumbyOne volume is FAT12 (4 KB clusters, < 4085 clusters); the
+ * lighter >8 MB presets can be FAT16. The defrag's in-memory plan stores each
+ * cluster's "next" as a uint16 — fine for both (FAT12's max cluster 4084 fits,
+ * and 0xFFFF truncates to 0xFFF = a valid FAT12 EOC when packed) — so only the
+ * on-disk read/write needs to know the entry width. fat_get reads one entry
+ * (12- or 16-bit, with a 1-sector cache; the two bytes may straddle a sector);
+ * fat_eoc / fat_bad test the end-of-chain and bad-cluster markers. */
+static uint8_t s_fatget_sec[512];
+static LBA_t   s_fatget_lba = (LBA_t)-1;
+static void  fat_get_flush(void) { s_fatget_lba = (LBA_t)-1; }   /* call after any FAT write */
+static int   fat_is12(void)      { return g_fs.fs_type == FS_FAT12; }
+static int   fat_eoc(DWORD v)    { return fat_is12() ? (v >= 0x0FF8u)  : (v >= 0xFFF8u); }
+static int   fat_bad(DWORD v)    { return v == (fat_is12() ? 0x0FF7u : 0xFFF7u); }
+
+static DWORD fat_get(DWORD clst) {
+    int   is12 = fat_is12();
+    DWORD bo   = is12 ? (clst + (clst >> 1)) : (clst * 2);   /* entry byte offset in the FAT */
+    DWORD b[2];
+    for (int k = 0; k < 2; k++) {                            /* two bytes; FAT12 may straddle a sector */
+        DWORD bb = bo + (DWORD)k;
+        LBA_t l  = (LBA_t)g_fs.fatbase + bb / 512;
+        if (l != s_fatget_lba) {
+            if (nes_flash_disk_read(s_fatget_sec, (uint32_t)l, 1) != 0) return 0xFFFFFFFFu;
+            s_fatget_lba = l;
+        }
+        b[k] = s_fatget_sec[bb % 512];
+    }
+    DWORD v = b[0] | (b[1] << 8);
+    if (is12) v = (clst & 1) ? (v >> 4) : (v & 0x0FFFu);     /* odd: high 12 bits; even: low 12 */
+    return v;
+}
+
 /* ---- chain_is_contiguous probe --------------------------------- */
 
 /* Walk the FAT chain starting at `start_cluster` and verify it is
@@ -162,22 +195,10 @@ static void fb_rect(uint16_t *fb, int x, int y, int w, int h, uint16_t c) {
 static int chain_is_contiguous(DWORD start_cluster, DWORD n_clusters) {
     if (n_clusters <= 1) return 1;
     DWORD prev = start_cluster;
-    DWORD sector_buf_lba = (DWORD)-1;
-    static uint8_t fat_sec[512];
-
     for (DWORD i = 1; i < n_clusters; i++) {
-        DWORD entry_byte = prev * 2;     /* FAT16 */
-        DWORD entry_sec  = entry_byte / 512;
-        DWORD entry_off  = entry_byte % 512;
-        LBA_t lba = (LBA_t)g_fs.fatbase + entry_sec;
-        if (lba != sector_buf_lba) {
-            if (nes_flash_disk_read(fat_sec, (uint32_t)lba, 1) != 0) return 0;
-            sector_buf_lba = lba;
-        }
-        DWORD next = (DWORD)fat_sec[entry_off] | ((DWORD)fat_sec[entry_off + 1] << 8);
-        if (next >= 0xFFF8) {
-            return (i == n_clusters - 1);
-        }
+        DWORD next = fat_get(prev);
+        if (next == 0xFFFFFFFFu) return 0;                 /* read error */
+        if (fat_eoc(next)) return (i == n_clusters - 1);
         if (next != prev + 1) return 0;
         prev = next;
     }
@@ -237,29 +258,19 @@ static uint32_t        s_reclaimed_kb  = 0;
 static int s_defrag_last_error = 0;
 int lobby_defrag_last_error(void) { return s_defrag_last_error; }
 
-/* Walk a FAT16 chain starting at sclust, invoking cb for each
+/* Walk a FAT chain (FAT12/16) starting at sclust, invoking cb for each
  * cluster. Returns the number of clusters walked. */
 static int cld_walk_fat(DWORD sclust,
                          void (*cb)(DWORD clst, void *arg),
                          void *cb_arg) {
     if (sclust < 2 || sclust >= g_fs.n_fatent) return 0;
-    static uint8_t fat_sec[512];
-    LBA_t cached = (LBA_t)-1;
     DWORD clst = sclust;
     int n = 0;
     while (clst >= 2 && clst < g_fs.n_fatent && n < CLD_ABS_MAX_CLUSTERS) {
         cb(clst, cb_arg);
         n++;
-        DWORD eb = clst * 2;
-        DWORD es = eb / 512;
-        DWORD eo = eb % 512;
-        LBA_t lba = (LBA_t)g_fs.fatbase + es;
-        if (lba != cached) {
-            if (nes_flash_disk_read(fat_sec, (uint32_t)lba, 1) != 0) break;
-            cached = lba;
-        }
-        uint16_t next = (uint16_t)fat_sec[eo] | ((uint16_t)fat_sec[eo + 1] << 8);
-        if (next == 0xFFFF || next < 2) break;
+        DWORD next = fat_get(clst);
+        if (next == 0xFFFFFFFFu || fat_eoc(next) || next < 2) break;
         clst = next;
     }
     return n;
@@ -599,8 +610,6 @@ static void cld_scan_pin_owners(cld_ctx_t *ctx) {
     q[0].path[CLD_PATH_MAX - 1] = 0;
     q_tail = 1;
 
-    static uint8_t fat_sec[512];
-
     while (q_head < q_tail) {
         char cur[CLD_PATH_MAX];
         strncpy(cur, q[q_head++].path, CLD_PATH_MAX - 1);
@@ -642,7 +651,6 @@ static void cld_scan_pin_owners(cld_ctx_t *ctx) {
             if (sclust < 2 || sclust >= g_fs.n_fatent) continue;
 
             DWORD clst = sclust;
-            LBA_t cached = (LBA_t)-1;
             int safety = (int)ctx->n_clust + 1;
             while (clst >= 2 && clst < g_fs.n_fatent && safety-- > 0) {
                 DWORD ci = clst - 2;
@@ -658,17 +666,8 @@ static void cld_scan_pin_owners(cld_ctx_t *ctx) {
                         }
                     }
                 }
-                DWORD eb = clst * 2;
-                DWORD es = eb / 512;
-                DWORD eo = eb % 512;
-                LBA_t lba = (LBA_t)g_fs.fatbase + es;
-                if (lba != cached) {
-                    if (nes_flash_disk_read(fat_sec, (uint32_t)lba, 1) != 0) break;
-                    cached = lba;
-                }
-                uint16_t next = (uint16_t)fat_sec[eo]
-                              | ((uint16_t)fat_sec[eo + 1] << 8);
-                if (next == 0xFFFF || next < 2) break;
+                DWORD next = fat_get(clst);
+                if (next == 0xFFFFFFFFu || fat_eoc(next) || next < 2) break;
                 clst = next;
             }
         }
@@ -964,21 +963,11 @@ static int cld_analyze(cld_ctx_t *ctx) {
                 nc = 0;
                 {
                     DWORD clst = entry_sclust;
-                    static uint8_t fs[512];
-                    LBA_t cached_fat = (LBA_t)-1;
                     int safety = 64;
                     while (clst >= 2 && clst < g_fs.n_fatent && safety-- > 0) {
                         nc++;
-                        DWORD eb = clst * 2;
-                        DWORD es = eb / 512;
-                        DWORD eo = eb % 512;
-                        LBA_t lba = (LBA_t)g_fs.fatbase + es;
-                        if (lba != cached_fat) {
-                            if (nes_flash_disk_read(fs, (uint32_t)lba, 1) != 0) break;
-                            cached_fat = lba;
-                        }
-                        uint16_t next = (uint16_t)fs[eo] | ((uint16_t)fs[eo + 1] << 8);
-                        if (next == 0xFFFF || next < 2) break;
+                        DWORD next = fat_get(clst);
+                        if (next == 0xFFFFFFFFu || fat_eoc(next) || next < 2) break;
                         clst = next;
                     }
                 }
@@ -1020,25 +1009,15 @@ static int cld_analyze(cld_ctx_t *ctx) {
         cld_walk_fat(ctx->files[f].current_sclust, cld_cb_set_owner, &oa);
     }
 
-    /* Orphan-cluster scan. */
+    /* Orphan-cluster scan: a cluster the FAT marks in-use but no directory
+     * entry claims. Skip free (0), reserved (1) and bad-cluster markers. */
     {
-        static uint8_t fat_sec[512];
-        LBA_t cached_lba = (LBA_t)-1;
         for (DWORD ci = 0; ci < ctx->n_clust; ci++) {
             if (ctx->current_owner[ci] != 0) continue;
             if (CLD_BIT_GET(ctx->pinned_bits, ci)) continue;
-            DWORD fat_c = ci + 2;
-            DWORD eb = fat_c * 2;
-            DWORD es = eb / 512;
-            DWORD eo = eb % 512;
-            LBA_t lba = (LBA_t)g_fs.fatbase + es;
-            if (lba != cached_lba) {
-                if (nes_flash_disk_read(fat_sec, (uint32_t)lba, 1) != 0) break;
-                cached_lba = lba;
-            }
-            uint16_t v = (uint16_t)fat_sec[eo]
-                       | ((uint16_t)fat_sec[eo + 1] << 8);
-            if (v == 0 || v == 1 || v == 0xFFF7) continue;
+            DWORD v = fat_get(ci + 2);
+            if (v == 0xFFFFFFFFu) break;            /* read error */
+            if (v == 0 || v == 1 || fat_bad(v)) continue;
             CLD_BIT_SET(ctx->pinned_bits, ci);
         }
     }
@@ -1384,47 +1363,25 @@ static int cld_execute(cld_ctx_t *ctx, uint16_t *fb, int moves_planned) {
     if (!new_fat) return -20;
     memset(new_fat, 0, n_clust * sizeof(uint16_t));
 
-    {
-        static uint8_t fat_sec[512];
-        LBA_t cached = (LBA_t)-1;
-        for (DWORD ci = 0; ci < n_clust; ci++) {
-            if (!CLD_BIT_GET(ctx->pinned_bits, ci)) continue;
-            DWORD c = ci + 2;
-            DWORD eb = c * 2;
-            DWORD es = eb / 512;
-            DWORD eo = eb % 512;
-            LBA_t lba = (LBA_t)g_fs.fatbase + es;
-            if (lba != cached) {
-                if (nes_flash_disk_read(fat_sec, (uint32_t)lba, 1) != 0) {
-                    free(new_fat);
-                    return -21;
-                }
-                cached = lba;
-            }
-            new_fat[ci] = (uint16_t)fat_sec[eo] | ((uint16_t)fat_sec[eo + 1] << 8);
-        }
+    /* Seed pinned (orphan) clusters' entries verbatim from the live FAT. */
+    for (DWORD ci = 0; ci < n_clust; ci++) {
+        if (!CLD_BIT_GET(ctx->pinned_bits, ci)) continue;
+        DWORD v = fat_get(ci + 2);
+        if (v == 0xFFFFFFFFu) { free(new_fat); return -21; }
+        new_fat[ci] = (uint16_t)v;
     }
 
     for (int f = 0; f < ctx->n_files; f++) {
         if (ctx->files[f].target_sclust == 0) {
-            static uint8_t fat_sec[512];
-            LBA_t cached = (LBA_t)-1;
+            /* Unmoved file: copy its existing chain into new_fat verbatim. */
             DWORD clst = ctx->files[f].current_sclust;
             int safety = (int)n_clust + 1;
             while (clst >= 2 && clst < g_fs.n_fatent && safety-- > 0) {
                 DWORD ci = clst - 2;
-                DWORD eb = clst * 2;
-                DWORD es = eb / 512;
-                DWORD eo = eb % 512;
-                LBA_t lba = (LBA_t)g_fs.fatbase + es;
-                if (lba != cached) {
-                    if (nes_flash_disk_read(fat_sec, (uint32_t)lba, 1) != 0) break;
-                    cached = lba;
-                }
-                uint16_t next = (uint16_t)fat_sec[eo]
-                              | ((uint16_t)fat_sec[eo + 1] << 8);
-                if (ci < n_clust) new_fat[ci] = next;
-                if (next == 0xFFFF || next < 2) break;
+                DWORD next = fat_get(clst);
+                if (next == 0xFFFFFFFFu) break;            /* read error: leave as-is */
+                if (ci < n_clust) new_fat[ci] = (uint16_t)next;
+                if (fat_eoc(next) || next < 2) break;
                 clst = next;
             }
             continue;
@@ -1440,30 +1397,47 @@ static int cld_execute(cld_ctx_t *ctx, uint16_t *fb, int moves_planned) {
         }
     }
 
-    for (int fatno = 0; fatno < g_fs.n_fats; fatno++) {
-        LBA_t fat_start = (LBA_t)g_fs.fatbase + (LBA_t)fatno * g_fs.fsize;
-        uint8_t fat_sec[512];
-        DWORD total_sectors = g_fs.fsize;
-        for (DWORD sec = 0; sec < total_sectors; sec++) {
-            if (nes_flash_disk_read(fat_sec, (uint32_t)(fat_start + sec), 1) != 0) {
-                free(new_fat);
-                return -22;
-            }
-            DWORD first_c = sec * 256;
-            for (DWORD i = 0; i < 256; i++) {
-                DWORD c = first_c + i;
-                if (c < 2 || c >= g_fs.n_fatent) continue;
-                DWORD ci = c - 2;
-                if (ci >= n_clust) continue;
-                uint16_t v = new_fat[ci];
-                fat_sec[i * 2]     = (uint8_t)(v & 0xFF);
-                fat_sec[i * 2 + 1] = (uint8_t)((v >> 8) & 0xFF);
-            }
-            if (nes_flash_disk_write(fat_sec, (uint32_t)(fat_start + sec), 1) != 0) {
-                free(new_fat);
-                return -23;
+    /* Write every FAT copy from new_fat[]. Build the whole FAT image in a buffer
+     * first so FAT12's 12-bit, sector-spanning entries pack correctly — a
+     * per-sector read-patch-write can't, since an entry straddles the 512-byte
+     * boundary. Reserved entries 0,1 are preserved from the live FAT; clusters
+     * not in any chain default to 0 (free). FAT16 packs 2 bytes/entry as before. */
+    {
+        int   is12   = fat_is12();
+        DWORD fbytes = (DWORD)g_fs.fsize * 512u;
+        uint8_t *img = (uint8_t *)malloc(fbytes);
+        if (!img) { free(new_fat); return -22; }
+        if (nes_flash_disk_read(img, (uint32_t)g_fs.fatbase, 1) != 0) {   /* entries 0,1 */
+            free(img); free(new_fat); return -22;
+        }
+        DWORD resv = is12 ? 3u : 4u;                       /* bytes occupied by entries 0,1 */
+        memset(img + resv, 0, (size_t)fbytes - resv);      /* every data-cluster entry starts at 0 */
+        for (DWORD c = 2; c < g_fs.n_fatent; c++) {
+            DWORD ci = c - 2;
+            DWORD v  = (ci < n_clust) ? new_fat[ci] : 0u;  /* 0xFFFF truncates to FAT12's 0xFFF EOC */
+            if (is12) {
+                DWORD bo = c + (c >> 1);
+                if (c & 1) { img[bo]     = (uint8_t)((img[bo] & 0x0F) | ((v << 4) & 0xF0));
+                             img[bo + 1] = (uint8_t)((v >> 4) & 0xFF); }
+                else       { img[bo]     = (uint8_t)(v & 0xFF);
+                             img[bo + 1] = (uint8_t)((img[bo + 1] & 0xF0) | ((v >> 8) & 0x0F)); }
+            } else {
+                DWORD bo = c * 2u;
+                img[bo]     = (uint8_t)(v & 0xFF);
+                img[bo + 1] = (uint8_t)((v >> 8) & 0xFF);
             }
         }
+        for (int fatno = 0; fatno < g_fs.n_fats; fatno++) {
+            LBA_t fat_start = (LBA_t)g_fs.fatbase + (LBA_t)fatno * g_fs.fsize;
+            for (DWORD sec = 0; sec < g_fs.fsize; sec++) {
+                if (nes_flash_disk_write(img + (size_t)sec * 512u,
+                                         (uint32_t)(fat_start + sec), 1) != 0) {
+                    free(img); free(new_fat); return -23;
+                }
+            }
+        }
+        free(img);
+        fat_get_flush();   /* the FAT just changed under fat_get's read cache */
     }
     free(new_fat);
     nes_flash_disk_flush();

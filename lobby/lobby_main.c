@@ -446,18 +446,21 @@ static void draw_usb_row(usb_row_state_t st) {
 /* Slot order in the grid must match the lobby_icons[] indexing
  * emitted by pack_icons.py (NES, P8, DOOM, MPY, then page-1 tiles
  * starting at index 4: SCUMM, CRAFT + 2 reserved). */
-static const thumbyone_slot_t g_grid_slot_order[9] = {
+static const thumbyone_slot_t g_grid_slot_order[10] = {
     THUMBYONE_SLOT_NES,
     THUMBYONE_SLOT_P8,
     THUMBYONE_SLOT_DOOM,
     THUMBYONE_SLOT_MPY,
-    /* Page 1: SCUMM, MOTE (replaces CRAFT), POOL (rogue partition), ELITE. */
+    /* Page 1: SCUMM, CRAFT, POOL (rogue partition), ELITE. */
     THUMBYONE_SLOT_SCUMM,
-    THUMBYONE_SLOT_MOTE_LOBBY,   /* the tile hands off to the Mote LOBBY partition */
+    THUMBYONE_SLOT_CRAFT,
     THUMBYONE_SLOT_ROGUE,
     THUMBYONE_SLOT_ELITE,
-    /* Page 2: optional ThumbyRogue 9th slot (custom build only). */
+    /* Page 2: optional ThumbyRogue 9th slot + MOTE — a SEPARATE slot of its own
+     * (not a replacement for CRAFT); its tile hands off to the Mote LOBBY partition.
+     * Default build: CRAFT/ROGUE/ELITE OFF, MOTE ON, so only the MOTE tile shows. */
     THUMBYONE_SLOT_ROGUE9,
+    THUMBYONE_SLOT_MOTE_LOBBY,
 };
 
 /* Per-slot "is this slot actually compiled into this build" flags,
@@ -502,7 +505,7 @@ static const thumbyone_slot_t g_grid_slot_order[9] = {
  * spots.  The *visible* page count is computed at boot from the
  * actual enabled-slot count below. */
 #define LOBBY_TILES_PER_PAGE 4
-#define LOBBY_TOTAL_SLOTS    9
+#define LOBBY_TOTAL_SLOTS    10
 
 static const bool g_grid_slot_present[LOBBY_TOTAL_SLOTS] = {
     THUMBYONE_LOBBY_HAS_NES,
@@ -510,10 +513,11 @@ static const bool g_grid_slot_present[LOBBY_TOTAL_SLOTS] = {
     THUMBYONE_LOBBY_HAS_DOOM,
     THUMBYONE_LOBBY_HAS_MPY,
     THUMBYONE_LOBBY_HAS_SCUMM,
-    THUMBYONE_LOBBY_HAS_MOTE,
+    THUMBYONE_LOBBY_HAS_CRAFT,
     THUMBYONE_LOBBY_HAS_ROGUE,
     THUMBYONE_LOBBY_HAS_ELITE,
     THUMBYONE_LOBBY_HAS_ROGUE9,
+    THUMBYONE_LOBBY_HAS_MOTE,
 };
 
 /* Compact-visible model: instead of leaving disabled-slot positions
@@ -640,6 +644,7 @@ static const char *const g_grid_labels[LOBBY_TOTAL_SLOTS] = {
     "POOL / SNOOKER",
     "INDEMNITY RUN",
     "ROGUE",
+    "MOTE",
 };
 
 /* ThumbyOne palette — dark navy header/footer bars with a cyan
