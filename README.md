@@ -5,7 +5,9 @@
 > *One firmware to rule them all, one lobby to find them.*
 > *One file to bring them all, and in the Thumby bind them.*
 
-ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](https://thumby.us/) — the tiny colour handheld with a 128×128 screen, dual-core Arm Cortex-M33, 520 KB SRAM, and 16 MB of on-board flash. One flash gives you **NES**, **Master System**, **Game Gear**, **Game Boy**, **Mega Drive (Genesis)**, **PC Engine / TurboGrafx-16**, **PICO-8**, **DOOM**, **Monkey Island / Indiana Jones (SCUMM)**, **ThumbyCraft** (a bare-metal Minecraft-style voxel world with biomes, cave lava and redstone), **ThumbyCue** (accurate 3-D snooker & pool — UK/US/Chinese 8-ball, 9-ball and 6/10/15-red snooker, with real spin/swerve physics and an eight-persona AI opponent), **Indemnity Run** (a bare-metal Elite-style space sim — an infinite procedural galaxy with real-time 3D dogfighting, trading, missions, salvage and a MechWarrior-grade outfitting game), and the full **MicroPython + Tiny Game Engine** experience, each optimized to run perfectly on the device. (**ThumbyRogue**, an endless isometric roguelike, is available as an optional 9th-slot build — see the changelog.)
+ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](https://thumby.us/) — the tiny colour handheld with a 128×128 screen, dual-core Arm Cortex-M33, 520 KB SRAM, and 16 MB of on-board flash. One flash gives you **NES**, **Master System**, **Game Gear**, **Game Boy**, **Mega Drive (Genesis)**, **PC Engine / TurboGrafx-16**, **PICO-8**, **DOOM**, **Monkey Island / Indiana Jones (SCUMM)**, the full **MicroPython + Tiny Game Engine**, and **Mote** — a native C game engine + platform built for the Thumby Color, with a desktop IDE to build your own games. Each is optimized to run perfectly on the device.
+
+**Mote** ships a whole game library on one resident engine: **ThumbyCraft** (a bare-metal Minecraft-style voxel world with biomes, cave lava and redstone), **ThumbyCue** (accurate 3-D snooker & pool — UK/US/Chinese 8-ball, 9-ball and 6/10/15-red snooker, with real spin/swerve physics and an eight-persona AI opponent), **Indemnity Run** (a bare-metal Elite-style space sim — an infinite procedural galaxy with real-time 3D dogfighting, trading, missions, salvage and a MechWarrior-grade outfitting game), and a growing set of arcade games (MotoKart, Wolfmote, Nightmote, Tetris 3D, Golf, Chess and more). Add games by dropping `.mote` files in, or write your own in C with **Mote Studio**. → [What is Mote?](#mote--a-whole-game-platform-in-one-slot) *(ThumbyRogue is also available as an optional standalone 9th-slot build — see the changelog.)*
 
 <p align="center">
   <img src="docs/screenshots/nes-game.jpg" width="240" alt="NES on Thumby Color">
@@ -18,6 +20,13 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
   <img src="docs/screenshots/mpy-picker.jpg" width="240" alt="MicroPython picker — DeepThumb">
   <img src="docs/screenshots/craft-title.jpg" width="240" alt="ThumbyCraft — title screen with save-slot world thumbnails">
 </p>
+
+<p align="center">
+  <img src="docs/screenshots/thumbycue-device-2.jpg" width="240" alt="ThumbyCue — dark balls on a blue cloth">
+  <img src="docs/screenshots/indemnity-title.png" width="240" alt="Indemnity Run — title screen">
+  <img src="docs/screenshots/mote-motokart.png" width="240" alt="MotoKart — Mote kart racer">
+</p>
+<p align="center"><em>ThumbyCraft, ThumbyCue, Indemnity Run and the arcade games above all run on the <a href="#mote--a-whole-game-platform-in-one-slot">Mote</a> engine.</em></p>
 
 ---
 
@@ -2642,22 +2651,27 @@ cmake --build build_device -j8
 # -> build_device/thumbyone.uf2
 ```
 
-Prebuilt presets at the repo root (release builds):
+Prebuilt presets at the repo root (release builds). The default and its `_nomd` / `_nodoom`
+siblings are the **current 1.28 builds** (the **Mote** slot — ThumbyCraft, ThumbyCue,
+Indemnity Run + the arcade games on one resident engine); the rest are older **pre-1.28**
+builds (standalone Craft/Rogue/Elite, no Mote) kept for storage-heavy retro setups.
 
 | Preset UF2 | Systems included | UF2 size | FAT size |
 |---|---|---:|---:|
-| `firmware_thumbyone.uf2`                | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM · CRAFT · ROGUE · ELITE | 14.0 MB | **7.75 MB** |
-| `firmware_thumbyone_nomd.uf2`           | NES (no MD) · P8 · DOOM · MPY · SCUMM · CRAFT · ROGUE · ELITE | 11.6 MB | **8.75 MB** |
-| `firmware_thumbyone_nodoom.uf2`         | NES (+MD+PCE) · P8 · MPY · SCUMM · CRAFT · ROGUE · ELITE      | 9.5 MB  | **10.1 MB** |
-| `firmware_thumbyone_nocraft.uf2`        | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM         | 13.2 MB | **8.5 MB** |
-| `firmware_thumbyone_nodoom_nomd.uf2`    | NES (no MD) · P8 · MPY · SCUMM                  | 7.1 MB  | **11.4 MB** |
-| `firmware_thumbyone_nompy.uf2`          | NES (+MD+PCE) · P8 · DOOM · SCUMM               | 10.4 MB | **10.25 MB** |
-| `firmware_thumbyone_nodoom_nompy.uf2`   | NES (+MD+PCE) · P8 · SCUMM                      | 5.8 MB  | **12.65 MB** |
-| `firmware_thumbyone_mpyonly.uf2`        | MPY only                                        | 4.1 MB  | **13.4 MB** |
-| `firmware_thumbyone_retro.uf2`          | NES (+MD+PCE) · P8                              | 4.7 MB  | **13.1 MB** |
-| `firmware_thumbyone_scummonly.uf2`      | SCUMM only                                      | 1.3 MB  | **15.0 MB** |
+| `firmware_thumbyone.uf2` *(1.28)*       | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM · **Mote** | 13.1 MB | **8.5 MB** |
+| `firmware_thumbyone_nomd.uf2` *(1.28)*  | NES (no MD) · P8 · DOOM · MPY · SCUMM · **Mote**   | 10.6 MB | **9.5 MB** |
+| `firmware_thumbyone_nodoom.uf2` *(1.28)*| NES (+MD+PCE) · P8 · MPY · SCUMM · **Mote**        | 8.4 MB  | **10.9 MB** |
+| `firmware_thumbyone_rogue.uf2`          | default + standalone **ThumbyRogue** as a 9th slot (custom build) | — | — |
+| `firmware_thumbyone_revert.uf2`         | recovery — stock TinyCircuits MicroPython (see [Returning to stock](#returning-to-stock)) | — | — |
+| `firmware_thumbyone_nocraft.uf2` *(pre-1.28)*     | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM    | 13.2 MB | **8.5 MB** |
+| `firmware_thumbyone_nompy.uf2` *(pre-1.28)*       | NES (+MD+PCE) · P8 · DOOM · SCUMM          | 10.4 MB | **10.25 MB** |
+| `firmware_thumbyone_nodoom_nomd.uf2` *(pre-1.28)* | NES (no MD) · P8 · MPY · SCUMM             | 7.1 MB  | **11.4 MB** |
+| `firmware_thumbyone_nodoom_nompy.uf2` *(pre-1.28)*| NES (+MD+PCE) · P8 · SCUMM                 | 5.8 MB  | **12.65 MB** |
+| `firmware_thumbyone_mpyonly.uf2` *(pre-1.28)*     | MPY only                                   | 4.1 MB  | **13.4 MB** |
+| `firmware_thumbyone_retro.uf2` *(pre-1.28)*       | NES (+MD+PCE) · P8                          | 4.7 MB  | **13.1 MB** |
+| `firmware_thumbyone_scummonly.uf2` *(pre-1.28)*   | SCUMM only                                 | 1.3 MB  | **15.0 MB** |
 
-The prebuilt UF2s cover the most common feature/storage tradeoffs. The first three rows (`main`, `_nomd`, `_nodoom`) are current as of **1.19** and include every slot listed; the remaining presets are older builds (pre-ThumbyCraft/ThumbyRogue) kept for storage-heavy setups. Any other combination builds cleanly from the same flags — flipping any single slot to OFF moves the FAT base forward by that slot's allocation and grows the shared FAT correspondingly.
+The three **1.28** builds differ only in the NES/DOOM tradeoff (MD off or DOOM off frees flash for a larger shared FAT); all ship the full Mote library. Any other combination builds cleanly from the same flags — flipping any slot to OFF moves the FAT base forward by that slot's allocation and grows the shared FAT correspondingly. **Mote** = ThumbyCraft + ThumbyCue + Indemnity Run + arcade games on one engine — see [Mote](#mote--a-whole-game-platform-in-one-slot).
 
 **SCUMM game sizes for reference:** MI1 ≈ 4.4 MB, MI2 ≈ 9.1 MB, Indy 4 ≈ 9.3 MB. The default 8.0 MB FAT comfortably holds MI1; MI2 or Indy 4 need at least the `_nodoom` build (10.4 MB), and no preset under 15 MB fits two of {MI2, Indy 4} together — they're each ~9 MB and the total shared FAT can't exceed 15 MB (16 MB flash minus the lobby + SCUMM slot + scratch / settings reserves).
 
