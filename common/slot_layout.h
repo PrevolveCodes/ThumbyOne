@@ -183,7 +183,7 @@ static inline int thumbyone_slot_partition_id(thumbyone_slot_t s) {
  * (~320 + ~128 = 448 KB) they still free ~832 KB to the FAT vs the old 1280 KB. */
 #define THUMBYONE_MOTE_RUNNER_SIZE    ( 320u * 1024u)
 #define THUMBYONE_MOTE_LOBBY_SIZE     ( 128u * 1024u)
-#define THUMBYONE_CRAFT_SIZE          ( 512u * 1024u)   /* binary ~0.37 MB + ~140 KB headroom (~38% margin) */
+#define THUMBYONE_CRAFT_SIZE          ( 480u * 1024u)   /* binary ~440 KB (450900 B) + ~40 KB headroom (~9%). FAT has ~8 MB to spare so trimming below this buys no usable flash; 4 KB-aligned. */
 #define THUMBYONE_ROGUE_SIZE          ( 512u * 1024u)   /* binary ~0.40 MB + ~110 KB headroom */
 #define THUMBYONE_ELITE_SIZE          ( 256u * 1024u)   /* binary ~218 KB + ~38 KB headroom */
 #define THUMBYONE_ROGUE9_SIZE         ( 512u * 1024u)   /* optional 9th slot — same size as ROGUE */
