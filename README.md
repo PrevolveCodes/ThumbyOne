@@ -72,11 +72,11 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
 
 All the systems share one FAT drive, visible over USB when you're in the lobby. Size depends on the build:
 
-- **8.0 MB** in the default (MD-enabled) layout (`firmware_thumbyone.uf2`)
-- **~10.6 MB firmware / larger FAT** in the `THUMBYONE_WITH_MD=OFF` build (`firmware_thumbyone_nomd.uf2`) — same as the default but without the Mega Drive core, freeing space for the shared drive
+- **8.09 MB** in the default (MD-enabled) layout (`firmware_thumbyone.uf2`)
+- **9.09 MB** in the `THUMBYONE_WITH_MD=OFF` build (`firmware_thumbyone_nomd.uf2`) — same as the default but without the Mega Drive core, freeing space for the shared drive
 - Up to **15.0 MB** in the slimmer SCUMM-only / minimal presets — see [Build matrix](#build-matrix).
 
-**The big change in 1.28: ThumbyCraft, ThumbyCue and Indemnity Run are now Mote games**, not standalone slots — they live in `/mote/` and run on the one resident Mote engine (so the firmware holds a whole library, not one game per slot). The default `firmware_thumbyone.uf2` (and its `_nomd` sibling) ship the **Mote** slot with all of them included. See the [Mote section](#mote--a-whole-game-platform-in-one-slot) for what Mote is and how to add games.
+**As of 1.29, ThumbyCraft is back as its own standalone slot** (the full-feature build — see the [1.29 changelog](#129)); **ThumbyCue and Indemnity Run remain Mote games** (the 1.28 change) — they live in `/mote/` and run on the one resident Mote engine, so the firmware still holds a whole library, not one game per slot. The default `firmware_thumbyone.uf2` (and its `_nomd`/`_nodoom` siblings) ship the **ThumbyCraft slot alongside the Mote slot** with everything included. See the [Mote section](#mote--a-whole-game-platform-in-one-slot) for what Mote is and how to add games.
 
 **Note on ThumbyRogue:** it is **not in the default build**. To get it as a standalone **9th slot** (after Indemnity Run), flash **`firmware_thumbyone_rogue.uf2`** — this moves the FAT and prompts a one-time reformat; the default build does not. (ThumbyRogue also runs as a Mote game.)
 
@@ -122,7 +122,7 @@ With ThumbyOne running, plug the device in (while sitting in the **lobby**). It 
 | NES / SMS / GG / GB / MD / PCE ROMs | `/roms/` | `.nes`, `.sms`, `.gg`, `.gb`, `.gbc`, `.md`, `.gen`, `.bin`, `.pce` |
 | PICO-8 carts | `/carts/` | `.p8.png` |
 | MicroPython games | `/games/<Name>/` | Folder per game with `main.py`, `icon.bmp`, `arcade_description.txt`, assets |
-| Mote games | `/mote/` | `.mote` — grab [`mote-games-1.28.zip`](https://github.com/austinio7116/ThumbyOne/releases) from the releases page, unzip, and drop the `.mote` files straight into `/mote/`. They appear in the **MOTE** tile's launcher. See [Mote](#mote--a-whole-game-platform-in-one-slot). |
+| Mote games | `/mote/` | `.mote` — grab [`mote-games-1.29.zip`](https://github.com/austinio7116/ThumbyOne/releases) from the releases page, unzip, and drop the `.mote` files straight into `/mote/`. They appear in the **MOTE** tile's launcher. See [Mote](#mote--a-whole-game-platform-in-one-slot). |
 | SCUMM adventures (pre-extracted data) | `/scumm/<game>/` | `DISK*.LEC` + `*.LFL` (MI1), `monkey2.000/001` (MI2), `atlantis.000/001` (Indy 4), or `NN.LFL` (Indy 3) |
 | SCUMM adventures (original install floppies) | `/scumm/` | `.img` — the device walks each `.img`, extracts the PCV/LFG! archive inside, and writes the result into `/scumm/<game>/` automatically.  Slow (10–30 min for v5 games) and needs a post-install `defrag fat` from the lobby; pre-extracted is faster.  See [ThumbyScummby section](#thumbyscummby--scumm-adventures) for the full how-to. |
 
@@ -142,7 +142,7 @@ With ThumbyOne running, plug the device in (while sitting in the **lobby**). It 
         arcade_description.txt
         assets/
 /mote/
-    thumbycraft.mote        (unzip mote-games-1.28.zip and drop the .mote files in here)
+    thumbycraft.mote        (unzip mote-games-1.29.zip and drop the .mote files in here)
     thumbycue.mote
     indemnity.mote
     motokart.mote
@@ -235,7 +235,7 @@ ThumbyOne exposes a **single** USB drive, and only while you're **in the lobby**
    - ROMs into `/roms/` (any of `.nes`, `.sms`, `.gg`, `.gb`, `.gbc`, `.md`, `.gen`, `.bin`, `.pce`)
    - PICO-8 carts into `/carts/` (`.p8.png`)
    - MicroPython games into `/games/<GameName>/` (a folder per game with `main.py` + assets)
-   - Mote games (`.mote`) into `/mote/` (from `mote-games-1.28.zip`, or built with Mote Studio)
+   - Mote games (`.mote`) into `/mote/` (from `mote-games-1.29.zip`, or built with Mote Studio)
    - SCUMM adventures: either pre-extracted data into `/scumm/<game>/` (`.LEC` + `.LFL` for MI1, `.000` / `.001` for MI2 / Indy 4, `NN.LFL` for Indy 3 — fast, recommended), or original `.img` install floppies dropped at `/scumm/` for the device to extract on first boot (slow — 10–30 min for v5 games, plus a `defrag fat` pass afterwards)
 4. Eject the drive (Windows: right-click → Eject; macOS: drag to Trash; Linux: `sync && umount`).
 5. Pick a system with the d-pad, press A.
@@ -575,7 +575,7 @@ The headline games each have their own section below — **ThumbyCraft** (voxel 
 
 There are two ways, and the first needs no tools at all:
 
-1. **Download the games and copy them across.** Grab **`mote-games-1.28.zip`** from the [**ThumbyOne releases**](https://github.com/austinio7116/ThumbyOne/releases) page (attached to this release), unzip it, and copy the `.mote` files into the **`/mote/`** folder on the Thumby Color's USB drive (plug in over USB — the device appears as a drive). Eject, reboot, open the **MOTE** tile, and they're listed. That's it — no IDE, no building.
+1. **Download the games and copy them across.** Grab **`mote-games-1.29.zip`** from the [**ThumbyOne releases**](https://github.com/austinio7116/ThumbyOne/releases) page (attached to this release), unzip it, and copy the `.mote` files into the **`/mote/`** folder on the Thumby Color's USB drive (plug in over USB — the device appears as a drive). Eject, reboot, open the **MOTE** tile, and they're listed. That's it — no IDE, no building.
 2. **Make your own with Mote Studio (the IDE).** Download **Mote Studio** from the [**Mote releases**](https://github.com/austinio7116/mote/releases) page (Windows bundle — self-contained, or build it on Linux). Write a game in C; the Studio builds it, runs it in an on-screen emulator, and **pushes it straight into `/mote/` over USB** (or you build a `.mote` and copy it like above).
 
 <p align="center">
@@ -584,7 +584,7 @@ There are two ways, and the first needs no tools at all:
 
 #### A note on versions (ABI)
 
-A `.mote` game is built against a Mote **ABI version** — the engine interface it expects. The engine in the firmware runs any game built against **its ABI or older**. **ThumbyOne 1.28 ships Mote engine ABI v39.** Games in the download above are built for it; a game built against a *newer* ABI than the firmware won't load until you update the firmware. (If a game doesn't appear after copying it, that's usually why.)
+A `.mote` game is built against a Mote **ABI version** — the engine interface it expects. The engine in the firmware runs any game built against **its ABI or older**. **ThumbyOne 1.29 ships Mote engine ABI v39.** Games in the download above are built for it; a game built against a *newer* ABI than the firmware won't load until you update the firmware. (If a game doesn't appear after copying it, that's usually why.)
 
 #### Learn more / build games
 
@@ -592,14 +592,14 @@ Mote is its own project — the engine, the SDK, the IDE and the full API refere
 
 - **[Mote repository](https://github.com/austinio7116/mote)** — source + the SDK.
 - **[Mote Studio (downloads)](https://github.com/austinio7116/mote/releases)** — the IDE, Windows & Linux.
-- **[Mote games bundle](https://github.com/austinio7116/ThumbyOne/releases)** — `mote-games-1.28.zip`, attached to the ThumbyOne release.
+- **[Mote games bundle](https://github.com/austinio7116/ThumbyOne/releases)** — `mote-games-1.29.zip`, attached to the ThumbyOne release.
 - **[API & ABI reference](https://austinio7116.github.io/mote/)** — every engine call, with the ABI version each was added in.
 
 ---
 
 ### ThumbyCraft — voxel survival
 
-*Original bare-metal voxel game for the Thumby Color — [ThumbyCraft](https://github.com/austinio7116/ThumbyCraft).* **Runs as a Mote game** (see [Mote](#mote--a-whole-game-platform-in-one-slot) above).
+*Original bare-metal voxel game for the Thumby Color — [ThumbyCraft](https://github.com/austinio7116/ThumbyCraft).* **Runs as its own standalone slot** again as of 1.29 (the full-feature build) — see the [1.29 changelog](#129). The Mote-game version has been retired.
 
 <p align="center">
   <img src="docs/screenshots/craft-title.jpg" width="380" alt="ThumbyCraft title screen — four save-slot thumbnails plus New World tile">
@@ -825,6 +825,15 @@ style. MENU-hold returns to the lobby. Full manual: the
 [Pilot's Handbook](https://austinio7116.github.io/ThumbyElite/).
 
 ## Changelog
+
+### 1.29
+
+**ThumbyCraft returns as its own slot — the full-feature build.** ThumbyCraft is back as a standalone **480 KB slot** alongside Mote, running with its own SRAM and a real stack — so it's the **complete** ThumbyCraft again, without the memory compromises the Mote-game version had to make (cut-down torch lighting, far fewer stored block edits, a half-size save thumbnail). It has its own grass-block tile in the lobby and keeps worlds in `/thumbycraft/` on the shared drive.
+
+* **Why the change.** Run as a Mote game, ThumbyCraft pushed against every memory limit at once — the module RAM region, the engine arena, *and* the 4 KB slot stack — which made it fragile and forced those cutbacks. As its own slot it has room to breathe, so it's the full experience.
+* **Removed from the Mote bundle.** `thumbycraft.mote` is no longer in `mote-games-1.29.zip` — the standalone slot is the one and only ThumbyCraft now. (ThumbyRogue stays a Mote game.)
+* **⚠️ FAT reformat on upgrade — back up first.** The 480 KB slot moves the shared drive forward, shrinking it: default **8.09 MB**, `_nomd` **9.09 MB**, `_nodoom` **10.47 MB**. First boot shows the `FS BAD / A=FORMAT  B=ABORT` prompt — hold **A** to reformat after backing up `/roms/`, `/carts/`, `/games/`, `/scumm/`, `/thumbycraft/`, `/thumbyrogue/`, `/Saves/` and your `/mote/` games over USB.
+* **Built into all three full firmwares — `firmware_thumbyone.uf2`, `_nomd` and `_nodoom`, all rebuilt for 1.29.** Only the slimmer presets (`_scummonly`, `_retro`, `_mpyonly`, `_nocraft`, …) are left untouched. The Mote engine (ABI v39) and every other slot are exactly as in 1.28.
 
 ### 1.28
 
