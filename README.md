@@ -7,7 +7,7 @@
 
 ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](https://thumby.us/) — the tiny colour handheld with a 128×128 screen, dual-core Arm Cortex-M33, 520 KB SRAM, and 16 MB of on-board flash. One flash gives you **NES**, **Master System**, **Game Gear**, **Game Boy**, **Mega Drive (Genesis)**, **PC Engine / TurboGrafx-16**, **PICO-8**, **DOOM**, **Monkey Island / Indiana Jones (SCUMM)**, the full **MicroPython + Tiny Game Engine**, and **Mote** — a native C game engine + platform built for the Thumby Color, with a desktop IDE to build your own games. Each is optimized to run perfectly on the device.
 
-**Mote** ships a whole game library on one resident engine: **ThumbyCraft** (a bare-metal Minecraft-style voxel world with biomes, cave lava and redstone), **ThumbyCue** (accurate 3-D snooker & pool — UK/US/Chinese 8-ball, 9-ball and 6/10/15-red snooker, with real spin/swerve physics and an eight-persona AI opponent), **Indemnity Run** (a bare-metal Elite-style space sim — an infinite procedural galaxy with real-time 3D dogfighting, trading, missions, salvage and a MechWarrior-grade outfitting game), and a growing set of arcade games (MotoKart, Wolfmote, Nightmote, Tetris 3D, Golf, Chess and more). Add games by dropping `.mote` files in, or write your own in C with **Mote Studio**. → [What is Mote?](#mote--a-whole-game-platform-in-one-slot) *(ThumbyRogue is also available as an optional standalone 9th-slot build — see the changelog.)*
+**ThumbyCraft** — the bare-metal Minecraft-style voxel world (biomes, cave lava, redstone) — has its own dedicated slot. **Mote** ships a whole game library on one resident engine: **ThumbyCue** (accurate 3-D snooker & pool — UK/US/Chinese 8-ball, 9-ball and 6/10/15-red snooker, with real spin/swerve physics and an eight-persona AI opponent), **Indemnity Run** (a bare-metal Elite-style space sim — an infinite procedural galaxy with real-time 3D dogfighting, trading, missions, salvage and a MechWarrior-grade outfitting game), and a growing set of arcade games (MotoKart, Wolfmote, Nightmote, Tetris 3D, Golf, Chess and more). Add games by dropping `.mote` files in, or write your own in C with **Mote Studio**. → [What is Mote?](#mote--a-whole-game-platform-in-one-slot) *(ThumbyRogue is also available as an optional standalone 9th-slot build — see the changelog.)*
 
 <p align="center">
   <img src="docs/screenshots/nes-game.jpg" width="240" alt="NES on Thumby Color">
@@ -26,7 +26,7 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
   <img src="docs/screenshots/indemnity-title.png" width="240" alt="Indemnity Run — title screen">
   <img src="docs/screenshots/mote-motokart.png" width="240" alt="MotoKart — Mote kart racer">
 </p>
-<p align="center"><em>ThumbyCraft, ThumbyCue, Indemnity Run and the arcade games above all run on the <a href="#mote--a-whole-game-platform-in-one-slot">Mote</a> engine.</em></p>
+<p align="center"><em>ThumbyCue, Indemnity Run and the arcade games above all run on the <a href="#mote--a-whole-game-platform-in-one-slot">Mote</a> engine. ThumbyCraft is its own slot.</em></p>
 
 ---
 
@@ -45,7 +45,7 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
   - [MicroPython + Tiny Game Engine](#micropython--tiny-game-engine)
   - [ThumbyScummby](#thumbyscummby--scumm-adventures)
   - [**Mote** — native game platform](#mote--a-whole-game-platform-in-one-slot)
-  - [ThumbyCraft](#thumbycraft--voxel-survival) *(Mote game)*
+  - [ThumbyCraft](#thumbycraft--voxel-survival) *(standalone slot)*
   - [ThumbyCue](#thumbycue--snooker--pool) *(Mote game)*
   - [Indemnity Run](#indemnity-run--bare-metal-space-sim) *(Mote game)*
   - [ThumbyRogue](#thumbyrogue--endless-iso-roguelike) *(optional 9th slot)*
@@ -64,8 +64,8 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
 | **ThumbyDOOM** | Shareware DOOM I — WAD baked into the firmware | *(none — embedded)* |
 | **MicroPython + Engine** | Python games written against the [Tiny Game Engine](https://github.com/austinio7116/TinyCircuits-Tiny-Game-Engine) | `/games/<name>/` |
 | **ThumbyScummby** | SCUMM v4 / v5 adventures — Monkey Island 1, Monkey Island 2, Indiana Jones 4 (Fate of Atlantis), and the original LucasArts `.img` install disks | `/scumm/<game>/` or drop `.img` files into `/scumm/` |
-| **Mote** | A **native game platform** (not an emulator): one resident engine runs a whole library of small `.mote` games — **ThumbyCraft**, **ThumbyCue** and **Indemnity Run** plus arcade games (MotoKart, Wolfmote, Nightmote, Tetris 3D, Golf, Chess, Pong 3D, Tanks, Arkanoid 3D, Fling, PaperMote). Download more games or build your own with the Mote Studio IDE. → [What is Mote?](#mote--a-whole-game-platform-in-one-slot) | `.mote` files in `/mote/` |
-| **ThumbyCraft** *(a Mote game)* | Minecraft-style voxel game — an infinite procedural world with biomes, mining, crafting, redstone, mobs, and lava-filled caves; six control schemes and four save slots with full chest + furnace persistence | runs on **Mote** — in `/mote/`, saves in `/mote/saves/thumbycraft/` |
+| **Mote** | A **native game platform** (not an emulator): one resident engine runs a whole library of small `.mote` games — **ThumbyCue** and **Indemnity Run** plus arcade games (MotoKart, Wolfmote, Nightmote, Tetris 3D, Golf, Chess, Pong 3D, Tanks, Arkanoid 3D, Fling, PaperMote). Download more games or build your own with the Mote Studio IDE. → [What is Mote?](#mote--a-whole-game-platform-in-one-slot) | `.mote` files in `/mote/` |
+| **ThumbyCraft** *(its own slot)* | Minecraft-style voxel game — an infinite procedural world with biomes, mining, crafting, redstone, mobs, and lava-filled caves; six control schemes and four save slots with full chest + furnace persistence | its own **480 KB slot** — worlds saved in `/thumbycraft/` |
 | **ThumbyCue** *(a Mote game)* | Accurate 3D snooker & pool — UK / US / Chinese 8-ball, 9-ball, snooker (15 / 10 / 6-red); real impulse ball physics with spin, swerve & masse, an 8-persona simulation-driven opponent, best-of match play and a broadcast scoreboard | runs on **Mote** — in `/mote/` |
 | **Indemnity Run** *(a Mote game)* | Elite-style space sim — an infinite procedural galaxy (every playthrough unique), real-time 3D dogfighting with 14 weapon families, trading, missions, bounties, salvage, per-dockyard procedural ships and MechWarrior-grade outfitting | runs on **Mote** — in `/mote/`, saves in `/mote/saves/<game>/` |
 | **ThumbyRogue** *(optional)* | Endless isometric hack-n-slash roguelike on the ThumbyCraft voxel engine — procedural dungeons, real-time combat, Diablo-style loot + affixes, five depth bands. **Not in the default build** — flash `firmware_thumbyone_rogue.uf2` to add it as a standalone 9th slot | `/thumbyrogue/run.sav` (managed by the game) |
@@ -142,7 +142,7 @@ With ThumbyOne running, plug the device in (while sitting in the **lobby**). It 
         arcade_description.txt
         assets/
 /mote/
-    thumbycraft.mote        (unzip mote-games-1.29.zip and drop the .mote files in here)
+    indemnity.mote          (unzip mote-games-1.29.zip and drop the .mote files in here)
     thumbycue.mote
     indemnity.mote
     motokart.mote
@@ -200,8 +200,8 @@ Inside the MENU overlay, **LEFT / RIGHT** adjusts the highlighted slider (bright
 | ThumbyDOOM | In-game Main Menu → **Quit Game** (no confirm dialog in slot mode) |
 | MicroPython + Engine | **MENU** held ~5 s in-game — direct reboot to the lobby (no on-screen prompt; game state is lost, so the hold is deliberately long to prevent accidents) |
 | ThumbyScummby (SCUMM adventures) | **MENU** (hold ~0.5 s in-game) → save menu → **LOBBY** |
-| **Mote** (ThumbyCraft, ThumbyCue, Indemnity Run + every `.mote` game) | **Two steps.** In a game: **MENU** held ~3 s → the engine menu → **RETURN TO LOBBY** → back to the **Mote launcher**. Then from the Mote launcher: **MENU** held (~0.6 s) → back to the **ThumbyOne lobby**. |
-| ThumbyCraft *(standalone slot builds only — runs inside Mote in the default build)* | In-game **pause menu** → **Back to lobby** |
+| **Mote** (ThumbyCue, Indemnity Run + every `.mote` game) | **Two steps.** In a game: **MENU** held ~3 s → the engine menu → **RETURN TO LOBBY** → back to the **Mote launcher**. Then from the Mote launcher: **MENU** held (~0.6 s) → back to the **ThumbyOne lobby**. |
+| ThumbyCraft | In-game **pause menu** → **Back to lobby** |
 | ThumbyCue *(standalone slot builds only — runs inside Mote in the default build)* | **MENU** → pause menu → **LOBBY** |
 | ThumbyRogue *(optional 9th slot)* | **MENU** held ~1.2 s in-game — direct reboot to the lobby (short MENU taps open the inventory; the run auto-saves on descent so it resumes next launch) |
 
@@ -557,10 +557,9 @@ The 128×128 screen is square but a SCUMM scene is 320×200 — so dialog and ve
 
 **What it is.** Mote is a **native C game engine built for the Thumby Color** — focused on high-performance 3D rendering, physics and audio, with both CPU cores put to work and careful management of the device's 520 KB of RAM. It comes with a selection of ready-to-play games and examples, and a powerful desktop **IDE (Mote Studio)** for building your own. On the firmware, Mote is **one resident engine in the MOTE slot** that loads and runs games as tiny native `.mote` files from a **`/mote/`** folder on the drive — each game gets the full SRAM and native speed (3D, physics, audio, the lot), then hands control back to the Mote launcher. So instead of one 512 KB slot per game, a whole library lives behind a single engine, and you add to it just by dropping files in `/mote/`.
 
-The headline games each have their own section below — **ThumbyCraft** (voxel survival), **ThumbyCue** (snooker & pool) and **Indemnity Run** (space sim) — and there's a growing set of arcade games: MotoKart, Wolfmote, Nightmote, Tetris 3D, Golf, Chess, Pong 3D, Tanks, Arkanoid 3D, Fling and PaperMote.
+The headline games each have their own section below — **ThumbyCue** (snooker & pool) and **Indemnity Run** (space sim) — and there's a growing set of arcade games: MotoKart, Wolfmote, Nightmote, Tetris 3D, Golf, Chess, Pong 3D, Tanks, Arkanoid 3D, Fling and PaperMote.
 
 <p align="center">
-<img src="docs/screenshots/mote-craft.png"     width="180" alt="ThumbyCraft">
 <img src="docs/screenshots/mote-cue.png"        width="180" alt="ThumbyCue">
 <img src="docs/screenshots/mote-indemnity.png"  width="180" alt="Indemnity Run">
 <img src="docs/screenshots/mote-motokart.png"   width="180" alt="MotoKart">
