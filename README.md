@@ -88,7 +88,7 @@ All the systems share one FAT drive, visible over USB when you're in the lobby. 
 >
 > Flashing ThumbyOne **replaces the stock TinyCircuits firmware** with a completely different system. This is a full takeover, not an overlay:
 >
-> - **The TinyCircuits launcher, stock games, and system files will be gone.** ThumbyOne's shared FAT (8.5 MB in the default MD-enabled build with ThumbyCraft, 9.5 MB with `THUMBYONE_WITH_MD=OFF`, up to 15 MB on the slimmer presets that don't include ThumbyCraft — see [Build matrix](#build-matrix)) sits at a different flash offset than stock — first boot will need to format a fresh volume, and anything you had on the device (saves, scores, installed games) is wiped at that point.
+> - **The TinyCircuits launcher, stock games, and system files will be gone.** ThumbyOne's shared FAT (8.09 MB in the default build, 9.09 MB with `THUMBYONE_WITH_MD=OFF`, 10.47 MB without DOOM, up to 15 MB on the slimmer presets — see [Build matrix](#build-matrix)) sits at a different flash offset than stock — first boot will need to format a fresh volume, and anything you had on the device (saves, scores, installed games) is wiped at that point.
 > - The device is easy to flash back to stock afterwards — see instructions below. But stock firmware **doesn't expose a USB drive** — to back up anything from stock first (e.g. save files under `/Saves/`), connect via [Thonny](https://color.thumby.us/pages/getting-started-with-thonny/getting-started-with-thonny/) or `mpremote` and pull files over the REPL. Do that **before** flashing ThumbyOne.
 > - ThumbyOne uses its own filesystem layout (`/roms/`, `/carts/`, `/games/`) — stock `/Games/` Python games won't be visible until you move them into `/games/`.
 > - There is **no going back to stock with your data intact unless you back it up first** once ThumbyOne has first-booted.
@@ -263,7 +263,7 @@ Two escape hatches for when something goes wrong:
 
 **Hold MENU at boot** → forces the lobby even if a pending slot-chain would otherwise try to start a broken slot. Useful after a bad flash or a hang.
 
-**Hold LB + RB at boot** → the lobby prompts you to keep both held for a one-second countdown, then wipes and reformats the whole shared FAT (size depends on the build — 8.5 MB in the default 1.14 MD+CRAFT-enabled build, 9.5 MB without MD, up to 15 MB on the slimmer presets that drop ThumbyCraft and other systems). Erases all ROMs, carts, games, saves, and any extracted SCUMM / ThumbyCraft data. Only needed if the FAT itself is corrupt (no slot can read it, or the PC says "unformatted disk").
+**Hold LB + RB at boot** → the lobby prompts you to keep both held for a one-second countdown, then wipes and reformats the whole shared FAT (size depends on the build — 8.09 MB in the current default build, 9.09 MB without MD, 10.47 MB without DOOM, up to 15 MB on the slimmer presets that drop more systems). Erases all ROMs, carts, games, saves, and any extracted SCUMM / ThumbyCraft data. Only needed if the FAT itself is corrupt (no slot can read it, or the PC says "unformatted disk").
 
 No driver weirdness, no Windows Format dialog, no `mpremote` incantations. LB + RB at boot is the canonical wipe.
 
@@ -583,7 +583,7 @@ There are two ways, and the first needs no tools at all:
 
 #### A note on versions (ABI)
 
-A `.mote` game is built against a Mote **ABI version** — the engine interface it expects. The engine in the firmware runs any game built against **its ABI or older**. **ThumbyOne 1.29 ships Mote engine ABI v39.** Games in the download above are built for it; a game built against a *newer* ABI than the firmware won't load until you update the firmware. (If a game doesn't appear after copying it, that's usually why.)
+A `.mote` game is built against a Mote **ABI version** — the engine interface it expects. The engine in the firmware runs any game built against **its ABI or older**. **ThumbyOne 1.30 ships Mote engine ABI v42** (1.29 shipped v39). Games in the download above are built for it; a game built against a *newer* ABI than the firmware won't load until you update the firmware. (If a game doesn't appear after copying it, that's usually why.)
 
 #### Learn more / build games
 
@@ -824,6 +824,20 @@ style. MENU-hold returns to the lobby. Full manual: the
 [Pilot's Handbook](https://austinio7116.github.io/ThumbyElite/).
 
 ## Changelog
+
+### 1.30
+
+**Fix release: the MicroPython slot works again — plus a big Mote engine update (ABI v39 → v42). No reformat — a safe drop-in upgrade from 1.29; everything on the shared drive is kept.**
+
+* **Fixed — MicroPython slot showed `FS ERR / mount failed` (all three 1.29 firmwares).** The MicroPython slot was compiled looking for the shared drive at the wrong flash address — it assumed the standard slot arrangement instead of the one actually built — so on 1.29 it couldn't open the drive and the game picker refused to start. The slot is now built with the same layout as the rest of the firmware. (Reported by the community on `_nodoom` — thank you.)
+* **Fixed — game art rendered white in the MicroPython slot on `_nodoom`.** With the drive fix in, `_nodoom` exposed a second, subtler bug: the engine stages a game's images in a flash scratch area, and on layouts where that area sits in the first 4 MB of flash it wrote them to the right place but **read them back from the wrong one** — games ran fine, but every image showed as white. Reads now go through the slot's own flash window. (Only the `_nodoom` / `_nodoom_nomd` layouts were exposed; default and `_nomd` were unaffected.)
+* **Mote engine updated: ABI v39 → v42.** Since 1.29 the resident Mote engine gains:
+  * **Indexed (palette) textures** — art with ≤ 256 colours is stored at 1/4 or 1/2 the flash and unpacked on the fly; the bakers apply this automatically and losslessly (e.g. Thumbalaga's enemy sheet went 45 KB → 11 KB with no visible change).
+  * **Low-fi sounds** — sound effects are stored at their natural quality (e.g. 8-bit / 11 kHz) instead of always full 16-bit / 22 kHz, cutting a typical effect to about a quarter of the flash.
+  * **2D rigid-body physics** — a new top-down 2D solver (`MoteBody2D` / `MoteWorld2D`) alongside the existing 3D one.
+  * Existing `.mote` games keep working — the engine runs any game built against its ABI or older. Rebuild a game with the current SDK to pick up the flash savings.
+* **Under the hood, so this can't happen again:** the partition-table generator and the C-side layout header had drifted 32 KB apart on the ThumbyCraft slot size (now identical); all release firmware is now produced by one pinned build script (`build_presets.sh`) that hands every slot the same layout flags; and the version shows as **ONE 1.30** in the lobby and **MPY 1.30** in the MicroPython picker.
+* **No reformat from 1.29.** The shared drive has the same place and size in all three firmwares — flash straight over 1.29 and your files survive. (Switching *between* presets, e.g. default → `_nodoom`, still reformats as always.)
 
 ### 1.29
 
@@ -2180,9 +2194,9 @@ No two slots are in memory at the same time. Each slot has the whole 520 KB SRAM
 
 Two layouts depending on `THUMBYONE_WITH_MD`:
 
-### Default build (`THUMBYONE_WITH_MD=ON`, `THUMBYONE_WITH_CRAFT=ON`)
+### Default build (`THUMBYONE_WITH_MD=ON`, `THUMBYONE_WITH_CRAFT=ON`) — as of 1.30
 
-NES slot is 2 MB to hold PicoDrive's precomputed tables; every downstream partition shifts. SCUMM landed in 1.13, CRAFT in 1.14 — both eat into the shared FAT.
+NES slot is 2 MB to hold PicoDrive's precomputed tables; every downstream partition shifts. SCUMM landed in 1.13, the two Mote partitions in 1.28, and CRAFT returned as a standalone slot (480 KB) in 1.29 — all eat into the shared FAT.
 
 | Partition  | Offset     | Size    | XIP address     | Purpose |
 |-----------:|-----------:|--------:|-----------------|---------|
@@ -2191,14 +2205,16 @@ NES slot is 2 MB to hold PicoDrive's precomputed tables; every downstream partit
 | NES        | `0x020000` | **2 MB** | `0x10020000`   | ThumbyNES + **MD (PicoDrive)** |
 | P8         | `0x220000` | 384 KB  | `0x10220000`    | ThumbyP8 firmware |
 | DOOM       | `0x280000` | 2432 KB | `0x10280000`    | ThumbyDOOM + shareware WAD |
-| MPY        | `0x4E0000` | 1280 KB | `0x104E0000`    | MicroPython + engine |
+| MPY        | `0x4E0000` | 1280 KB | `0x104E0000`    | MicroPython + engine (top 256 KB = texture/sound scratch) |
 | SCUMM      | `0x620000` | 640 KB  | `0x10620000`    | ThumbyScummby (engine + picker; data on FAT) |
-| CRAFT      | `0x6C0000` | 512 KB  | `0x106C0000`    | ThumbyCraft (engine + textures; world data on FAT) |
-| P8 scratch | `0x740000` | 252 KB  | `0x10740000`    | P8 active-cart working area |
-| Settings sector | `0x77F000` | 4 KB | `0x1077F000`    | System-wide volume + brightness |
-| Shared FAT | `0x780000` | **8.5 MB** | `0x10780000` | `/roms`, `/carts`, `/games`, `/scumm/`, `/thumbycraft/`, `/Saves`, `/.favs`, `/.active_game` |
+| Mote runner | `0x6C0000` | 320 KB | `0x106C0000`    | Mote engine OS (runs `.mote` games in place from the FAT) |
+| Mote lobby | `0x710000` | 128 KB  | `0x10710000`    | Mote launcher (game list + icons) |
+| CRAFT      | `0x730000` | 480 KB  | `0x10730000`    | ThumbyCraft (engine + textures; world data on FAT) |
+| P8 scratch | `0x7A8000` | 252 KB  | `0x107A8000`    | P8 active-cart working area |
+| Settings sector | `0x7E7000` | 4 KB | `0x107E7000`    | System-wide volume + brightness |
+| Shared FAT | `0x7E8000` | **8.09 MB** | `0x107E8000` | `/roms`, `/carts`, `/games`, `/scumm/`, `/mote/`, `/thumbycraft/`, `/Saves`, `/.favs`, `/.active_game` |
 
-### Backward-compat build (`THUMBYONE_WITH_MD=OFF`, `THUMBYONE_WITH_CRAFT=ON`)
+### Backward-compat build (`THUMBYONE_WITH_MD=OFF`, `THUMBYONE_WITH_CRAFT=ON`) — as of 1.30
 
 NES partition shrinks to 1 MB. MD emulation is excluded (no `.md/.gen/.bin` support in the picker).
 
@@ -2209,12 +2225,14 @@ NES partition shrinks to 1 MB. MD emulation is excluded (no `.md/.gen/.bin` supp
 | DOOM       | `0x180000` | 2432 KB | `0x10180000`    | ThumbyDOOM + shareware WAD |
 | MPY        | `0x3E0000` | 1280 KB | `0x103E0000`    | MicroPython + engine |
 | SCUMM      | `0x520000` | 640 KB  | `0x10520000`    | ThumbyScummby |
-| CRAFT      | `0x5C0000` | 512 KB  | `0x105C0000`    | ThumbyCraft |
-| P8 scratch | `0x640000` | 252 KB  | `0x10640000`    | — |
-| Settings sector | `0x67F000` | 4 KB | `0x1067F000`    | — |
-| Shared FAT | `0x680000` | **9.5 MB** | `0x10680000` | — |
+| Mote runner | `0x5C0000` | 320 KB | `0x105C0000`    | Mote engine OS |
+| Mote lobby | `0x610000` | 128 KB  | `0x10610000`    | Mote launcher |
+| CRAFT      | `0x630000` | 480 KB  | `0x10630000`    | ThumbyCraft |
+| P8 scratch | `0x6A8000` | 252 KB  | `0x106A8000`    | — |
+| Settings sector | `0x6E7000` | 4 KB | `0x106E7000`    | — |
+| Shared FAT | `0x6E8000` | **9.09 MB** | `0x106E8000` | — |
 
-Disabling individual slots (`-DTHUMBYONE_WITH_SCUMM=OFF`, `-DTHUMBYONE_WITH_CRAFT=OFF`, etc.) shifts everything downstream and grows the FAT correspondingly. The slimmer preset images at the repo root (`_nodoom`, `_scummonly`, `_retro`, ...) build from various subsets — currently they all keep `THUMBYONE_WITH_CRAFT=OFF`; only the main `firmware_thumbyone.uf2` and its `_nomd` sibling ship the ThumbyCraft slot.
+Disabling individual slots (`-DTHUMBYONE_WITH_SCUMM=OFF`, `-DTHUMBYONE_WITH_CRAFT=OFF`, etc.) shifts everything downstream and grows the FAT correspondingly. The slimmer preset images at the repo root (`_nodoom`, `_scummonly`, `_retro`, ...) build from various subsets. Each release preset's exact flag set is defined once in `build_presets.sh`.
 
 Canonical source: [`common/slot_layout.h`](common/slot_layout.h) (preprocessor-selects the layout based on the `THUMBYONE_WITH_*` flags). The partition table consumed by the RP2350 bootrom is generated at build time from the same flags by [`tools/gen_pt.py`](tools/gen_pt.py).
 
@@ -2669,15 +2687,16 @@ cmake --build build_device -j8
 ```
 
 Prebuilt presets at the repo root (release builds). The default and its `_nomd` / `_nodoom`
-siblings are the **current 1.28 builds** (the **Mote** slot — ThumbyCraft, ThumbyCue,
-Indemnity Run + the arcade games on one resident engine); the rest are older **pre-1.28**
-builds (standalone Craft/Rogue/Elite, no Mote) kept for storage-heavy retro setups.
+siblings are the **current 1.30 builds** (the **Mote** slot — ThumbyCue, Indemnity Run +
+the arcade games on one resident engine — plus the standalone ThumbyCraft slot); the rest
+are older **pre-1.28** builds (standalone Craft/Rogue/Elite, no Mote) kept for
+storage-heavy retro setups.
 
 | Preset UF2 | Systems included | UF2 size | FAT size |
 |---|---|---:|---:|
-| `firmware_thumbyone.uf2` *(1.28)*       | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM · **Mote** | 13.1 MB | **8.5 MB** |
-| `firmware_thumbyone_nomd.uf2` *(1.28)*  | NES (no MD) · P8 · DOOM · MPY · SCUMM · **Mote**   | 10.6 MB | **9.5 MB** |
-| `firmware_thumbyone_nodoom.uf2` *(1.28)*| NES (+MD+PCE) · P8 · MPY · SCUMM · **Mote**        | 8.4 MB  | **10.9 MB** |
+| `firmware_thumbyone.uf2` *(1.30)*       | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM · **Mote** · Craft | 13.4 MB | **8.09 MB** |
+| `firmware_thumbyone_nomd.uf2` *(1.30)*  | NES (no MD) · P8 · DOOM · MPY · SCUMM · **Mote** · Craft   | 11.0 MB | **9.09 MB** |
+| `firmware_thumbyone_nodoom.uf2` *(1.30)*| NES (+MD+PCE) · P8 · MPY · SCUMM · **Mote** · Craft        | 8.9 MB  | **10.47 MB** |
 | `firmware_thumbyone_rogue.uf2`          | default + standalone **ThumbyRogue** as a 9th slot (custom build) | — | — |
 | `firmware_thumbyone_revert.uf2`         | recovery — stock TinyCircuits MicroPython (see [Returning to stock](#returning-to-stock)) | — | — |
 | `firmware_thumbyone_nocraft.uf2` *(pre-1.28)*     | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM    | 13.2 MB | **8.5 MB** |

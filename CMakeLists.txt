@@ -51,7 +51,7 @@ set(THUMBYONE_UNIFIED_BUILD ON)
 # DOOM is deliberately excluded — it tracks the ThumbyDOOM port's
 # own versioning ("ThumbyDOOM v1.2"), not ThumbyOne's release
 # cadence.
-set(THUMBYONE_FW_VERSION "1.29")
+set(THUMBYONE_FW_VERSION "1.30")
 add_compile_definitions(THUMBYONE_FW_VERSION="${THUMBYONE_FW_VERSION}")
 
 # ----- Slot selection --------------------------------------------------
@@ -62,15 +62,17 @@ option(THUMBYONE_WITH_P8    "Include ThumbyP8 firmware"      ON)
 option(THUMBYONE_WITH_DOOM  "Include ThumbyDOOM firmware"    ON)
 option(THUMBYONE_WITH_MPY   "Include MicroPython firmware"   ON)
 option(THUMBYONE_WITH_SCUMM "Include ThumbyScummby firmware" ON)
-# The Mote OS slot replaces the three standalone game slots (Craft, Cue in the
-# old ROGUE partition, Indemnity/Elite) with one tile hosting the whole Mote
-# library off the shared FAT. Default build: MOTE on, the three off.
+# The Mote OS slot hosts a whole library off the shared FAT — Cue and
+# Indemnity Run are now Mote GAMES in /mote/, NOT firmware slots. Since 1.29
+# ThumbyCraft is back as its own standalone slot. The STANDARD build =
+# these defaults + THUMBYONE_WITH_CRAFT=ON; ELITE and ROGUE stay OFF.
+# Do NOT enable ELITE/ROGUE for a normal build — that ships Cue/Indemnity
+# as slots again (the mistake this comment exists to prevent).
 option(THUMBYONE_WITH_MOTE  "Include the Mote OS slot"       ON)
-option(THUMBYONE_WITH_CRAFT "Include ThumbyCraft firmware"   OFF)
-option(THUMBYONE_WITH_ROGUE "Include ThumbyRogue firmware"   OFF)
-option(THUMBYONE_WITH_ELITE "Include ThumbyElite firmware"   OFF)
-# Optional 9th slot: ThumbyRogue appended after Elite (custom variant).
-# OFF by default — the standard build runs Cue/Pool in the rogue partition.
+option(THUMBYONE_WITH_CRAFT "Include ThumbyCraft slot (standard build: ON)" OFF)
+option(THUMBYONE_WITH_ROGUE "Build ThumbyCue as a slot (former rogue partition) — non-standard" OFF)
+option(THUMBYONE_WITH_ELITE "Build Indemnity Run/Elite as a slot — non-standard" OFF)
+# Optional 9th slot: ThumbyRogue appended after Elite (custom variant only).
 option(THUMBYONE_WITH_ROGUE9 "Add ThumbyRogue as a 9th slot" OFF)
 
 # Propagate the WITH_X flags as compile-time defines so slot_layout.h's
@@ -356,13 +358,25 @@ if (THUMBYONE_WITH_MPY)
     # element CMake lists across ExternalProject_Add is awkward
     # because of semicolon mangling, so we hand over the tree root
     # and let the consumer figure out the rest.
-    # Propagate THUMBYONE_WITH_MD so mpconfigboard.h picks the
-     # matching FAT base (shifted +1 MB when MD grows the NES slot).
-    if (THUMBYONE_WITH_MD)
-        set(MPY_WITH_MD_FLAG -DTHUMBYONE_WITH_MD=1)
-    else()
-        set(MPY_WITH_MD_FLAG -DTHUMBYONE_WITH_MD=0)
-    endif()
+    # Propagate ALL layout-affecting WITH_* flags so slot_layout.h (force-
+    # included via mpconfigboard.h) computes the SAME THUMBYONE_FAT_OFFSET
+    # as the lobby. The MPY slot is an isolated ExternalProject, so it does
+    # NOT inherit the top-level add_compile_definitions() above — without
+    # this it falls back to slot_layout.h's all-defaults (DOOM=1, CRAFT=0,
+    # ...) and the picker/mpconfigboard mount the shared FAT at the wrong
+    # flash offset ("FS ERR mount failed, go to lobby, wipe"). Only WITH_MD
+    # used to be forwarded, so every preset whose DOOM/CRAFT/... differ from
+    # those defaults was mismatched — including the default build once the
+    # CRAFT slot shipped in 1.29 (off by the 480 KB CRAFT partition) and the
+    # _nodoom preset (off by ~1.9 MB). Same 0/1 conversion as the loop above.
+    set(MPY_LAYOUT_FLAGS "")
+    foreach(_mf NES P8 DOOM MPY SCUMM CRAFT ROGUE ELITE ROGUE9 MOTE MD PCE)
+        if (THUMBYONE_WITH_${_mf})
+            list(APPEND MPY_LAYOUT_FLAGS -DTHUMBYONE_WITH_${_mf}=1)
+        else()
+            list(APPEND MPY_LAYOUT_FLAGS -DTHUMBYONE_WITH_${_mf}=0)
+        endif()
+    endforeach()
     ExternalProject_Add(mpy_slot
         SOURCE_DIR     ${MPY_SRC_DIR}
         BINARY_DIR     ${MPY_BUILD_DIR}
@@ -374,7 +388,7 @@ if (THUMBYONE_WITH_MPY)
             -DTHUMBYONE_ROOT=${CMAKE_CURRENT_SOURCE_DIR}
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DTHUMBYONE_FW_VERSION=${THUMBYONE_FW_VERSION}
-            ${MPY_WITH_MD_FLAG}
+            ${MPY_LAYOUT_FLAGS}
         BUILD_BYPRODUCTS ${MPY_UF2}
         INSTALL_COMMAND ""
         BUILD_ALWAYS 1
@@ -469,9 +483,10 @@ if (THUMBYONE_WITH_CRAFT)
 endif()
 
 
-# ----- ThumbyCue slot (occupies the former ThumbyRogue partition) ----
-# Accurate 3D snooker & pool on the vendored ThumbyElite renderer. No
-# persistent save — only the lobby's volume/brightness are honoured.
+# ----- ThumbyCue slot (NON-STANDARD — occupies the former ThumbyRogue partition) ----
+# Accurate 3D snooker & pool on the vendored ThumbyElite renderer. This is a
+# CUSTOM build only: in the standard build Cue ships as a Mote game in /mote/,
+# not as a slot. Enabling THUMBYONE_WITH_ROGUE brings it back as a slot.
 # Kept at the ROGUE offset/size so the FAT position is unchanged (installs
 # over an existing flash without disturbing the user's files).
 if (THUMBYONE_WITH_ROGUE)
@@ -514,9 +529,10 @@ endif()
 
 
 # ----- ThumbyRogue 9th slot (optional, custom build only) ------------
-# Cue/Pool occupies the original rogue partition in the standard build;
-# enabling THUMBYONE_WITH_ROGUE9 appends ThumbyRogue after Elite so both
-# ship. Off by default — shifts the P8 scratch + FAT for that variant.
+# Only relevant to a custom Cue-slot + Elite-slot variant: when both
+# THUMBYONE_WITH_ROGUE and _WITH_ELITE are on, enabling THUMBYONE_WITH_ROGUE9
+# appends ThumbyRogue after Elite so all ship. Off by default and irrelevant
+# to the standard build — shifts the P8 scratch + FAT for that variant.
 if (THUMBYONE_WITH_ROGUE9)
     set(THUMBYONE_SLOT_MODE "rogue")
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../ThumbyRogue/device

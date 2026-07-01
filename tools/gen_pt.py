@@ -33,7 +33,9 @@ MPY_KB             = 1280
 SCUMM_KB           = 640
 MOTE_RUNNER_KB     = 320    # Mote engine OS (no USB); games live on the FAT, not here
 MOTE_LOBBY_KB      = 128    # Mote launcher + USB + FatFs (small; no 3D engine)
-CRAFT_KB           = 512
+CRAFT_KB           = 480    # MUST match THUMBYONE_CRAFT_SIZE in common/slot_layout.h
+                            # (trimmed 512->480 there; gen_pt was left stale, which
+                            # pushed the FAT + any post-CRAFT slot 32 KB past the C view)
 ROGUE_KB           = 512
 ELITE_KB           = 256
 ROGUE9_KB          = 512    # optional 9th slot
