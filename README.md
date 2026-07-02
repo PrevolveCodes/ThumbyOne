@@ -583,7 +583,7 @@ There are two ways, and the first needs no tools at all:
 
 #### A note on versions (ABI)
 
-A `.mote` game is built against a Mote **ABI version** — the engine interface it expects. The engine in the firmware runs any game built against **its ABI or older**. **ThumbyOne 1.30 ships Mote engine ABI v42** (1.29 shipped v39). Games in the download above are built for it; a game built against a *newer* ABI than the firmware won't load until you update the firmware. (If a game doesn't appear after copying it, that's usually why.)
+A `.mote` game is built against a Mote **ABI version** — the engine interface it expects. The engine in the firmware runs any game built against **its ABI or older**. **ThumbyOne 1.30+ ships Mote engine ABI v42** (1.29 shipped v39; 1.31 keeps v42 and fixes the 2D-physics solver). Games in the download above are built for it; a game built against a *newer* ABI than the firmware won't load until you update the firmware. (If a game doesn't appear after copying it, that's usually why.)
 
 #### Learn more / build games
 
@@ -824,6 +824,14 @@ style. MENU-hold returns to the lobby. Full manual: the
 [Pilot's Handbook](https://austinio7116.github.io/ThumbyElite/).
 
 ## Changelog
+
+### 1.31
+
+**Engine fix release: 2D-physics collisions in Mote games no longer "teleport". No reformat — a safe drop-in upgrade from 1.30 or 1.29; everything on the shared drive is kept.**
+
+* **Mote engine: phys2d collision fix.** The 2D rigid-body solver applied its push-apart correction once per solver iteration instead of once per contact, so fast, deep collisions hurled bodies apart — crashes looked like teleports. It's now a single gentle pass. Any Mote game using the 2D solver (driving games!) feels dramatically better.
+* **Engine ABI unchanged (v42).** Games from the 1.30 bundle (`mote-games-1.30.zip`) run as-is — no game updates needed; this firmware just fixes how they collide. The Mote Studio 0.14-alpha release documents the matching SDK/Studio work.
+* Version shows **ONE 1.31** in the lobby / **MPY 1.31** in the MicroPython picker. All three firmwares (default / `_nomd` / `_nodoom`) rebuilt by the pinned `build_presets.sh`.
 
 ### 1.30
 
@@ -2687,16 +2695,16 @@ cmake --build build_device -j8
 ```
 
 Prebuilt presets at the repo root (release builds). The default and its `_nomd` / `_nodoom`
-siblings are the **current 1.30 builds** (the **Mote** slot — ThumbyCue, Indemnity Run +
+siblings are the **current 1.31 builds** (the **Mote** slot — ThumbyCue, Indemnity Run +
 the arcade games on one resident engine — plus the standalone ThumbyCraft slot); the rest
 are older **pre-1.28** builds (standalone Craft/Rogue/Elite, no Mote) kept for
 storage-heavy retro setups.
 
 | Preset UF2 | Systems included | UF2 size | FAT size |
 |---|---|---:|---:|
-| `firmware_thumbyone.uf2` *(1.30)*       | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM · **Mote** · Craft | 13.4 MB | **8.09 MB** |
-| `firmware_thumbyone_nomd.uf2` *(1.30)*  | NES (no MD) · P8 · DOOM · MPY · SCUMM · **Mote** · Craft   | 11.0 MB | **9.09 MB** |
-| `firmware_thumbyone_nodoom.uf2` *(1.30)*| NES (+MD+PCE) · P8 · MPY · SCUMM · **Mote** · Craft        | 8.9 MB  | **10.47 MB** |
+| `firmware_thumbyone.uf2` *(1.31)*       | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM · **Mote** · Craft | 13.4 MB | **8.09 MB** |
+| `firmware_thumbyone_nomd.uf2` *(1.31)*  | NES (no MD) · P8 · DOOM · MPY · SCUMM · **Mote** · Craft   | 11.0 MB | **9.09 MB** |
+| `firmware_thumbyone_nodoom.uf2` *(1.31)*| NES (+MD+PCE) · P8 · MPY · SCUMM · **Mote** · Craft        | 8.9 MB  | **10.47 MB** |
 | `firmware_thumbyone_rogue.uf2`          | default + standalone **ThumbyRogue** as a 9th slot (custom build) | — | — |
 | `firmware_thumbyone_revert.uf2`         | recovery — stock TinyCircuits MicroPython (see [Returning to stock](#returning-to-stock)) | — | — |
 | `firmware_thumbyone_nocraft.uf2` *(pre-1.28)*     | NES (+MD+PCE) · P8 · DOOM · MPY · SCUMM    | 13.2 MB | **8.5 MB** |
