@@ -557,7 +557,7 @@ The 128×128 screen is square but a SCUMM scene is 320×200 — so dialog and ve
 
 **What it is.** Mote is a **native C game engine built for the Thumby Color** — focused on high-performance 3D rendering, physics and audio, with both CPU cores put to work and careful management of the device's 520 KB of RAM. It comes with a selection of ready-to-play games and examples, and a powerful desktop **IDE (Mote Studio)** for building your own. On the firmware, Mote is **one resident engine in the MOTE slot** that loads and runs games as tiny native `.mote` files from a **`/mote/`** folder on the drive — each game gets the full SRAM and native speed (3D, physics, audio, the lot), then hands control back to the Mote launcher. So instead of one 512 KB slot per game, a whole library lives behind a single engine, and you add to it just by dropping files in `/mote/`.
 
-The headline games each have their own section below — **ThumbyCue** (snooker & pool) and **Indemnity Run** (space sim) — and there's a growing set of arcade games: MotoKart, Wolfmote, Nightmote, Tetris 3D, Golf, Chess, Pong 3D, Tanks, Arkanoid 3D, Fling and PaperMote.
+The headline games each have their own section below — **ThumbyCue** (snooker & pool), **Indemnity Run** (space sim) and **Grand Thumb Auto** (top-down open-city driving on the engine's 2D rigid-body physics — cars with real tyre grip and spin-outs, on-foot sections and a wanted level) — and there's a growing set of arcade games: MotoKart, Wolfmote, Nightmote, Tetris 3D, Golf, Chess, Pong 3D, Tanks, Arkanoid 3D, Fling and PaperMote.
 
 <p align="center">
 <img src="docs/screenshots/mote-cue.png"        width="180" alt="ThumbyCue">
