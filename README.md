@@ -22,10 +22,9 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/thumbycue-device-2.jpg" width="220" alt="ThumbyCue — dark balls on a blue cloth">
-  <img src="docs/screenshots/indemnity-title.png" width="220" alt="Indemnity Run — title screen">
-  <img src="docs/screenshots/mote-motokart.png" width="220" alt="MotoKart — Mote kart racer">
-  <img src="docs/screenshots/grandthumbauto.png" width="220" alt="Grand Thumb Auto — top-down city driving on the Mote 2D physics">
+  <img src="docs/screenshots/thumbycue-device-2.jpg" width="240" alt="ThumbyCue — dark balls on a blue cloth">
+  <img src="docs/screenshots/indemnity-title.png" width="240" alt="Indemnity Run — title screen">
+  <img src="docs/screenshots/mote-motokart.png" width="240" alt="MotoKart — Mote kart racer">
 </p>
 <p align="center"><em>ThumbyCue, Indemnity Run and the arcade games above all run on the <a href="#mote--a-whole-game-platform-in-one-slot">Mote</a> engine. ThumbyCraft is its own slot.</em></p>
 
@@ -564,6 +563,7 @@ The headline games each have their own section below — **ThumbyCue** (snooker 
 <img src="docs/screenshots/mote-cue.png"        width="180" alt="ThumbyCue">
 <img src="docs/screenshots/mote-indemnity.png"  width="180" alt="Indemnity Run">
 <img src="docs/screenshots/mote-motokart.png"   width="180" alt="MotoKart">
+<img src="docs/screenshots/mote-grandthumbauto.png" width="180" alt="Grand Thumb Auto">
 <br>
 <img src="docs/screenshots/mote-wolfmote.png"   width="180" alt="Wolfmote">
 <img src="docs/screenshots/mote-nightmote.png"  width="180" alt="Nightmote">
