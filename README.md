@@ -22,10 +22,10 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/thumbycue-device-2.jpg" width="240" alt="ThumbyCue — dark balls on a blue cloth">
-  <img src="docs/screenshots/indemnity-title.png" width="240" alt="Indemnity Run — title screen">
-  <img src="docs/screenshots/mote-motokart.png" width="240" alt="MotoKart — Mote kart racer">
-  <img src="docs/screenshots/grandthumbauto.png" width="240" alt="Grand Thumb Auto — top-down city driving on the Mote 2D physics">
+  <img src="docs/screenshots/thumbycue-device-2.jpg" width="220" alt="ThumbyCue — dark balls on a blue cloth">
+  <img src="docs/screenshots/indemnity-title.png" width="220" alt="Indemnity Run — title screen">
+  <img src="docs/screenshots/mote-motokart.png" width="220" alt="MotoKart — Mote kart racer">
+  <img src="docs/screenshots/grandthumbauto.png" width="220" alt="Grand Thumb Auto — top-down city driving on the Mote 2D physics">
 </p>
 <p align="center"><em>ThumbyCue, Indemnity Run and the arcade games above all run on the <a href="#mote--a-whole-game-platform-in-one-slot">Mote</a> engine. ThumbyCraft is its own slot.</em></p>
 
