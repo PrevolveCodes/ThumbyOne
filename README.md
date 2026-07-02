@@ -7,7 +7,7 @@
 
 ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](https://thumby.us/) — the tiny colour handheld with a 128×128 screen, dual-core Arm Cortex-M33, 520 KB SRAM, and 16 MB of on-board flash. One flash gives you **NES**, **Master System**, **Game Gear**, **Game Boy**, **Mega Drive (Genesis)**, **PC Engine / TurboGrafx-16**, **PICO-8**, **DOOM**, **Monkey Island / Indiana Jones (SCUMM)**, the full **MicroPython + Tiny Game Engine**, and **Mote** — a native C game engine + platform built for the Thumby Color, with a desktop IDE to build your own games. Each is optimized to run perfectly on the device.
 
-**ThumbyCraft** — the bare-metal Minecraft-style voxel world (biomes, cave lava, redstone) — has its own dedicated slot. **Mote** ships a whole game library on one resident engine: **ThumbyCue** (accurate 3-D snooker & pool — UK/US/Chinese 8-ball, 9-ball and 6/10/15-red snooker, with real spin/swerve physics and an eight-persona AI opponent), **Indemnity Run** (a bare-metal Elite-style space sim — an infinite procedural galaxy with real-time 3D dogfighting, trading, missions, salvage and a MechWarrior-grade outfitting game), and a growing set of arcade games (MotoKart, Wolfmote, Nightmote, Tetris 3D, Golf, Chess and more). Add games by dropping `.mote` files in, or write your own in C with **Mote Studio**. → [What is Mote?](#mote--a-whole-game-platform-in-one-slot) *(ThumbyRogue is also available as an optional standalone 9th-slot build — see the changelog.)*
+**ThumbyCraft** — the bare-metal Minecraft-style voxel world (biomes, cave lava, redstone) — has its own dedicated slot. **Mote** ships a whole game library on one resident engine: **ThumbyCue** (accurate 3-D snooker & pool — UK/US/Chinese 8-ball, 9-ball and 6/10/15-red snooker, with real spin/swerve physics and an eight-persona AI opponent), **Indemnity Run** (a bare-metal Elite-style space sim — an infinite procedural galaxy with real-time 3D dogfighting, trading, missions, salvage and a MechWarrior-grade outfitting game), and a growing set of arcade games (**Grand Thumb Auto**, MotoKart, Wolfmote, Nightmote, Tetris 3D, Golf, Chess and more). Add games by dropping `.mote` files in, or write your own in C with **Mote Studio**. → [What is Mote?](#mote--a-whole-game-platform-in-one-slot) *(ThumbyRogue is also available as an optional standalone 9th-slot build — see the changelog.)*
 
 <p align="center">
   <img src="docs/screenshots/nes-game.jpg" width="240" alt="NES on Thumby Color">
@@ -25,6 +25,7 @@ ThumbyOne is a unified multi-boot firmware for the [TinyCircuits Thumby Color](h
   <img src="docs/screenshots/thumbycue-device-2.jpg" width="240" alt="ThumbyCue — dark balls on a blue cloth">
   <img src="docs/screenshots/indemnity-title.png" width="240" alt="Indemnity Run — title screen">
   <img src="docs/screenshots/mote-motokart.png" width="240" alt="MotoKart — Mote kart racer">
+  <img src="docs/screenshots/grandthumbauto.png" width="240" alt="Grand Thumb Auto — top-down city driving on the Mote 2D physics">
 </p>
 <p align="center"><em>ThumbyCue, Indemnity Run and the arcade games above all run on the <a href="#mote--a-whole-game-platform-in-one-slot">Mote</a> engine. ThumbyCraft is its own slot.</em></p>
 
@@ -575,8 +576,6 @@ The headline games each have their own section below — **ThumbyCue** (snooker 
 There are two ways, and the first needs no tools at all:
 
 1. **Download the games and copy them across.** Grab **`mote-games-1.31.zip`** from the [**latest ThumbyOne release**](https://github.com/austinio7116/ThumbyOne/releases/latest) (43 games & examples — including **Grand Thumb Auto**, a top-down open-city driving game on the new 2D physics), unzip it, and copy the `.mote` files into the **`/mote/`** folder on the Thumby Color's USB drive (plug in over USB — the device appears as a drive). Eject, reboot, open the **MOTE** tile, and they're listed. That's it — no IDE, no building.
-
-![Grand Thumb Auto running on the Mote slot — on foot in the city beside parked cars and a police car, with the cash counter and wanted stars in the HUD](docs/img/grandthumbauto.png)
 2. **Make your own with Mote Studio (the IDE).** Download **Mote Studio** from the [**Mote releases**](https://github.com/austinio7116/mote/releases) page (Windows bundle — self-contained, or build it on Linux). Write a game in C; the Studio builds it, runs it in an on-screen emulator, and **pushes it straight into `/mote/` over USB** (or you build a `.mote` and copy it like above).
 
 <p align="center">
