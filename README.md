@@ -122,7 +122,7 @@ With ThumbyOne running, plug the device in (while sitting in the **lobby**). It 
 | NES / SMS / GG / GB / MD / PCE ROMs | `/roms/` | `.nes`, `.sms`, `.gg`, `.gb`, `.gbc`, `.md`, `.gen`, `.bin`, `.pce` |
 | PICO-8 carts | `/carts/` | `.p8.png` |
 | MicroPython games | `/games/<Name>/` | Folder per game with `main.py`, `icon.bmp`, `arcade_description.txt`, assets |
-| Mote games | `/mote/` | `.mote` — grab [`mote-games-1.29.zip`](https://github.com/austinio7116/ThumbyOne/releases) from the releases page, unzip, and drop the `.mote` files straight into `/mote/`. They appear in the **MOTE** tile's launcher. See [Mote](#mote--a-whole-game-platform-in-one-slot). |
+| Mote games | `/mote/` | `.mote` — grab [`mote-games-1.31.zip`](https://github.com/austinio7116/ThumbyOne/releases/latest) from the latest release, unzip, and drop the `.mote` files straight into `/mote/`. They appear in the **MOTE** tile's launcher. See [Mote](#mote--a-whole-game-platform-in-one-slot). |
 | SCUMM adventures (pre-extracted data) | `/scumm/<game>/` | `DISK*.LEC` + `*.LFL` (MI1), `monkey2.000/001` (MI2), `atlantis.000/001` (Indy 4), or `NN.LFL` (Indy 3) |
 | SCUMM adventures (original install floppies) | `/scumm/` | `.img` — the device walks each `.img`, extracts the PCV/LFG! archive inside, and writes the result into `/scumm/<game>/` automatically.  Slow (10–30 min for v5 games) and needs a post-install `defrag fat` from the lobby; pre-extracted is faster.  See [ThumbyScummby section](#thumbyscummby--scumm-adventures) for the full how-to. |
 
@@ -142,7 +142,7 @@ With ThumbyOne running, plug the device in (while sitting in the **lobby**). It 
         arcade_description.txt
         assets/
 /mote/
-    indemnity.mote          (unzip mote-games-1.29.zip and drop the .mote files in here)
+    indemnity.mote          (unzip mote-games-1.31.zip and drop the .mote files in here)
     thumbycue.mote
     indemnity.mote
     motokart.mote
@@ -235,7 +235,7 @@ ThumbyOne exposes a **single** USB drive, and only while you're **in the lobby**
    - ROMs into `/roms/` (any of `.nes`, `.sms`, `.gg`, `.gb`, `.gbc`, `.md`, `.gen`, `.bin`, `.pce`)
    - PICO-8 carts into `/carts/` (`.p8.png`)
    - MicroPython games into `/games/<GameName>/` (a folder per game with `main.py` + assets)
-   - Mote games (`.mote`) into `/mote/` (from `mote-games-1.29.zip`, or built with Mote Studio)
+   - Mote games (`.mote`) into `/mote/` (from `mote-games-1.31.zip`, or built with Mote Studio)
    - SCUMM adventures: either pre-extracted data into `/scumm/<game>/` (`.LEC` + `.LFL` for MI1, `.000` / `.001` for MI2 / Indy 4, `NN.LFL` for Indy 3 — fast, recommended), or original `.img` install floppies dropped at `/scumm/` for the device to extract on first boot (slow — 10–30 min for v5 games, plus a `defrag fat` pass afterwards)
 4. Eject the drive (Windows: right-click → Eject; macOS: drag to Trash; Linux: `sync && umount`).
 5. Pick a system with the d-pad, press A.
@@ -574,7 +574,9 @@ The headline games each have their own section below — **ThumbyCue** (snooker 
 
 There are two ways, and the first needs no tools at all:
 
-1. **Download the games and copy them across.** Grab **`mote-games-1.29.zip`** from the [**ThumbyOne releases**](https://github.com/austinio7116/ThumbyOne/releases) page (attached to this release), unzip it, and copy the `.mote` files into the **`/mote/`** folder on the Thumby Color's USB drive (plug in over USB — the device appears as a drive). Eject, reboot, open the **MOTE** tile, and they're listed. That's it — no IDE, no building.
+1. **Download the games and copy them across.** Grab **`mote-games-1.31.zip`** from the [**latest ThumbyOne release**](https://github.com/austinio7116/ThumbyOne/releases/latest) (44 games & examples — including **Grand Thumb Auto**, a top-down open-city driving game on the new 2D physics), unzip it, and copy the `.mote` files into the **`/mote/`** folder on the Thumby Color's USB drive (plug in over USB — the device appears as a drive). Eject, reboot, open the **MOTE** tile, and they're listed. That's it — no IDE, no building.
+
+![Grand Thumb Auto running on the Mote slot — on foot in the city beside parked cars and a police car, with the cash counter and wanted stars in the HUD](docs/img/grandthumbauto.png)
 2. **Make your own with Mote Studio (the IDE).** Download **Mote Studio** from the [**Mote releases**](https://github.com/austinio7116/mote/releases) page (Windows bundle — self-contained, or build it on Linux). Write a game in C; the Studio builds it, runs it in an on-screen emulator, and **pushes it straight into `/mote/` over USB** (or you build a `.mote` and copy it like above).
 
 <p align="center">
@@ -591,7 +593,7 @@ Mote is its own project — the engine, the SDK, the IDE and the full API refere
 
 - **[Mote repository](https://github.com/austinio7116/mote)** — source + the SDK.
 - **[Mote Studio (downloads)](https://github.com/austinio7116/mote/releases)** — the IDE, Windows & Linux.
-- **[Mote games bundle](https://github.com/austinio7116/ThumbyOne/releases)** — `mote-games-1.29.zip`, attached to the ThumbyOne release.
+- **[Mote games bundle](https://github.com/austinio7116/ThumbyOne/releases/latest)** — `mote-games-1.31.zip`, attached to the latest ThumbyOne release.
 - **[API & ABI reference](https://austinio7116.github.io/mote/)** — every engine call, with the ABI version each was added in.
 
 ---
