@@ -828,6 +828,17 @@ style. MENU-hold returns to the lobby. Full manual: the
 
 ## Changelog
 
+### 1.32.1
+
+**Two-player now just works — over a USB cable or over the internet. If multiplayer wouldn't connect, kept dropping, or the two screens didn't agree, this is the fix. A safe drop-in upgrade from 1.32; nothing on your drive is touched. Reflash both units and drop in `mote-games-1.32.1.zip`.**
+
+* **Multiplayer is reliable now, however you connect.** The four newest 2-player games had bugs that hit every connection type — cable, LAN and internet — and those are fixed below. On top of that, linking two devices directly with a USB-C cable used to lose data (it was the one path that could desync the two screens); that's fixed at the firmware level, so **every** 2-player Mote game is steadier — including Wolfmote, MotoKart and DeepThumb, which needed no update of their own.
+* **ThumbyCue** — turns pass properly. No more breaking off, fouling, and both players getting stuck on "PEER'S TURN". And while you watch your opponent's shot, the balls now spin as they roll instead of sliding.
+* **Grand Thumb Auto** — both players are now in the exact same city (before, the two maps could differ). You can jack **any** moving car, not just the parked ones; you start right next to a car; and a car you steal actually drives and keeps its speed.
+* **Indemnity Run** — duels start properly. Before, the arena would hang on the loading screen and time out, and your opponent flew around on autopilot. Now ships bump into each other instead of passing through, you choose which of your saved ships to bring (or get a random balanced ship if you have no save), and a damage warning that used to stick on screen is cleared.
+* **PaperMote** — the AI bots move and appear in the same place for both players, and driving through your opponent's trail now always crashes them (it used to sometimes pass straight through).
+* Shows **ONE 1.32.1** in the lobby / **MPY 1.32.1** in the MicroPython picker. Same games otherwise — your single-player `.mote` games are untouched.
+
 ### 1.32
 
 **The multiplayer release: Mote games go 2-player — USB cable, LAN, or full internet play — set up entirely from the device. Mote engine ABI v42 → v45. No reformat — a safe drop-in upgrade; everything on the shared drive is kept.**
