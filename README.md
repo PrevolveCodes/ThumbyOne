@@ -559,6 +559,8 @@ The 128×128 screen is square but a SCUMM scene is 320×200 — so dialog and ve
 
 The headline games each have their own section below — **ThumbyCue** (snooker & pool), **Indemnity Run** (space sim) and **Grand Thumb Auto** (top-down open-city driving on the engine's 2D rigid-body physics — cars with real tyre grip and spin-outs, on-foot sections and a wanted level) — and there's a growing set of arcade games: MotoKart, Wolfmote, Nightmote, Tetris 3D, Golf, Chess, Pong 3D, Tanks, Arkanoid 3D, Fling and PaperMote. **See them all — with screenshots on the device and per-game downloads — in the [Mote games gallery](https://austinio7116.github.io/mote/games.html).**
 
+**Multiplayer (1.32+).** Seven Mote games are 2-player: pick multiplayer in the game and the engine's standard lobby offers **USB Cable** (two Thumbys, one USB-C cable), **LAN**, or **Internet** — host a room with a 4-letter code, join by code, browse open rooms, or one-tap quick match, all from the device. Online play works by docking the Thumby in **Mote Studio** on a PC, which relays automatically (no clicks, no port-forwarding). The full how-to lives in the [Mote multiplayer guide](https://github.com/austinio7116/mote#10-multiplayer).
+
 <p align="center">
 <img src="docs/screenshots/mote-cue.png"        width="180" alt="ThumbyCue">
 <img src="docs/screenshots/mote-indemnity.png"  width="180" alt="Indemnity Run">
@@ -584,7 +586,7 @@ There are two ways, and the first needs no tools at all:
 
 #### A note on versions (ABI)
 
-A `.mote` game is built against a Mote **ABI version** — the engine interface it expects. The engine in the firmware runs any game built against **its ABI or older**. **ThumbyOne 1.30+ ships Mote engine ABI v42** (1.29 shipped v39; 1.31 keeps v42 and fixes the 2D-physics solver). Games in the download above are built for it; a game built against a *newer* ABI than the firmware won't load until you update the firmware. (If a game doesn't appear after copying it, that's usually why.)
+A `.mote` game is built against a Mote **ABI version** — the engine interface it expects. The engine in the firmware runs any game built against **its ABI or older**. **ThumbyOne 1.32 ships Mote engine ABI v45** (multiplayer: the USB link, the standard lobby, and engine-owned link health; 1.30/1.31 shipped v42, 1.29 shipped v39). Games in the download above are built for it; a game built against a *newer* ABI than the firmware won't load until you update the firmware. (If a game doesn't appear after copying it, that's usually why.)
 
 #### Learn more / build games
 
@@ -825,6 +827,16 @@ style. MENU-hold returns to the lobby. Full manual: the
 [Pilot's Handbook](https://austinio7116.github.io/ThumbyElite/).
 
 ## Changelog
+
+### 1.32
+
+**The multiplayer release: Mote games go 2-player — USB cable, LAN, or full internet play — set up entirely from the device. Mote engine ABI v42 → v45. No reformat — a safe drop-in upgrade; everything on the shared drive is kept.**
+
+* **2-player Mote games.** Seven games now have full multiplayer modes: **DeepThumb** (chess), **Wolfmote** (deathmatch — with loot drops: your arsenal falls where you die and either player can claim it), **Grand Thumb Auto** (open-city deathmatch with shared traffic), **MotoKart** (racing with the full item game — shells, bananas, lightning, stars), **ThumbyCue** (pool & snooker), **PaperMote** (territory duel), and **Indemnity Run** (1v1 arena dogfights with your saved ship and loadout).
+* **One standard lobby, built into the engine.** Pick multiplayer in any game and the engine shows the same screen everywhere: **USB Cable** (link two Thumbys directly), **LAN**, or **Internet** — quick match, host a room with a 4-letter code, join by code, or browse open rooms, all with the d-pad, all from the device.
+* **Internet play through Mote Studio.** Dock the Thumby in Mote Studio on a PC and the Studio relays automatically — no clicks, no port-forwarding, no firewall prompts. Both players connect out to a small room server; rooms are per-game, public or private by code.
+* **Stall-tolerant by design.** The engine keepalives every session and rides out internet blips with an on-screen **LINK STALLED** banner instead of killing the match; a game only ends after a real 20-second outage. Works for turn-based games too (chess is quiet between moves by design).
+* **Engine ABI v42 → v45** (v43 USB link · v44 the lobby · v45 link health). Rebuild games with the current SDK for multiplayer; existing single-player `.mote` games keep working as always. Grab the matching games as `mote-games-1.32.zip` on the release.
 
 ### 1.31
 
