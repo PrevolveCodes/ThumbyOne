@@ -106,6 +106,10 @@ All the systems share one FAT drive, visible over USB when you're in the lobby. 
 > **Upgrading from any pre-1.14 build?** You cross two slot additions at once — 1.14's ThumbyCraft (512 KB) and 1.18's ThumbyRogue (512 KB) — so the default FAT shrinks from 9.0 MB straight to **8.0 MB** (`WITH_MD=OFF`: 10.0 MB → **9.0 MB**). Same reformat prompt and back-up advice as above. *The `_nodoom` preset is current as of 1.19 and includes everything except DOOM (its own FAT offset — same reformat prompt applies when upgrading it). The `_scummonly` / `_retro` presets remain older and keep the 1.13 FAT sizes.*
 >
 > If you only want a subset of systems and don't need the migration prompt at all, flash one of the slimmer preset UF2s — see [Build matrix](#build-matrix). `firmware_thumbyone_scummonly.uf2` for example gives 15 MB FAT for SCUMM-only setups.
+>
+> **Upgrading to 1.33 (from 1.32.x)?** Same storage layout as the previous release — just drag the new `firmware_thumbyone.uf2` on and **everything you already have stays put** (Mote games, ROMs, carts, SCUMM, saves); there's no reformat prompt, and your installed Mote games keep working unchanged. 1.33's headline is the **on-device Mote gallery** — browse, install and *update* Mote games right on the handheld — plus a crisp new interface font across the Mote launcher, gallery and menus. When you open the gallery, the Mote games you already have appear as **Update available** (your older copies predate per-game versions, so the gallery offers to refresh each one in place); games you don't have yet show as **New**.
+>
+> **Upgrading from a build older than 1.32?** The storage layout changed across earlier releases, so you'll get the usual `FS BAD / A=FORMAT` prompt at the new FAT offset — **back up first** (see the notes above), then flash, reformat and copy your content back.
 
 1. Power off the Thumby Color.
 2. Hold **DOWN** on the d-pad and plug in USB.
@@ -122,7 +126,7 @@ With ThumbyOne running, plug the device in (while sitting in the **lobby**). It 
 | NES / SMS / GG / GB / MD / PCE ROMs | `/roms/` | `.nes`, `.sms`, `.gg`, `.gb`, `.gbc`, `.md`, `.gen`, `.bin`, `.pce` |
 | PICO-8 carts | `/carts/` | `.p8.png` |
 | MicroPython games | `/games/<Name>/` | Folder per game with `main.py`, `icon.bmp`, `arcade_description.txt`, assets |
-| Mote games | `/mote/` | `.mote` — grab [`mote-games-1.31.zip`](https://github.com/austinio7116/ThumbyOne/releases/latest) from the latest release, unzip, and drop the `.mote` files straight into `/mote/` — or download games one at a time from the [games gallery](https://austinio7116.github.io/mote/games.html). They appear in the **MOTE** tile's launcher. See [Mote](#mote--a-whole-game-platform-in-one-slot). |
+| Mote games | `/mote/` | `.mote` — easiest is the **built-in gallery**: dock the device in Mote Studio and press **RB** in the **MOTE** launcher to install & update games on the handheld (or use Studio's GALLERY tab). You can still grab `.mote` files from the [games gallery](https://austinio7116.github.io/mote/games.html) and copy them into `/mote/` by hand. See [Mote](#mote--a-whole-game-platform-in-one-slot). |
 | SCUMM adventures (pre-extracted data) | `/scumm/<game>/` | `DISK*.LEC` + `*.LFL` (MI1), `monkey2.000/001` (MI2), `atlantis.000/001` (Indy 4), or `NN.LFL` (Indy 3) |
 | SCUMM adventures (original install floppies) | `/scumm/` | `.img` — the device walks each `.img`, extracts the PCV/LFG! archive inside, and writes the result into `/scumm/<game>/` automatically.  Slow (10–30 min for v5 games) and needs a post-install `defrag fat` from the lobby; pre-extracted is faster.  See [ThumbyScummby section](#thumbyscummby--scumm-adventures) for the full how-to. |
 
@@ -575,10 +579,17 @@ The headline games each have their own section below — **ThumbyCue** (snooker 
 
 #### Getting games onto the Mote slot
 
-There are two ways, and the first needs no tools at all:
+The easiest way is the **built-in gallery** — no files to hunt down, and it keeps your games up to date:
 
-1. **Download the games and copy them across.** Grab **`mote-games-1.31.zip`** from the [**latest ThumbyOne release**](https://github.com/austinio7116/ThumbyOne/releases/latest) (43 games & examples — including **Grand Thumb Auto**, a top-down open-city driving game on the new 2D physics), unzip it, and copy the `.mote` files into the **`/mote/`** folder on the Thumby Color's USB drive (plug in over USB — the device appears as a drive). Eject, reboot, open the **MOTE** tile, and they're listed. That's it — no IDE, no building.
-2. **Make your own with Mote Studio (the IDE).** Download **Mote Studio** from the [**Mote releases**](https://github.com/austinio7116/mote/releases) page (Windows bundle — self-contained, or build it on Linux). Write a game in C; the Studio builds it, runs it in an on-screen emulator, and **pushes it straight into `/mote/` over USB** (or you build a `.mote` and copy it like above).
+1. **Install from the gallery, right on the device.** Dock the Thumby Color in **Mote Studio** over USB, open the **MOTE** tile, and press **RB** in the launcher. You get a gallery you can browse on the handheld itself — one game per screen with its screenshot, size and a state chip — and **A** installs or updates it. Games you already have show **Update available**; games you don't have yet show **New**. (You can also browse and install from Studio's **GALLERY** tab on the PC — it's the same catalog, and it shows a running count of updates available.)
+
+   <p align="center">
+   <img src="docs/screenshots/mote-gallery.png" width="440" alt="The on-device Mote gallery on a Thumby Color — a game's hero view with its screenshot, version, size and an UPDATE chip">
+   </p>
+
+2. **Make your own with Mote Studio (the IDE).** Download **Mote Studio** from the [**Mote releases**](https://github.com/austinio7116/mote/releases) page (Windows bundle — self-contained, or build it on Linux). Write a game in C; the Studio builds it, runs it in an on-screen emulator, and **pushes it straight into `/mote/` over USB**.
+
+*(Prefer to copy files by hand? You still can — grab the games from the [gallery](https://austinio7116.github.io/mote/games.html) as `.mote` files and drop them into `/mote/` over USB. The gallery is the recommended route because it tracks versions and updates for you.)*
 
 <p align="center">
 <img src="docs/screenshots/mote-ide.png" width="680" alt="Mote Studio — the IDE: file tree, on-screen emulator, and the 3D mesh-bake view">
@@ -586,7 +597,7 @@ There are two ways, and the first needs no tools at all:
 
 #### A note on versions (ABI)
 
-A `.mote` game is built against a Mote **ABI version** — the engine interface it expects. The engine in the firmware runs any game built against **its ABI or older**. **ThumbyOne 1.32 ships Mote engine ABI v45** (multiplayer: the USB link, the standard lobby, and engine-owned link health; 1.30/1.31 shipped v42, 1.29 shipped v39). Games in the download above are built for it; a game built against a *newer* ABI than the firmware won't load until you update the firmware. (If a game doesn't appear after copying it, that's usually why.)
+A `.mote` game is built against a Mote **ABI version** — the engine interface it expects. The engine in the firmware runs any game built against **its ABI or older**. **ThumbyOne 1.33 ships Mote engine ABI v46** (per-game versions + the on-device gallery; 1.32 shipped v45 for multiplayer, 1.30/1.31 shipped v42, 1.29 shipped v39). v46 is backward-compatible, so games built for v45 keep running after the upgrade. A game built against a *newer* ABI than the firmware won't load until you update the firmware. (If a game doesn't appear after copying it, that's usually why.)
 
 #### Learn more / build games
 
